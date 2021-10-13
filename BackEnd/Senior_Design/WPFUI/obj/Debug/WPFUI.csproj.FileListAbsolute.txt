@@ -1,0 +1,84 @@
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\WPFUI.exe.config
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\WPFUI.exe
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\WPFUI.pdb
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.dll
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.dll
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.Platform.dll
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\System.Windows.Interactivity.dll
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.xml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.Platform.xml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.xml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.csproj.AssemblyReference.cache
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\FirstChildView.g.cs
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\SecondChildView.g.cs
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\ShellView.g.cs
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\App.g.cs
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI_MarkupCompile.cache
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI_MarkupCompile.lref
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\App.baml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\FirstChildView.baml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\SecondChildView.baml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\Views\ShellView.baml
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.g.resources
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.Properties.Resources.resources
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.csproj.GenerateResource.cache
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.csproj.CoreCompileInputs.cache
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.exe
+C:\Users\kendr\Desktop\CaliburnMicroDemoSource\WPFUI\obj\Debug\WPFUI.pdb
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\WPFUI.exe.config
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\WPFUI.exe
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\WPFUI.pdb
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.dll
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.dll
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.dll
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\System.Windows.Interactivity.dll
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.xml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.xml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.xml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.csproj.AssemblyReference.cache
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\FirstChildView.g.cs
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\SecondChildView.g.cs
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\ShellView.g.cs
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\App.g.cs
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI_MarkupCompile.cache
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI_MarkupCompile.lref
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\App.baml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\FirstChildView.baml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\SecondChildView.baml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\Views\ShellView.baml
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.g.resources
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.Properties.Resources.resources
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.csproj.GenerateResource.cache
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.csproj.CoreCompileInputs.cache
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.exe
+C:\Users\kendr\Desktop\Senior Design\WPFUI\obj\Debug\WPFUI.pdb
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.csproj.AssemblyReference.cache
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\FirstChildView.g.cs
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\SecondChildView.g.cs
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\ShellView.g.cs
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\App.g.cs
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI_MarkupCompile.cache
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI_MarkupCompile.lref
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.exe
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.pdb
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\WPFUI.exe.config
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\WPFUI.exe
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\WPFUI.pdb
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.dll
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.dll
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.dll
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\System.Windows.Interactivity.dll
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.xml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.xml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\bin\Debug\Caliburn.Micro.Platform.Core.xml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\App.baml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\FirstChildView.baml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\SecondChildView.baml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\Views\ShellView.baml
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.g.resources
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.Properties.Resources.resources
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.csproj.GenerateResource.cache
+C:\Users\kendr\OneDrive\Documents\VScodeFiles\BackEndSD\Senior_Design\WPFUI\obj\Debug\WPFUI.csproj.CoreCompileInputs.cache
