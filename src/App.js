@@ -3,6 +3,8 @@ import { TiffModel } from './utils/TiffModel'
 import styled from 'styled-components'
 import './App.css'
 import PanZoomCanvas from './components/PanZoomCanvas'
+import {ChannelPane} from './components/ChannelPane';
+
 const { ipcRenderer } = window.require('electron')
 
 class App extends Component {
@@ -10,7 +12,17 @@ class App extends Component {
     super(props)
     this.state = {
       loadedFileType: null,
-      loadedFile: null
+      loadedFile: null,
+      channels: [
+        {channelName: "H3", color:"#FE2828", display: false},
+        {channelName: "HMA", color:"#2CFE28", display: false},
+        {channelName: "INS", color:"#283EFE", display: false},
+        {channelName: "CD44", color:"#1E0404", display: false},
+        {channelName: "WOW32", color:"#28FEF1", display: false},
+        {channelName: "LOL", color:"#FFC42D", display: false},
+        {channelName: "CD38", color:"#FE2882", display: false}
+      ]
+    }
     }
   }
   
