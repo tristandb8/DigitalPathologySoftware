@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
-import { TiffModel } from './utils/TiffModel'
+import { tiffImage } from './utils/TiffModel'
 import styled from 'styled-components'
 import './App.css'
 import PanZoomCanvas from './components/PanZoomCanvas'
+import ChannelPane from './components/ChannelPane';
+
 const { ipcRenderer } = window.require('electron')
 
 class App extends Component {
@@ -10,30 +12,43 @@ class App extends Component {
     super(props)
     this.state = {
       loadedFileType: null,
-      loadedFile: null
+      loadedFile: null,
     }
+    
+    this.handleChannelToggle = this.handleChannelToggle.bind(this)
   }
-  
+
+  handleChannelToggle(index) {
+    let items = [...this.state.loadedFile.idfArray]
+    let item = {...items[index]}
+    item.enabled = !item.enabled
+    items[index] = item
+    
+    this.setState(prevState => ({
+      loadedFile: {...prevState.loadedFile,
+        idfArray: items
+      }
+    }))
+  }
+
   componentDidMount() {
     ipcRenderer.on('new-image', (event, fileContent) => {
       let file
 
       if (fileContent.type === 'tiff') {
-        file = new TiffModel(fileContent.data)
+        file = tiffImage(fileContent.data)
       } else if (fileContent.type === 'image') {
         file = fileContent.data
       }
-
+      
       this.setState({
         loadedFileType: fileContent.type,
-        loadedFile: file
+        loadedFile: file,
       })
     })
   }
-  
+
   render() {
-    console.log('passing:')
-    console.log(this.state)
     return (
       <div className='App'>
         <Split>
@@ -41,7 +56,7 @@ class App extends Component {
           <Display>
             <PanZoomCanvas file={this.state}/>
           </Display>
-          <Pane></Pane>
+          <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle}/>
         </Split>
       </div>
     )
@@ -61,6 +76,7 @@ const Pane = styled.div`
   background: #F3F3F3;
   width: 200px;
 `
+
 const Split = styled.div`
   display: flex;
   flex-direction: row;
@@ -68,4 +84,3 @@ const Split = styled.div`
   align-items: stretch;
   height: 100vh;
 `
-  

@@ -36,62 +36,48 @@ const colors = {
   gray:'$808080', silver: '#c0c0c0', darkslategray: '#2f4f4f',
 }
 
-export class TiffModel {
-  constructor(fileData) {
-    this.idfArray = tiff.decode(fileData)
-    for (let i = 0; i < this.idfArray.length; i++) {
-      this.idfArray[i].channelColor = hexToRgb(Object.values(colors)[i])
-      this.idfArray[i].enabled = true
+export const tiffImage = (fileData) => {
+  let idfArray = tiff.decode(fileData)
+  for (let i = 0; i < idfArray.length; i++) {
+    idfArray[i].channelColor = Object.values(colors)[i]
+    idfArray[i].enabled = i === 0 ? true : false
+    idfArray[i].name = `Layer ${i+1}`
+  }
+  const width = idfArray[0].width
+  const height = idfArray[0].height
+  const channels = idfArray.length
+
+  return {idfArray, width, height, channels}
+}
+
+export const getBitmap = (t) => {
+  let images = []
+  
+  // Fill the images array with each enabled channel of the idfArray
+  for (let imageIndex = 0; imageIndex < t.idfArray.length; imageIndex++) {
+    if (t.idfArray[imageIndex].enabled) {
+      const image = getChannelImageData(t, imageIndex)
+      images.push(createImageBitmap(image))
     }
-
-    this.width = this.idfArray[0].width
-    this.height = this.idfArray[0].height
-    this.channels = this.idfArray.length
   }
+  
+  // createImageBitmap returns a future object, so we make a promise to return
+  // all the images
+  return Promise.all(images)
+}
 
-  getBitmap() {
-    let images = []
+export const getChannelImageData = (t, channel) => {
+  const data = t.idfArray[channel].data
+  const intArray = new Uint8ClampedArray(t.width * t.height * 4)
+  const color = hexToRgb(t.idfArray[channel].channelColor)
 
-    for (let imageIndex = 0; imageIndex < this.idfArray.length; imageIndex++) {
-      if (this.idfArray[imageIndex].enabled) {
-        const image = this.getChannelImageData(imageIndex)
-        images.push(createImageBitmap(image))
-      }
-    }
-
-    return Promise.all(images)
+  let j = 0
+  for (let i = 0; i < data.length; i++) {
+    intArray[j++] = data[i] * color.r // R value
+    intArray[j++] = data[i] * color.g // G value
+    intArray[j++] = data[i] * color.b // B value
+    intArray[j++] = data[i] > 0 ? 255 : 0 // A value
   }
-
-  getChannelImageData(channel) {
-    const data = this.idfArray[channel].data
-    const intArray = new Uint8ClampedArray(this.width * this.height * 4)
-    const color = this.idfArray[channel].channelColor
-
-    let j = 0
-    for (let i = 0; i < data.length; i++) {
-      intArray[j++] = data[i] * color.r // R value
-      intArray[j++] = data[i] * color.g // G value
-      intArray[j++] = data[i] * color.b // B value
-      intArray[j++] = data[i] > 0 ? 255 : 0 // A value
-    }
-    
-    return new ImageData(intArray, this.width, this.height)
-  }
-
-  getChannelColor(channel) {
-    return this.idfArray[channel].channelColor
-  }
-
-  setChannelColor(channel, color) {
-    this.idfArray[channel].channelColor = color
-  }
-
-  getChannelVisibility(channel) {
-    return this.idfArray[channel].enabled
-  }
-
-  setChannelVisibility(channel, visibility) {
-    console.log(visibility)
-    this.idfArray[channel].enabled = visibility
-  }
+  
+  return new ImageData(intArray, t.width, t.height)
 }
