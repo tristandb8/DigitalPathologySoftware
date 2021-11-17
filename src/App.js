@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { TiffModel } from './TiffModel'
+import { TiffModel } from './utils/TiffModel'
 import styled from 'styled-components'
 import './App.css'
+import {TransformWrapper, TransformComponent} from 'react-zoom-pan-pinch'
 const { ipcRenderer } = window.require('electron')
 
 class App extends Component {
@@ -13,6 +14,7 @@ class App extends Component {
     }
 
     this.canvasRef = React.createRef(null)
+    this.viewRef = React.createRef(null)
   }
   
   componentDidMount() {
@@ -43,8 +45,9 @@ class App extends Component {
     {
       canvas.width = file.width
       canvas.height = file.height
-      // ctx.globalAlpha = 0.5
-      ctx.globalCompositeOperation='color'
+
+      // Ideally this would be changeable via dropdown
+      ctx.globalCompositeOperation = 'color'
       
       file.getBitmap().then(function(layers) {
         console.log(`drawing ${layers.length} layers`)
@@ -60,6 +63,9 @@ class App extends Component {
       ctx.drawImage(img, 0, 0)
       console.log(canvas.height)
     }
+
+    this.viewRef.current.resetTransform(0, 'easeOut')
+    this.viewRef.current.centerView(undefined, 0, 'easeOut')
   }
   
   render() {
@@ -68,7 +74,11 @@ class App extends Component {
         <Split>
           <Pane></Pane>
           <Display>
-            <canvas ref={this.canvasRef}></canvas>
+            <TransformWrapper ref={this.viewRef} initialScale={1}>
+              <TransformComponent wrapperStyle={{width: '100%', height: '100%'}}>
+                <canvas ref={this.canvasRef} style={{imageRendering: 'pixelated', outline: 'red 1px solid'}}></canvas>
+              </TransformComponent>
+            </TransformWrapper>
           </Display>
           <Pane></Pane>
         </Split>

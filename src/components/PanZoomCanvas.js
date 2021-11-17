@@ -7,8 +7,8 @@ import {
   useContext,
   useState
 } from 'react'
-import useEventListener from './useEventListener'
-import * as pointUtils from './pointUtils'
+import useEventListener from '../utils/useEventListener'
+import * as pointUtils from '../utils/pointUtils'
 
 const MIN_SCALE = 0.5
 const MAX_SCALE = 3
