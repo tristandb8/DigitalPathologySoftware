@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { TiffModel } from './TiffModel'
+import { TiffModel } from './utils/TiffModel'
 import styled from 'styled-components'
 import './App.css'
+import PanZoomCanvas from './components/PanZoomCanvas'
 const { ipcRenderer } = window.require('electron')
 
 class App extends Component {
@@ -11,8 +12,6 @@ class App extends Component {
       loadedFileType: null,
       loadedFile: null
     }
-
-    this.canvasRef = React.createRef(null)
   }
   
   componentDidMount() {
@@ -20,8 +19,7 @@ class App extends Component {
       let file
 
       if (fileContent.type === 'tiff') {
-        const tiffFile = new TiffModel(fileContent.data)
-        file = tiffFile
+        file = new TiffModel(fileContent.data)
       } else if (fileContent.type === 'image') {
         file = fileContent.data
       }
@@ -32,43 +30,16 @@ class App extends Component {
       })
     })
   }
-
-  componentDidUpdate() {
-    const canvas = this.canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const file = this.state.loadedFile
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (this.state.loadedFileType === 'tiff')
-    {
-      canvas.width = file.width
-      canvas.height = file.height
-      // ctx.globalAlpha = 0.5
-      ctx.globalCompositeOperation='color'
-      
-      file.getBitmap().then(function(layers) {
-        console.log(`drawing ${layers.length} layers`)
-        for (let i = 0; i < layers.length; i++) {
-          ctx.drawImage(layers[i], 0, 0)
-        }
-      })
-    } else {
-      const img = new Image()
-      img.src = file
-      canvas.width = 300
-      canvas.height = 150
-      ctx.drawImage(img, 0, 0)
-      console.log(canvas.height)
-    }
-  }
   
   render() {
+    console.log('passing:')
+    console.log(this.state)
     return (
       <div className='App'>
         <Split>
           <Pane></Pane>
           <Display>
-            <canvas ref={this.canvasRef}></canvas>
+            <PanZoomCanvas file={this.state}/>
           </Display>
           <Pane></Pane>
         </Split>
