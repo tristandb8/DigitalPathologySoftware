@@ -35,7 +35,7 @@ class App extends Component {
   handleChannelToggle(e) {
     const index = e.index;
     const channelsCopy = this.state.channels;
-    channelsCopy[index].display = true;
+    channelsCopy[index].display = !channelsCopy[index].display;
 
     this.setState({
       channels: channelsCopy
