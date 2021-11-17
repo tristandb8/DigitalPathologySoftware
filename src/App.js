@@ -27,7 +27,6 @@ class App extends Component {
   }
 
   handleChannelToggle(index) {
-
     this.setState({
       channels: update(this.state.channels, {index: {display: { $set: true}}})
     })
@@ -49,12 +48,7 @@ class App extends Component {
       })
     })
   }
-  handleChannelToggle(index) {
 
-    this.setState({
-      channels: update(this.state.channels, {index: {display: { $set: true}}})
-    })
-  }
   render() {
     console.log('passing:')
     console.log(this.state)
