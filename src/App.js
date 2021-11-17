@@ -23,7 +23,6 @@ class App extends Component {
         {channelName: "CD38", color:"#FE2882", display: false}
       ]
     }
-    }
   }
   
   componentDidMount() {
