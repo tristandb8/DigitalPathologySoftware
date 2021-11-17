@@ -34,12 +34,6 @@ class App extends Component {
 
   handleChannelToggle(e) {
     const index = e.index;
-  
-    console.log(this.state.channels);
-    console.log(index);
-    console.log(this.state.channels[index]);
-    console.log(this.state.channels[index].display);
-
     const channelsCopy = this.state.channels;
     channelsCopy[index].display = true;
 
