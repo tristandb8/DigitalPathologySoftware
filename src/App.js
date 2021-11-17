@@ -26,7 +26,11 @@ class App extends Component {
     }
   }
 
-  handleChannelToggle(index) {
+  handleChannelToggle(e, index) {
+    console.log(this.state.channels);
+    console.log(index);
+    console.log(this.state.channels[index].display);
+
     this.setState({
       channels: update(this.state.channels, {index: {display: { $set: true}}})
     })
