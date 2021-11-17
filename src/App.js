@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import './App.css'
 import PanZoomCanvas from './components/PanZoomCanvas'
 import {ChannelPane} from './components/ChannelPane';
+import update from 'immutability-helper';
 
 const { ipcRenderer } = window.require('electron')
 
@@ -41,7 +42,12 @@ class App extends Component {
       })
     })
   }
-  
+  handleChannelToggle(index) {
+
+    this.setState({
+      channels: update(this.state.channels, {index: {display: { $set: true}}})
+    })
+  }
   render() {
     console.log('passing:')
     console.log(this.state)
