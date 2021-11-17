@@ -59,6 +59,7 @@ class App extends Component {
             <PanZoomCanvas file={this.state}/>
           </Display>
           <Pane></Pane>
+          <ChannelPane channels={this.state.channels} handleChannelToggle={this.handleChannelToggle}/>
         </Split>
       </div>
     )
