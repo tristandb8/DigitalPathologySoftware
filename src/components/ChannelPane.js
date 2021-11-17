@@ -3,44 +3,66 @@ import styled from 'styled-components'
 import { func, array } from 'prop-types';
 import "./styles/channelToggle.css"
 
-export const ChannelPane = (props) => {
+export default class ChannelPane extends React.Component{
 
-    const {channels, handleChannelToggle} = props;
+    constructor(props) {
+        super(props);
+        this.state = {
+            channels: [],
+            handleChannelToggle: null,
+        }
+    }
 
-    const ChannelToggle = (p) => {
+    componentDidMount() {
+        this.setState({
+            channels: this.props.channels,
+            handleChannelToggle: this.props.handleChannelToggle,
+        });
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.channels !== prevProps.channels) {
+            this.setState({
+                channels: this.props.channels,
+            })
+        }
+    }
+
+    channelToggle(index) {
         return( 
             <span>
                 <label className="switch">
-                    <input checked={props.channels[p.index].display} type="checkbox" onChange={() => handleChannelToggle(p)}/>
+                    <input checked={this.props.channels[index].display} type="checkbox" onChange={() => this.props.handleChannelToggle(index)}/>
                     <span className="slider"/>
                 </label>
             </span>
         );
     }
 
-    const renderChannel = (channel, index) => {
+    renderChannel(channel, index) {
         return (
             <ChannelCell>
                 <ChannelCellContent>
                     <span>
                         {channel.channelName}
                     </span>
-                    
-                    <ChannelToggle index={index}/>
+
+                    {this.channelToggle(index)}
                 </ChannelCellContent>
             </ChannelCell>
         );
     }
 
-    return (
-        <div>
-            {channels.map(renderChannel)}
-        </div>
-    );
+    render() {
+        return (
+            <div>
+                {this.props.channels.map(this.renderChannel, this)}
+            </div>
+        )
+    }
 } 
 ChannelPane.propTypes = {
     channels: array,
-    handleInputChange: func.isRequired,
+    handleInputChange: func,
 };
 
 const ChannelList = styled.div`
