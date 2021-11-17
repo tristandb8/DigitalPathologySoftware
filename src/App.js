@@ -3,20 +3,9 @@ import { TiffModel } from './utils/TiffModel'
 import styled from 'styled-components'
 import './App.css'
 import PanZoomCanvas from './components/PanZoomCanvas'
-import {ChannelPane} from './components/ChannelPane';
-import update from 'immutability-helper';
+import ChannelPane from './components/ChannelPane';
 
 const { ipcRenderer } = window.require('electron')
-
-const channelsArr = [
-  {channelName: "H3", color:"#FE2828", display: false},
-  {channelName: "HMA", color:"#2CFE28", display: false},
-  {channelName: "INS", color:"#283EFE", display: false},
-  {channelName: "CD44", color:"#1E0404", display: false},
-  {channelName: "WOW32", color:"#28FEF1", display: false},
-  {channelName: "LOL", color:"#FFC42D", display: false},
-  {channelName: "CD38", color:"#FE2882", display: false},
-]
 
 class App extends Component {
   constructor(props) {
@@ -24,11 +13,9 @@ class App extends Component {
     this.state = {
       loadedFileType: null,
       loadedFile: null,
-      channels: channelsArr ,
+      channels: [] ,
     }
     
-    console.log(this.state.channels[0]);
-
     this.handleChannelToggle = this.handleChannelToggle.bind(this);
   }
 
@@ -45,16 +32,24 @@ class App extends Component {
   componentDidMount() {
     ipcRenderer.on('new-image', (event, fileContent) => {
       let file
+      const channelsArr = [];
 
       if (fileContent.type === 'tiff') {
         file = new TiffModel(fileContent.data)
+        file.getBitmap().then(function(layers) {
+          for(let i = 0; i < layers.length; i++) {
+            const str = "layer_" + i;
+            channelsArr.push({channelName:{str}, color: "#f00", display: true})
+          }
+        })
       } else if (fileContent.type === 'image') {
         file = fileContent.data
       }
-
+      
       this.setState({
         loadedFileType: fileContent.type,
         loadedFile: file,
+        channels: channelsArr,
       })
     })
   }
@@ -64,13 +59,14 @@ class App extends Component {
     console.log(this.state)
     return (
       <div className='App'>
+        <ChannelPane channels={this.state.channels} handleChannelToggle={this.handleChannelToggle}/>
         <Split>
           <Pane></Pane>
           <Display>
-            <PanZoomCanvas file={this.state}/>
+            {/* this line needs to be modified since state can include more than just file */}
+            <PanZoomCanvas file={this.state}/> 
           </Display>
           <Pane></Pane>
-          <ChannelPane channels={this.state.channels} handleChannelToggle={this.handleChannelToggle}/>
         </Split>
       </div>
     )

@@ -8,21 +8,15 @@ export default class ChannelPane extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            channels: [],
-            handleChannelToggle: null,
+            channels: this.props.channels,
+            handleChannelToggle: this.props.channels,
         }
     }
 
-    componentDidMount() {
-        this.setState({
-            channels: this.props.channels,
-            handleChannelToggle: this.props.handleChannelToggle,
-        });
-    }
     componentDidUpdate(prevProps) {
         if (this.props.channels !== prevProps.channels) {
             this.setState({
-                channels: this.props.channels,
+                channels: this.props.channels, 
             })
         }
     }
@@ -31,7 +25,7 @@ export default class ChannelPane extends React.Component{
         return( 
             <span>
                 <label className="switch">
-                    <input checked={this.props.channels[index].display} type="checkbox" onChange={() => this.props.handleChannelToggle(index)}/>
+                    <input checked={this.state.channels[index].display} type="checkbox" onChange={() => this.state.handleChannelToggle(index)}/>
                     <span className="slider"/>
                 </label>
             </span>
@@ -39,6 +33,7 @@ export default class ChannelPane extends React.Component{
     }
 
     renderChannel(channel, index) {
+        console.log("renderChannel")
         return (
             <ChannelCell>
                 <ChannelCellContent>
@@ -53,9 +48,13 @@ export default class ChannelPane extends React.Component{
     }
 
     render() {
+        console.log("rendering channel pane")
+        console.log(this.state.channels)
+        console.log(this.state.channels.map(this.renderChannel, this))
+        
         return (
             <div>
-                {this.props.channels.map(this.renderChannel, this)}
+                {this.state.channels.map(this.renderChannel, this)}
             </div>
         )
     }
@@ -86,6 +85,7 @@ const ChannelCell = styled.div`
     height: 32px;
     left: 0px;
     top: 0px;
+    background-color: blue;
 
 
     /* Inside Auto Layout */
