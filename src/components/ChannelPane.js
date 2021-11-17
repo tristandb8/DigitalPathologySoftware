@@ -7,11 +7,11 @@ export const ChannelPane = (props) => {
 
     const {channels, handleChannelToggle} = props;
 
-    const ChannelToggle = (index) => {
+    const ChannelToggle = (p) => {
         return( 
             <span>
                 <label className="switch">
-                    <input type="checkbox" onChange={() => handleChannelToggle(index)}/>
+                    <input checked={props.channels[p.index].display} type="checkbox" onChange={() => handleChannelToggle(p)}/>
                     <span className="slider"/>
                 </label>
             </span>
