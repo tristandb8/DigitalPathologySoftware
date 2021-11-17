@@ -16,8 +16,9 @@ class App extends Component {
     }
     
     this.handleChannelToggle = this.handleChannelToggle.bind(this)
+    this.canvasRef = React.createRef(null)
   }
-
+  
   handleChannelToggle(index) {
     let items = [...this.state.loadedFile.idfArray]
     let item = {...items[index]}
@@ -30,11 +31,11 @@ class App extends Component {
       }
     }))
   }
-
+  
   componentDidMount() {
     ipcRenderer.on('new-image', (event, fileContent) => {
       let file
-
+      
       if (fileContent.type === 'tiff') {
         file = tiffImage(fileContent.data)
       } else if (fileContent.type === 'image') {
@@ -45,6 +46,8 @@ class App extends Component {
         loadedFileType: fileContent.type,
         loadedFile: file,
       })
+
+      this.canvasRef.current.resetView()
     })
   }
 
@@ -54,7 +57,7 @@ class App extends Component {
         <Split>
           <Pane></Pane>
           <Display>
-            <PanZoomCanvas file={this.state}/>
+            <PanZoomCanvas ref={this.canvasRef} file={this.state}/>
           </Display>
           <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle}/>
         </Split>
@@ -74,7 +77,7 @@ const Display = styled.div`
 
 const Pane = styled.div`
   background: #F3F3F3;
-  width: 200px;
+  width: 300px;
 `
 
 const Split = styled.div`
