@@ -25,6 +25,13 @@ class App extends Component {
     }
     }
   }
+
+  handleChannelToggle(index) {
+
+    this.setState({
+      channels: update(this.state.channels, {index: {display: { $set: true}}})
+    })
+  }
   
   componentDidMount() {
     ipcRenderer.on('new-image', (event, fileContent) => {
