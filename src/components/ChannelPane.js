@@ -1,16 +1,24 @@
 import React from 'react';
 import styled from 'styled-components'
+import 'rc-slider/assets/index.css'
+import { Range } from 'rc-slider'
 
-export default class ChannelPane extends React.Component{
+export default class ChannelPane extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       file: this.props.file,
       onToggleChannel: this.props.onToggleChannel,
+      onThreshChannel: this.props.onThreshChannel,
+      selectedChannel: null,
+      sliderRange: [0, 100]
     }
 
     this.channelListRender = this.channelListRender.bind(this)
+    this.slidersRender = this.slidersRender.bind(this)
     this.channelToggle = this.channelToggle.bind(this)
+    this.sliderChange = this.sliderChange.bind(this)
+    this.channelSelected = this.channelSelected.bind(this)
   }
 
   componentDidUpdate(prevProps) {
@@ -22,29 +30,36 @@ export default class ChannelPane extends React.Component{
   }
 
   channelToggle(props) {
-    // This should become its own component to handle the switch easier
     const index = props.index
     return( 
       <label className='switch'>
         <input checked={
-        this.state.file.loadedFile.idfArray[index].enabled}
-        type='checkbox'
-        onChange={() => this.state.onToggleChannel(index)}
-      />
+          this.state.file.loadedFile.idfArray[index].enabled}
+          type='checkbox'
+          onChange={() => this.state.onToggleChannel(index)}
+          />
       </label>
     )
   }
+  
+  channelSelected(channel, index) {
+    this.setState({
+      selectedChannel: {channel, index},
+      sliderRange: channel.threshold
+    })
+  }
 
   renderChannel(channel, index) {
+    // This should become its own component to handle the switch and mouseover
     return (
-      <ChannelCell key={index}>
+      <ChannelCell key={index} onClick={() => this.channelSelected(channel, index)}>
         <ChannelCellContent>
           <ColorBox color={channel.channelColor}/>
           <p>{channel.name}</p>
           <this.channelToggle index={index}/>
         </ChannelCellContent>
       </ChannelCell>
-    );
+    )
   }
 
   channelListRender() {
@@ -59,9 +74,26 @@ export default class ChannelPane extends React.Component{
     }
   }
 
+  sliderChange(values) {
+    this.state.onThreshChannel(this.state.selectedChannel.index, values)
+    this.setState({sliderRange: values})
+  }
+
+  slidersRender() {
+    // todo: add a ref to reset slider when the selected channel changes
+    if (this.state.selectedChannel != null) {
+      return (<div style={{width: '80%'}}>
+        <Range value={this.state.sliderRange} onChange={(e) => {this.sliderChange(e)}}/>
+      </div>)
+    } else {
+      return (<div/>)
+    }
+  }
+
   render() {
     return (<Pane>
       <this.channelListRender/>
+      <this.slidersRender/>
     </Pane>)
   }
 }

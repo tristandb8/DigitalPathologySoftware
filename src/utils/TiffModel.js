@@ -16,6 +16,11 @@ function hexToRgb(hex) {
   } : null;
 }
 
+// https://stackoverflow.com/questions/42623071/maximum-call-stack-size-exceeded-with-math-min-and-math-max
+function getMax(arr) {
+  return arr.reduce((max, v) => max >= v ? max : v, -Infinity);
+}
+
 const colors = {
   darkorchid: '#9932cc', orangered: '#ff4500', darkorange: '#ff8c00',
   gold: '#ffd700', yellow: '#ffff00', mediumvioletred: '#c71585',
@@ -42,7 +47,12 @@ export const tiffImage = (fileData) => {
     idfArray[i].channelColor = Object.values(colors)[i]
     idfArray[i].enabled = i === 0 ? true : false
     idfArray[i].name = `Layer ${i+1}`
+    idfArray[i].max = getMax(idfArray[i].data)
+
+    // todo: calculate threshold value automatically using histogram
+    idfArray[i].threshold = [1, 96]
   }
+
   const width = idfArray[0].width
   const height = idfArray[0].height
   const channels = idfArray.length
@@ -66,17 +76,21 @@ export const getBitmap = (t) => {
   return Promise.all(images)
 }
 
-export const getChannelImageData = (t, channel) => {
-  const data = t.idfArray[channel].data
+export const getChannelImageData = (t, index) => {
+  const channel = t.idfArray[index]
+  const data = channel.data
   const intArray = new Uint8ClampedArray(t.width * t.height * 4)
-  const color = hexToRgb(t.idfArray[channel].channelColor)
+  const color = hexToRgb(channel.channelColor)
 
   let j = 0
   for (let i = 0; i < data.length; i++) {
-    intArray[j++] = data[i] * color.r // R value
-    intArray[j++] = data[i] * color.g // G value
-    intArray[j++] = data[i] * color.b // B value
-    intArray[j++] = data[i] > 0 ? 255 : 0 // A value
+    const lowThresh = channel.max * channel.threshold[0] / 100
+    const highThresh = channel.max * channel.threshold[1] / 100
+    const threshVal = (data[i] <= highThresh && data[i] >= lowThresh) ? (data[i] - lowThresh) / highThresh: 0
+    intArray[j++] = threshVal * color.r // R value
+    intArray[j++] = threshVal * color.g // G value
+    intArray[j++] = threshVal * color.b // B value
+    intArray[j++] = threshVal > 0 ? 255 : 0 // A value
   }
   
   return new ImageData(intArray, t.width, t.height)

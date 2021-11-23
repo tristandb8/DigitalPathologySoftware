@@ -31,11 +31,11 @@ export default class PanZoomCanvas extends React.Component {
       canvas.height = loadedFile.height
 
       // Ideally this would be changeable via dropdown
-      ctx.globalCompositeOperation = 'color'
-      
+      // ctx.globalCompositeOperation = 'color'
+      ctx.globalCompositeOperation = 'source-over'
+
       // Draw each channel overlapping
       getBitmap(loadedFile).then(function(layers) {
-        // console.log(`drawing ${layers.length} layers`)
         for (let i = 0; i < layers.length; i++) {
             ctx.drawImage(layers[i], 0, 0)
         }
@@ -62,7 +62,7 @@ export default class PanZoomCanvas extends React.Component {
     return (
       <TransformWrapper ref={this.viewRef} initialScale={1}>
         <TransformComponent wrapperStyle={{width: '100%', height: '100%'}}>
-          <canvas ref={this.canvasRef} style={{imageRendering: 'pixelated', outline: 'red 1px solid'}}/>
+          <canvas ref={this.canvasRef} style={{imageRendering: 'pixelated', outline: 'red 1px solid', backgroundColor: 'black'}}/>
         </TransformComponent>
       </TransformWrapper>
     )

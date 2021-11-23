@@ -16,6 +16,7 @@ class App extends Component {
     }
     
     this.handleChannelToggle = this.handleChannelToggle.bind(this)
+    this.handleChannelThresh = this.handleChannelThresh.bind(this)
     this.canvasRef = React.createRef(null)
   }
   
@@ -23,6 +24,19 @@ class App extends Component {
     let items = [...this.state.loadedFile.idfArray]
     let item = {...items[index]}
     item.enabled = !item.enabled
+    items[index] = item
+    
+    this.setState(prevState => ({
+      loadedFile: {...prevState.loadedFile,
+        idfArray: items
+      }
+    }))
+  }
+
+  handleChannelThresh(index, range) {
+    let items = [...this.state.loadedFile.idfArray]
+    let item = {...items[index]}
+    item.threshold = range
     items[index] = item
     
     this.setState(prevState => ({
@@ -59,7 +73,7 @@ class App extends Component {
           <Display>
             <PanZoomCanvas ref={this.canvasRef} file={this.state}/>
           </Display>
-          <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle}/>
+          <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/>
         </Split>
       </div>
     )
