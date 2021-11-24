@@ -86,7 +86,8 @@ export const getChannelImageData = (t, index) => {
   for (let i = 0; i < data.length; i++) {
     const lowThresh = channel.max * channel.threshold[0] / 100
     const highThresh = channel.max * channel.threshold[1] / 100
-    const threshVal = (data[i] <= highThresh && data[i] >= lowThresh) ? (data[i] - lowThresh) / highThresh: 0
+    // const threshVal = (data[i] <= highThresh && data[i] >= lowThresh) ? (data[i] - lowThresh) / highThresh: 0
+    const threshVal = (data[i] - lowThresh) / highThresh
     intArray[j++] = threshVal * color.r // R value
     intArray[j++] = threshVal * color.g // G value
     intArray[j++] = threshVal * color.b // B value
