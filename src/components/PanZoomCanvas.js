@@ -7,7 +7,6 @@ export default class PanZoomCanvas extends React.Component {
     super(props)
     this.canvasRef = React.createRef(null)
     this.viewRef = React.createRef(null)
-
     this.resetView = this.resetView.bind(this)
   }
 

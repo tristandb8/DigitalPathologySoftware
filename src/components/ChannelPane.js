@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import styled from 'styled-components'
 import 'rc-slider/assets/index.css'
 import { Range } from 'rc-slider'
@@ -67,7 +67,7 @@ export default class ChannelPane extends React.Component {
       return <p>No file loaded</p>
     } else {
       return (
-        <div style={{height: '500px', overflowY: 'scroll', overflowX: 'hidden'}}>
+        <div style={{height: '75%', overflowY: 'scroll', overflowX: 'hidden'}}>
           {this.state.file.loadedFile.idfArray.map(this.renderChannel, this)}
         </div>
       )

@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { tiffImage } from './utils/TiffModel'
 import styled from 'styled-components'
-import './App.css'
-import PanZoomCanvas from './components/PanZoomCanvas'
+import DisplayPage from './components/DisplayPage'
 import ChannelPane from './components/ChannelPane';
+import LeftPane from './components/LeftPane'
+import './App.css'
 
 const { ipcRenderer } = window.require('electron')
 
@@ -17,7 +18,7 @@ class App extends Component {
     
     this.handleChannelToggle = this.handleChannelToggle.bind(this)
     this.handleChannelThresh = this.handleChannelThresh.bind(this)
-    this.canvasRef = React.createRef(null)
+    this.displayPageRef = React.createRef(null)
   }
   
   handleChannelToggle(index) {
@@ -61,7 +62,7 @@ class App extends Component {
         loadedFile: file,
       })
 
-      this.canvasRef.current.resetView()
+      this.displayPageRef.current.canvasRef.current.resetView()
     })
   }
 
@@ -69,10 +70,8 @@ class App extends Component {
     return (
       <div className='App'>
         <Split>
-          <Pane></Pane>
-          <Display>
-            <PanZoomCanvas ref={this.canvasRef} file={this.state}/>
-          </Display>
+          <LeftPane></LeftPane>
+          <DisplayPage ref={this.displayPageRef} file={this.state}/>
           <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/>
         </Split>
       </div>
@@ -81,13 +80,6 @@ class App extends Component {
 }
 
 export default App
-
-const Display = styled.div`
-  background: #1B1B1B;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-`
 
 const Pane = styled.div`
   background: #F3F3F3;
