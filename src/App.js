@@ -3,6 +3,7 @@ import { tiffImage } from './utils/TiffModel'
 import styled from 'styled-components'
 import DisplayPage from './components/DisplayPage'
 import ChannelPane from './components/ChannelPane';
+import RightPane from './components/RightPane';
 import LeftPane from './components/LeftPane'
 import './App.css'
 
@@ -70,9 +71,10 @@ class App extends Component {
     return (
       <div className='App'>
         <Split>
-          <LeftPane></LeftPane>
+          <LeftPane/>
           <DisplayPage ref={this.displayPageRef} file={this.state}/>
-          <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/>
+          <RightPane/>
+          {/* <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/> */}
         </Split>
       </div>
     )
@@ -80,11 +82,6 @@ class App extends Component {
 }
 
 export default App
-
-const Pane = styled.div`
-  background: #F3F3F3;
-  width: 300px;
-`
 
 const Split = styled.div`
   display: flex;
