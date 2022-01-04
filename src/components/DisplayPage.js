@@ -9,15 +9,11 @@ export default class DisplayPage extends Component {
   }
 
   render() {
-    if (this.props.file.loadedFile != null) {
-      return (
-        <Display>
-          <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
-        </Display>
-      );
-    } else {
-      return (<Display/>);
-    }
+    return (
+      <Display>
+        <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
+      </Display>
+    );
   }
 }
 

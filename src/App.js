@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { tiffImage } from './utils/TiffModel'
 import styled from 'styled-components'
 import DisplayPage from './components/DisplayPage'
-import ChannelPane from './components/ChannelPane';
 import RightPane from './components/RightPane';
 import LeftPane from './components/LeftPane'
 import './App.css'
@@ -73,7 +72,7 @@ class App extends Component {
         <Split>
           <LeftPane/>
           <DisplayPage ref={this.displayPageRef} file={this.state}/>
-          <RightPane file={this.state.loadedFile}/>
+          <RightPane file={this.state.loadedFile} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/>
           {/* <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/> */}
         </Split>
       </div>

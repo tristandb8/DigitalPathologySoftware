@@ -10,10 +10,6 @@ const LeftPanes = {
 }
 
 class ProjectPane extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
   render() {
     return (<div style={{flexGrow: '100', display: 'inline-flex'}}>
       <p>Project pane.</p>
@@ -23,10 +19,6 @@ class ProjectPane extends React.Component {
 }
 
 class ImagePane extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
   render() {
     return (<div style={{flexGrow: '100', display: 'inline-flex'}}>
       <p>Image pane.</p>
@@ -36,10 +28,6 @@ class ImagePane extends React.Component {
 }
 
 class AnnotationPane extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
   render() {
     return (<div style={{flexGrow: '100', display: 'inline-flex'}}>
       <p>Annotation pane.</p>

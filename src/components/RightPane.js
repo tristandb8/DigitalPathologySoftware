@@ -3,39 +3,19 @@ import 'rc-slider/assets/index.css'
 import '../App.css'
 import { Range } from 'rc-slider'
 
-// class ChannelItem extends React.Component {
-//   // props: channelSelected fn, channel, index, onToggleChannel
-//   constructor(props) {
-//     super(props)
-//   }
-
-//   render() {
-//     return (
-//       <div style={{width: '100%', height: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}
-//         key={this.props.index} onClick={() => this.props.channelSelected()}
-//       >
-//         <div style={{backgroundColor: this.props.channel.channelColor}}/>
-//         <p>{this.props.channel.channelName}</p>
-//         <label className='switch'>
-//           <input checked={this.props.channel.enabled}
-//             type='checkbox'
-//             onChange={() => this.props.onToggleChannel(this.props.index)}
-//           />
-//         </label>
-//       </div>
-//     )
-//   }
-// }
-
 class ChannelItem extends React.Component {
   render() {
+    const selected = this.props.selectedChannel !== null && this.props.selectedChannel.index === this.props.index;
+    const className = selected ? 'channelItemSelected' : 'channelItem'
+
     return (
-      // <div key={this.props.index} className='channelItem' onClick={() => this.props.channelSelected}>
       <div>
-        <div className='channelItem'>
+        <div className={className}
+        onClick={() => this.props.channelSelected(this.props.channel, this.props.index)}>
           <div key='color' className='channelColorIcon' style={{backgroundColor: this.props.channel.channelColor}}/>
           <input key='name' type='text' className='channelTextInput' defaultValue={this.props.channel.name}/>
-          <input key='selected' type='checkbox' style={{width: '16px', height: '16px'}}/>
+          <input key='selected' type='checkbox' checked={this.props.channel.enabled}
+          onChange={() => this.props.onToggleChannel(this.props.index)} style={{width: '16px', height: '16px'}}/>
         </div>
         <hr className='channelHR'/>
       </div>);
@@ -44,9 +24,13 @@ class ChannelItem extends React.Component {
 
 class ChannelInput extends React.Component {
   render() {
-    return (
-      <p>Hello</p>
-    );
+    if (this.props.selectedChannel != null) {
+      return (<div style={{width: '80%'}}>
+        <Range value={this.props.sliderRange} onChange={(e) => {this.props.sliderChanged(e)}}/>
+      </div>);
+    } else {
+      return (<div/>);
+    }
   }
 }
 
@@ -56,52 +40,34 @@ export default class RightPane extends React.Component {
 
     this.state = {
       file: this.props.file,
-      // onToggleChannel: this.props.onToggleChannel,
-      // onThreshChannel: this.props.onThreshChannel,
-      // selectedChannel: null,
-      // sliderRange: [1, 100]
+      selectedChannel: null,
+      sliderRange: [1, 100]
     }
 
-    // this.slidersRender = this.slidersRender.bind(this)
-    // this.channelToggle = this.channelToggle.bind(this)
-    // this.sliderChange = this.sliderChange.bind(this)
-    // this.channelSelected = this.channelSelected.bind(this)
+    this.channelSelected = this.channelSelected.bind(this)
+    this.sliderChanged = this.sliderChanged.bind(this)
   }
-  
-  // componentDidUpdate(prevProps) {
-  //   if (this.props.file !== prevProps.file) {
-  //     this.setState({
-  //       file: this.props.file,
-  //       selectedChannel: null,
-  //       sliderRange: [1, 100]
-  //     })
-  //   }
-  // }
 
-  // channelToggle(props) {
-  //   const index = props.index
-  //   return( 
-  //     <label className='switch'>
-  //       <input checked={
-  //         this.state.file.loadedFile.idfArray[index].enabled}
-  //         type='checkbox'
-  //         onChange={() => this.state.onToggleChannel(index)}
-  //         />
-  //     </label>
-  //   )
-  // }
+  channelSelected(channel, index) {
+    this.setState({
+      selectedChannel: {channel, index},
+      sliderRange: channel.threshold
+    })
+  }
 
-  // channelSelected(channel, index) {
-  //   this.setState({
-  //     selectedChannel: {channel, index},
-  //     sliderRange: channel.threshold
-  //   })
-  // }
+  sliderChanged(values) {
+    this.props.onThreshChannel(this.state.selectedChannel.index, values)
+    this.setState({sliderRange: values})
+  }
 
   componentDidUpdate(prevProps) {
     if (this.props.file !== prevProps.file) {
       this.setState({
         file: this.props.file,
+        // Need to differentiate whether an entire different file is loaded
+        // so the default selected stuff gets set right
+        // selectedChannel: null,
+        // sliderRange: [1, 100]
       })
     }
   }
@@ -111,10 +77,14 @@ export default class RightPane extends React.Component {
       return (<div className='rightPane'>
         <div className='channelList'>
           {this.state.file.idfArray.map((channel, index) => (
-          <ChannelItem key={index} channel={channel} index={index}/>))}
+            <ChannelItem key={index} channel={channel} index={index}
+            selectedChannel={this.state.selectedChannel} channelSelected={this.channelSelected}
+            onToggleChannel={this.props.onToggleChannel}
+            />
+          ))}
         </div>
         <hr className='channelHR' style={{marginTop: '4px'}}/>
-        <ChannelInput/>
+        <ChannelInput sliderChanged={this.sliderChanged} selectedChannel={this.state.selectedChannel} sliderRange={this.state.sliderRange}/>
       </div>)
     } else {
       return (<div/>);
