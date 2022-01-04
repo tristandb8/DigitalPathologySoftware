@@ -73,7 +73,7 @@ class App extends Component {
         <Split>
           <LeftPane/>
           <DisplayPage ref={this.displayPageRef} file={this.state}/>
-          <RightPane/>
+          <RightPane file={this.state.loadedFile}/>
           {/* <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/> */}
         </Split>
       </div>

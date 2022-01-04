@@ -30,11 +30,23 @@ import { Range } from 'rc-slider'
 class ChannelItem extends React.Component {
   render() {
     return (
-      <div className='channelItem'>
-        <div className='channelColorIcon' style={{backgroundColor: this.props.background}}/>
-        <input type='text' className='channelTextInput' defaultValue={this.props.text}/>
-        <input type='checkbox' style={{width: '16px', height: '16px'}}/>
-      </div>)
+      // <div key={this.props.index} className='channelItem' onClick={() => this.props.channelSelected}>
+      <div>
+        <div className='channelItem'>
+          <div key='color' className='channelColorIcon' style={{backgroundColor: this.props.channel.channelColor}}/>
+          <input key='name' type='text' className='channelTextInput' defaultValue={this.props.channel.name}/>
+          <input key='selected' type='checkbox' style={{width: '16px', height: '16px'}}/>
+        </div>
+        <hr className='channelHR'/>
+      </div>);
+  }
+}
+
+class ChannelInput extends React.Component {
+  render() {
+    return (
+      <p>Hello</p>
+    );
   }
 }
 
@@ -43,14 +55,13 @@ export default class RightPane extends React.Component {
     super(props)
 
     this.state = {
-      // file: this.props.file,
+      file: this.props.file,
       // onToggleChannel: this.props.onToggleChannel,
       // onThreshChannel: this.props.onThreshChannel,
       // selectedChannel: null,
       // sliderRange: [1, 100]
     }
 
-    // this.channelListRender = this.channelListRender.bind(this)
     // this.slidersRender = this.slidersRender.bind(this)
     // this.channelToggle = this.channelToggle.bind(this)
     // this.sliderChange = this.sliderChange.bind(this)
@@ -87,37 +98,26 @@ export default class RightPane extends React.Component {
   //   })
   // }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.file !== prevProps.file) {
+      this.setState({
+        file: this.props.file,
+      })
+    }
+  }
+
   render() {
-    return (<div className='rightPane'>
-      <div className='channelList'>
-        <ChannelItem text='H3' background='red'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='HMA' background='green'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-        <hr className='channelHR'/>
-        <ChannelItem text='INS' background='blue'/>
-      </div>
-    </div>)
+    if (this.state.file !== null) {
+      return (<div className='rightPane'>
+        <div className='channelList'>
+          {this.state.file.idfArray.map((channel, index) => (
+          <ChannelItem key={index} channel={channel} index={index}/>))}
+        </div>
+        <hr className='channelHR' style={{marginTop: '4px'}}/>
+        <ChannelInput/>
+      </div>)
+    } else {
+      return (<div/>);
+    }
   }
 }
