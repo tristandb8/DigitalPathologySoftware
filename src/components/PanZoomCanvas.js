@@ -40,7 +40,7 @@ export default class PanZoomCanvas extends React.Component {
         }
       })
     } else {
-      // TODO: FIX PNG RENDERING (not sure how this broke)
+      // TODO: FIX PNG RENDERING
       const img = new Image()
       img.src = loadedFile
       canvas.width = 300
