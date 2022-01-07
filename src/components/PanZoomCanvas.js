@@ -7,7 +7,6 @@ export default class PanZoomCanvas extends React.Component {
     super(props)
     this.canvasRef = React.createRef(null)
     this.viewRef = React.createRef(null)
-
     this.resetView = this.resetView.bind(this)
   }
 
@@ -41,7 +40,7 @@ export default class PanZoomCanvas extends React.Component {
         }
       })
     } else {
-      // TODO: FIX PNG RENDERING (not sure how this broke)
+      // TODO: FIX PNG RENDERING
       const img = new Image()
       img.src = loadedFile
       canvas.width = 300
@@ -59,12 +58,16 @@ export default class PanZoomCanvas extends React.Component {
   }
   
   render() {
-    return (
-      <TransformWrapper ref={this.viewRef} initialScale={1}>
-        <TransformComponent wrapperStyle={{width: '100%', height: '100%'}}>
-          <canvas ref={this.canvasRef} style={{imageRendering: 'pixelated', outline: 'red 1px solid', backgroundColor: 'black'}}/>
-        </TransformComponent>
-      </TransformWrapper>
-    )
+    if (this.props.file.loadedFile == null) {
+      return (<div/>);
+    } else {
+      return (
+        <TransformWrapper ref={this.viewRef} initialScale={1}>
+          <TransformComponent wrapperStyle={{width: '100%', height: '100%'}}>
+            <canvas ref={this.canvasRef} style={{imageRendering: 'pixelated', outline: 'red 1px solid', backgroundColor: 'black'}}/>
+          </TransformComponent>
+        </TransformWrapper>
+      )
+    }
   }
 }
