@@ -45,7 +45,7 @@ export const tiffImage = (fileData) => {
   let idfArray = tiff.decode(fileData)
   for (let i = 0; i < idfArray.length; i++) {
     idfArray[i].channelColor = Object.values(colors)[i]
-    idfArray[i].enabled = i === 0 ? true : false
+    idfArray[i].enabled = i === 0
     idfArray[i].name = `Layer ${i+1}`
     idfArray[i].max = getMax(idfArray[i].data)
 

@@ -18,6 +18,8 @@ class App extends Component {
     
     this.handleChannelToggle = this.handleChannelToggle.bind(this)
     this.handleChannelThresh = this.handleChannelThresh.bind(this)
+    this.handleChannelColor = this.handleChannelColor.bind(this)
+    this.handleChannelName = this.handleChannelName.bind(this)
     this.displayPageRef = React.createRef(null)
   }
   
@@ -46,6 +48,34 @@ class App extends Component {
       }
     }))
   }
+
+  handleChannelColor(index, color) {
+    let items = [...this.state.loadedFile.idfArray]
+    let item = {...items[index]}
+    item.channelColor = color
+    items[index] = item
+    
+    this.setState(prevState => ({
+      loadedFile: {...prevState.loadedFile,
+        idfArray: items
+      }
+    }))
+  }
+
+  handleChannelName(index, name) {
+    let items = [...this.state.loadedFile.idfArray]
+    let item = {...items[index]}
+    item.name = name
+    items[index] = item
+    
+    this.setState(prevState => ({
+      loadedFile: {...prevState.loadedFile,
+        idfArray: items
+      }
+    }))
+
+    console.log(`set name to ${name}`)
+  }
   
   componentDidMount() {
     ipcRenderer.on('new-image', (event, fileContent) => {
@@ -72,8 +102,14 @@ class App extends Component {
         <Split>
           <LeftPane/>
           <DisplayPage ref={this.displayPageRef} file={this.state}/>
-          <RightPane file={this.state.loadedFile} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/>
-          {/* <ChannelPane file={this.state} onToggleChannel={this.handleChannelToggle} onThreshChannel={this.handleChannelThresh}/> */}
+          <RightPane
+            file={this.state.loadedFile}
+            // Todo: Merge below functions
+            onToggleChannel={this.handleChannelToggle}
+            onThreshChannel={this.handleChannelThresh}
+            onColorChannel={this.handleChannelColor}
+            onNameChannel={this.handleChannelName}
+          />
         </Split>
       </div>
     )
