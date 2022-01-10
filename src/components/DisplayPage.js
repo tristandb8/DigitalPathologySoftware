@@ -1,6 +1,50 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
+import {ReactComponent as RulerButton} from '../resources/Ruler.svg'
+import {ReactComponent as GridButton} from '../resources/Grid.svg'
+import {ReactComponent as ExpandButton} from '../resources/Expand.svg'
+import {ReactComponent as TapButton} from '../resources/Tap.svg'
+import {ReactComponent as ZoomButton} from '../resources/SearchRight.svg'
+import {ReactComponent as MeasureButton} from '../resources/RulerRound.svg'
+import {ReactComponent as SquareButton} from '../resources/ShadedSquare.svg'
+import {ReactComponent as CircleButton} from '../resources/ShadedCircle.svg'
+import '../App.css'
+
 import PanZoomCanvas from './PanZoomCanvas'
+
+class Toolbar extends Component {
+  render() {
+    return (
+      <div className='toolbar'>
+        <div className='toolbarButton'>
+          <RulerButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='toolbarButton'>
+          <GridButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='verticalRule'/>
+        <div className='toolbarButton'>
+          <ExpandButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='toolbarButton'>
+          <TapButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='toolbarButton'>
+          <ZoomButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='verticalRule'/>
+        <div className='toolbarButton'>
+          <MeasureButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='toolbarButton'>
+          <SquareButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+        <div className='toolbarButton'>
+          <CircleButton style={{fill: '#1B1B1B', height: '24px', width: '24px'}}/>
+        </div>
+      </div>
+    );
+  }
+}
 
 export default class DisplayPage extends Component {
   constructor(props) {
@@ -10,18 +54,11 @@ export default class DisplayPage extends Component {
 
   render() {
     return (
-        <Display>
+        <div className='displayPage'>
           <div style={{height: '16px', width: '100%', backgroundColor: '#ff0000'}}></div>
-          <div style={{height: '40px', width: '100%', backgroundColor: '#ffffff'}}></div>
+          <Toolbar/>
           <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
-        </Display>
+        </div>
     );
   }
 }
-
-const Display = styled.div`
-  background: #1B1B1B;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-`
