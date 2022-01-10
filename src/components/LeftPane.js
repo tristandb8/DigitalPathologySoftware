@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import { ReactComponent as ProjectButton } from "../resources/ProjectButton.svg";
 import { ReactComponent as ImageButton } from "../resources/ImageButton.svg";
 import { ReactComponent as AnnotationButton } from "../resources/AnnotationButton.svg";
@@ -9,7 +9,7 @@ const LeftPanes = {
   Annotation: "Annotation",
 };
 
-class ProjectPane extends React.Component {
+class ProjectPane extends Component {
   render() {
     return (
       <div style={{ flexGrow: "100", display: "inline-flex" }}>
@@ -19,7 +19,7 @@ class ProjectPane extends React.Component {
   }
 }
 
-class ImagePane extends React.Component {
+class ImagePane extends Component {
   render() {
     return (
       <div style={{ flexGrow: "100", display: "inline-flex" }}>
@@ -29,7 +29,7 @@ class ImagePane extends React.Component {
   }
 }
 
-class AnnotationPane extends React.Component {
+class AnnotationPane extends Component {
   render() {
     return (
       <div style={{ flexGrow: "100", display: "inline-flex" }}>
@@ -39,18 +39,52 @@ class AnnotationPane extends React.Component {
   }
 }
 
-export default class LeftPane extends React.Component {
+class PaneSwitchButton extends Component {
+  chooseButton = () => {
+    const style = { fill: this.props.selected ? "white" : "#808080" };
+
+    switch (this.props.buttonType) {
+      case LeftPanes.Project:
+        return <ProjectButton style={style} />;
+      case LeftPanes.Image:
+        return <ImageButton style={style} />;
+      case LeftPanes.Annotation:
+        return <AnnotationButton style={style} />;
+      default:
+        return <div />;
+    }
+  };
+
+  render() {
+    const onClick = () => {
+      this.props.switchPane(this.props.buttonType);
+    };
+
+    return (
+      <div className="paneSwitchButton">
+        <div
+          className="paneSwitchIndicator"
+          style={{
+            backgroundColor: this.props.selected ? "white" : "#00000000",
+          }}
+        />
+        <div className="paneSwitchIcon" onClick={onClick}>
+          {this.chooseButton()}
+        </div>
+      </div>
+    );
+  }
+}
+
+export default class LeftPane extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
       selectedPane: LeftPanes.Project,
     };
-
-    this.paneRender = this.paneRender.bind(this);
   }
 
-  paneRender() {
+  paneRender = () => {
     switch (this.state.selectedPane) {
       case LeftPanes.Project:
         return <ProjectPane />;
@@ -61,62 +95,30 @@ export default class LeftPane extends React.Component {
       default:
         return <ProjectPane />;
     }
-  }
+  };
+
+  switchPane = (pane) => {
+    this.setState({ selectedPane: pane });
+  };
 
   render() {
     return (
-      <div
-        style={{
-          width: "400px",
-          height: "100%",
-          backgroundColor: "#F3F3F3",
-          display: "flex",
-        }}
-      >
-        <div
-          style={{
-            width: "44px",
-            backgroundColor: "#1B1B1B",
-            display: "inline-flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <ProjectButton
-            style={{
-              fill:
-                this.state.selectedPane === LeftPanes.Project
-                  ? "#FFFFFF"
-                  : "#808080",
-              padding: "12px 0px 12px 0px",
-            }}
-            onClick={() => {
-              this.setState({ selectedPane: LeftPanes.Project });
-            }}
+      <div className="leftPane">
+        <div className="leftPaneSwitcher">
+          <PaneSwitchButton
+            buttonType={LeftPanes.Project}
+            selected={this.state.selectedPane === LeftPanes.Project}
+            switchPane={this.switchPane}
           />
-          <ImageButton
-            style={{
-              fill:
-                this.state.selectedPane === LeftPanes.Image
-                  ? "#FFFFFF"
-                  : "#808080",
-              padding: "12px 0px 12px 0px",
-            }}
-            onClick={() => {
-              this.setState({ selectedPane: LeftPanes.Image });
-            }}
+          <PaneSwitchButton
+            buttonType={LeftPanes.Image}
+            selected={this.state.selectedPane === LeftPanes.Image}
+            switchPane={this.switchPane}
           />
-          <AnnotationButton
-            style={{
-              fill:
-                this.state.selectedPane === LeftPanes.Annotation
-                  ? "#FFFFFF"
-                  : "#808080",
-              padding: "12px 0px 12px 0px",
-            }}
-            onClick={() => {
-              this.setState({ selectedPane: LeftPanes.Annotation });
-            }}
+          <PaneSwitchButton
+            buttonType={LeftPanes.Annotation}
+            selected={this.state.selectedPane === LeftPanes.Annotation}
+            switchPane={this.switchPane}
           />
         </div>
         <this.paneRender />

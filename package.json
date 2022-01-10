@@ -51,6 +51,8 @@
     ]
   },
   "devDependencies": {
-    "electron": "^16.0.6"
+    "babel-eslint": "^10.1.0",
+    "electron": "^16.0.6",
+    "prettier-eslint": "^13.0.0"
   }
 }

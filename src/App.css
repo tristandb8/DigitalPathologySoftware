@@ -1,6 +1,6 @@
 .channelItem {
   height: 32px;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -8,12 +8,12 @@
 }
 
 .channelItem:hover {
-  background-color: #DFDFDF;
+  background-color: #dfdfdf;
 }
 
 .channelItemSelected {
   height: 32px;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -38,7 +38,7 @@
 .channelTextInput:focus {
   border-radius: 4px;
   outline: #00000014 1px solid;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
 }
 
 .channelHR {
@@ -49,7 +49,7 @@
 .rightPane {
   width: 400px;
   height: 100%;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,7 +64,7 @@
 .toolbar {
   height: 40px;
   width: 100%;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   padding-left: 4px;
   display: flex;
   flex-direction: row;
@@ -73,7 +73,7 @@
 }
 
 .verticalRule {
-  background-color: #1B1B1B;
+  background-color: #1b1b1b;
   height: 84%;
   width: 2px;
   border-radius: 2px;
@@ -82,7 +82,7 @@
 .toolbarButton {
   height: 32px;
   width: 32px;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   border: #00000012 1px solid;
   box-sizing: border-box;
   border-radius: 4px;
@@ -94,11 +94,11 @@
 }
 
 .toolbarButton:hover {
-  background-color: #DFDFDF;
+  background-color: #dfdfdf;
 }
 
 .displayPage {
-  background-color: #1B1B1B;
+  background-color: #1b1b1b;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -107,7 +107,7 @@
 .tabbar {
   height: 20px;
   width: 100%;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   display: flex;
   flex-direction: row;
   border-bottom: #00000012 1px solid;
@@ -116,7 +116,7 @@
 .tabSelected {
   height: 100%;
   width: 100px;
-  background-color: #ECECEC;
+  background-color: #ececec;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -132,7 +132,7 @@
 .tab {
   height: 100%;
   width: 100px;
-  background-color: #F3F3F3;
+  background-color: #f3f3f3;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -163,7 +163,7 @@
 }
 
 .tabCloseIcon {
-  fill: #1B1B1B;
+  fill: #1b1b1b;
   height: 12px;
   width: 12px;
 }
@@ -179,4 +179,37 @@
   margin: 0 4px 0 0;
   padding: none;
   user-select: none;
+}
+
+.leftPane {
+  width: 400px;
+  height: 100%;
+  background-color: #f3f3f3;
+  display: flex;
+}
+
+.leftPaneSwitcher {
+  width: 48px;
+  background-color: #1b1b1b;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.paneSwitchButton {
+  display: flex;
+  height: 44px;
+  width: 100%;
+}
+
+.paneSwitchIcon {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.paneSwitchIndicator {
+  height: 100%;
+  width: 2px;
 }
