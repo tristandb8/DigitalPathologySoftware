@@ -102,3 +102,58 @@
   height: 100%;
   overflow: hidden;
 }
+
+.tabbar {
+  height: 20px;
+  width: 100%;
+  background-color: #F3F3F3;
+  display: flex;
+  flex-direction: row;
+  border-bottom: #00000012 1px solid;
+}
+
+.tabSelected {
+  height: 100%;
+  width: 100px;
+  background-color: #ECECEC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 4px 0 4px;
+  border-radius: 4px 4px 0 0;
+  border: #00000024 solid;
+  border-width: 1px 1px 0 1px;
+  box-sizing: border-box;
+}
+
+.tab {
+  height: 100%;
+  width: 100px;
+  background-color: #F3F3F3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 4px 0 4px;
+  border-radius: 4px 4px 0 0;
+  border: #00000024 solid;
+  border-width: 1px 1px 0 1px;
+  box-sizing: border-box;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+.tabSelected:hover {
+  background-color: #e0e0e0;
+}
+
+.tabTitle {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0 4px 0 0;
+  padding: none;
+  user-select: none;
+}

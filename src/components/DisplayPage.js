@@ -7,6 +7,7 @@ import {ReactComponent as ZoomButton} from '../resources/SearchRight.svg'
 import {ReactComponent as MeasureButton} from '../resources/RulerRound.svg'
 import {ReactComponent as SquareButton} from '../resources/ShadedSquare.svg'
 import {ReactComponent as CircleButton} from '../resources/ShadedCircle.svg'
+import {ReactComponent as CloseButton} from '../resources/Close.svg'
 import '../App.css'
 
 import PanZoomCanvas from './PanZoomCanvas'
@@ -46,6 +47,27 @@ class Toolbar extends Component {
   }
 }
 
+class Tabbar extends Component {
+  render() {
+    return (
+    <div className='tabbar'>
+      <div className='tab'>
+        <p className='tabTitle'>tab 1 with some extra words</p>
+        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
+      </div>
+      <div className='tabSelected'>
+        <p className='tabTitle'>tab 2</p>
+        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
+      </div>
+      <div className='tab'>
+        <p className='tabTitle'>tab 3</p>
+        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
+      </div>
+    </div>
+    );
+  }
+}
+
 export default class DisplayPage extends Component {
   constructor(props) {
     super(props)
@@ -55,7 +77,7 @@ export default class DisplayPage extends Component {
   render() {
     return (
         <div className='displayPage'>
-          <div style={{height: '16px', width: '100%', backgroundColor: '#ff0000'}}></div>
+          <Tabbar/>
           <Toolbar/>
           <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
         </div>
