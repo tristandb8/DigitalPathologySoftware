@@ -12,52 +12,83 @@ import "../App.css";
 
 import PanZoomCanvas from "./PanZoomCanvas";
 
+class ToolButton extends Component {
+  render() {
+    const className = this.props.selected
+      ? "toolbarButtonSelected"
+      : "toolbarButton";
+    return (
+      <div onClick={this.props.onClick} className={className}>
+        {this.props.children}
+      </div>
+    );
+  }
+}
+
 class Toolbar extends Component {
   render() {
     return (
       <div className="toolbar">
-        <div className="toolbarButton">
-          <RulerButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="toolbarButton">
-          <GridButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
+        <ToolButton
+          selected={this.props.grid}
+          onClick={() => {
+            this.props.toggleGrid();
+          }}
+        >
+          <RulerButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          onClick={() => {
+            this.props.toggleRuler();
+          }}
+          selected={this.props.ruler}
+        >
+          <GridButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton>
+          <ExpandButton className="tabbarButton" />
+        </ToolButton>
         <div className="verticalRule" />
-        <div className="toolbarButton">
-          <ExpandButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="toolbarButton">
-          <TapButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="toolbarButton">
-          <ZoomButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="verticalRule" />
-        <div className="toolbarButton">
-          <MeasureButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="toolbarButton">
-          <SquareButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
-        <div className="toolbarButton">
-          <CircleButton
-            style={{ fill: "#1B1B1B", height: "24px", width: "24px" }}
-          />
-        </div>
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.Pan);
+          }}
+          selected={this.props.mode === Modes.Pan}
+        >
+          <TapButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.Zoom);
+          }}
+          selected={this.props.mode === Modes.Zoom}
+        >
+          <ZoomButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.Measure);
+          }}
+          selected={this.props.mode === Modes.Measure}
+        >
+          <MeasureButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.AnnotateSquare);
+          }}
+          selected={this.props.mode === Modes.AnnotateSquare}
+        >
+          <SquareButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.AnnotateCircle);
+          }}
+          selected={this.props.mode === Modes.AnnotateCircle}
+        >
+          <CircleButton className="tabbarButton" />
+        </ToolButton>
       </div>
     );
   }
@@ -90,17 +121,56 @@ class Tabbar extends Component {
   }
 }
 
+const Modes = {
+  Pan: "Pan",
+  Zoom: "Zoom",
+  Measure: "Measure",
+  AnnotateCircle: "AnnotateCircle",
+  AnnotateSquare: "AnnotateSquare",
+};
+
 export default class DisplayPage extends Component {
   constructor(props) {
     super(props);
     this.canvasRef = React.createRef();
+
+    this.state = {
+      mode: Modes.Pan,
+      grid: false,
+      ruler: false,
+    };
   }
+
+  toggleGrid = () => {
+    this.setState({
+      grid: !this.state.grid,
+    });
+  };
+
+  toggleRuler = () => {
+    this.setState({
+      ruler: !this.state.ruler,
+    });
+  };
+
+  switchMode = (mode) => {
+    this.setState({
+      mode: mode,
+    });
+  };
 
   render() {
     return (
       <div className="displayPage">
         <Tabbar />
-        <Toolbar />
+        <Toolbar
+          grid={this.state.grid}
+          ruler={this.state.ruler}
+          mode={this.state.mode}
+          toggleGrid={this.toggleGrid}
+          toggleRuler={this.toggleRuler}
+          switchMode={this.switchMode}
+        />
         <PanZoomCanvas ref={this.canvasRef} file={this.props.file} />
       </div>
     );

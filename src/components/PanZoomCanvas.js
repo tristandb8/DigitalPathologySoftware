@@ -61,7 +61,11 @@ export default class PanZoomCanvas extends React.Component {
       return <div />;
     } else {
       return (
-        <TransformWrapper ref={this.viewRef} initialScale={1}>
+        <TransformWrapper
+          ref={this.viewRef}
+          initialScale={1}
+          limitToBounds={false}
+        >
           <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
             <canvas
               ref={this.canvasRef}

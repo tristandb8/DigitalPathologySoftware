@@ -60,14 +60,13 @@ class PaneSwitchButton extends Component {
       this.props.switchPane(this.props.buttonType);
     };
 
+    const paneSwitchIndicatorStyle = this.props.selected
+      ? "paneSwitchIndicatorSelected"
+      : "paneSwitchIndicator";
+
     return (
       <div className="paneSwitchButton">
-        <div
-          className="paneSwitchIndicator"
-          style={{
-            backgroundColor: this.props.selected ? "white" : "#00000000",
-          }}
-        />
+        <div className={paneSwitchIndicatorStyle} />
         <div className="paneSwitchIcon" onClick={onClick}>
           {this.chooseButton()}
         </div>
