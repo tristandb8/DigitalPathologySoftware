@@ -10,9 +10,11 @@ export default class DisplayPage extends Component {
 
   render() {
     return (
-      <Display>
-        <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
-      </Display>
+        <Display>
+          <div style={{height: '16px', width: '100%', backgroundColor: '#ff0000'}}></div>
+          <div style={{height: '40px', width: '100%', backgroundColor: '#ffffff'}}></div>
+          <PanZoomCanvas ref={this.canvasRef} file={this.props.file}/>
+        </Display>
     );
   }
 }

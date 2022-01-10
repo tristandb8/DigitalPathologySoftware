@@ -2,6 +2,7 @@ import React from 'react'
 import 'rc-slider/assets/index.css'
 import '../App.css'
 import { Range } from 'rc-slider'
+import { SketchPicker } from 'react-color'
 
 class ChannelItem extends React.Component {
   render() {
@@ -13,7 +14,12 @@ class ChannelItem extends React.Component {
         <div className={className}
         onClick={() => this.props.channelSelected(this.props.channel, this.props.index)}>
           <div key='color' className='channelColorIcon' style={{backgroundColor: this.props.channel.channelColor}}/>
-          <input key='name' type='text' className='channelTextInput' defaultValue={this.props.channel.name}/>
+          <input key='name'
+            type='text'
+            className='channelTextInput'
+            onChange={(e) => {this.props.onNameChannel(this.props.index, e.target.value)}}
+            defaultValue={this.props.channel.name}
+          />
           <input key='selected' type='checkbox' checked={this.props.channel.enabled}
           onChange={() => this.props.onToggleChannel(this.props.index)} style={{width: '16px', height: '16px'}}/>
         </div>
@@ -23,10 +29,44 @@ class ChannelItem extends React.Component {
 }
 
 class ChannelInput extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      color: '#fff'
+    }
+
+    this.handleChange = this.handleChange.bind(this)
+  }
+
+  componentDidUpdate(oldProps) {
+    if (oldProps.selectedChannel !== this.props.selectedChannel) {
+      this.setState({
+        color: this.props.selectedChannel.channel.channelColor
+      })
+    }
+  }
+
+  handleChange(color, event) {
+    this.props.onColorChannel(this.props.selectedChannel.index, color.hex)
+    this.setState({
+      color: color.hex
+    })
+  }
+
   render() {
+    // TODO: Create custom color picker
     if (this.props.selectedChannel != null) {
       return (<div style={{width: '80%'}}>
-        <Range value={this.props.sliderRange} onChange={(e) => {this.props.sliderChanged(e)}}/>
+        <p>Threshold:</p>
+        <Range
+          value={this.props.sliderRange}
+          onChange={(e) => {this.props.sliderChanged(e)}}
+        />
+        <p>Color:</p>
+        <SketchPicker
+          color={ this.state.color }
+          onChange={ this.handleChange }
+        />
       </div>);
     } else {
       return (<div/>);
@@ -78,13 +118,20 @@ export default class RightPane extends React.Component {
         <div className='channelList'>
           {this.state.file.idfArray.map((channel, index) => (
             <ChannelItem key={index} channel={channel} index={index}
-            selectedChannel={this.state.selectedChannel} channelSelected={this.channelSelected}
-            onToggleChannel={this.props.onToggleChannel}
+              selectedChannel={this.state.selectedChannel}
+              channelSelected={this.channelSelected}
+              onNameChannel={this.props.onNameChannel}
+              onToggleChannel={this.props.onToggleChannel}
             />
           ))}
         </div>
         <hr className='channelHR' style={{marginTop: '4px'}}/>
-        <ChannelInput sliderChanged={this.sliderChanged} selectedChannel={this.state.selectedChannel} sliderRange={this.state.sliderRange}/>
+        <ChannelInput
+          sliderChanged={this.sliderChanged}
+          onColorChannel={this.props.onColorChannel}
+          selectedChannel={this.state.selectedChannel}
+          sliderRange={this.state.sliderRange}
+        />
       </div>)
     } else {
       return (<div/>);
