@@ -90,6 +90,7 @@
   align-items: center;
   justify-content: center;
   margin: 0 2px;
+  cursor: pointer;
 }
 
 .toolbarButton:hover {
@@ -125,6 +126,7 @@
   border: #00000024 solid;
   border-width: 1px 1px 0 1px;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .tab {
@@ -140,13 +142,34 @@
   border: #00000024 solid;
   border-width: 1px 1px 0 1px;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .tab:hover {
   background-color: #e0e0e0;
 }
+
 .tabSelected:hover {
   background-color: #e0e0e0;
+}
+
+.tabClose {
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tabCloseIcon {
+  fill: #1B1B1B;
+  height: 12px;
+  width: 12px;
+}
+
+.tabClose:hover {
+  background-color: #d0d0d0;
 }
 
 .tabTitle {

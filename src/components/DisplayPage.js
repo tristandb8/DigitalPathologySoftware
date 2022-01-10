@@ -47,22 +47,29 @@ class Toolbar extends Component {
   }
 }
 
+class Tab extends Component {
+
+  render() {
+    const className = this.props.selected ? 'tabSelected' : 'tab'
+    
+    return (
+      <div className={className}>
+        <p className='tabTitle'>{this.props.title}</p>
+        <div className='tabClose'>
+          <CloseButton className='tabCloseIcon'/>
+        </div>
+      </div>
+    );
+  }
+}
+
 class Tabbar extends Component {
   render() {
     return (
     <div className='tabbar'>
-      <div className='tab'>
-        <p className='tabTitle'>tab 1 with some extra words</p>
-        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
-      </div>
-      <div className='tabSelected'>
-        <p className='tabTitle'>tab 2</p>
-        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
-      </div>
-      <div className='tab'>
-        <p className='tabTitle'>tab 3</p>
-        <CloseButton style={{fill: '#1B1B1B', height: '12px', width: '12px', flexShrink: '0'}}/>
-      </div>
+      <Tab selected={false} title={'tab 1'}/>
+      <Tab selected={true} title={'tab 2'}/>
+      <Tab selected={false} title={'tab 3'}/>
     </div>
     );
   }
