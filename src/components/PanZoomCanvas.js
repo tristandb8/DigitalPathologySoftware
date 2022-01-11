@@ -1,6 +1,7 @@
 import React from "react";
 import { getBitmap } from "../utils/TiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { ReactComponent as Grid } from "../resources/GridFull.svg";
 
 export default class PanZoomCanvas extends React.Component {
   constructor(props) {
@@ -60,23 +61,41 @@ export default class PanZoomCanvas extends React.Component {
     if (this.props.file.loadedFile == null) {
       return <div />;
     } else {
+      // const scale = this.viewRef.current ? this.viewRef.current.state.scale : 1;
+
       return (
-        <TransformWrapper
-          ref={this.viewRef}
-          initialScale={1}
-          limitToBounds={false}
-        >
-          <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
-            <canvas
-              ref={this.canvasRef}
-              style={{
-                imageRendering: "pixelated",
-                outline: "red 1px solid",
-                backgroundColor: "black",
+        <div style={{ width: "100%", height: "100%" }}>
+          {/* <Grid
+            style={{
+              width: "50%",
+              height: "50%",
+              position: "absolute",
+              transform: `scale(${scale})`,
+            }}
+          /> */}
+          <TransformWrapper
+            ref={this.viewRef}
+            initialScale={1}
+            limitToBounds={false}
+            onZoom={this.props.onZoom}
+          >
+            <TransformComponent
+              wrapperStyle={{
+                width: "100%",
+                height: "100%",
               }}
-            />
-          </TransformComponent>
-        </TransformWrapper>
+            >
+              <canvas
+                ref={this.canvasRef}
+                style={{
+                  imageRendering: "pixelated",
+                  border: "red 1px solid",
+                  backgroundColor: "black",
+                }}
+              />
+            </TransformComponent>
+          </TransformWrapper>
+        </div>
       );
     }
   }

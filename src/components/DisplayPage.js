@@ -159,6 +159,10 @@ export default class DisplayPage extends Component {
     });
   };
 
+  onZoom = (ref) => {
+    // console.log(ref.state.scale);
+  };
+
   render() {
     return (
       <div className="displayPage">
@@ -171,7 +175,11 @@ export default class DisplayPage extends Component {
           toggleRuler={this.toggleRuler}
           switchMode={this.switchMode}
         />
-        <PanZoomCanvas ref={this.canvasRef} file={this.props.file} />
+        <PanZoomCanvas
+          ref={this.canvasRef}
+          file={this.props.file}
+          onZoom={this.onZoom}
+        />
       </div>
     );
   }

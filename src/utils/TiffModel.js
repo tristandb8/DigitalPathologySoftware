@@ -57,7 +57,7 @@ const colors = {
   lightseagreen: "#20b2aa",
   darkorchid: "#9932cc",
   darkorange: "#ff8c00",
-  gray: "$808080",
+  gray: "#808080",
   paleturquoise: "#afeeee",
   mediumslateblue: "#7b68ee",
   yellowgreen: "#9acd32",
@@ -117,11 +117,11 @@ export const getChannelImageData = (t, index) => {
   const intArray = new Uint8ClampedArray(t.width * t.height * 4);
   const color = hexToRgb(channel.channelColor);
 
-  let j = 0;
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0, j = 0; i < data.length; i++) {
     const lowThresh = (channel.max * channel.threshold[0]) / 100;
     const highThresh = (channel.max * channel.threshold[1]) / 100;
     const threshVal = (data[i] - lowThresh) / highThresh;
+
     intArray[j++] = threshVal * color.r; // R value
     intArray[j++] = threshVal * color.g; // G value
     intArray[j++] = threshVal * color.b; // B value
