@@ -55,6 +55,10 @@ export default class PanZoomCanvas extends Component {
   componentDidUpdate(oldProps) {
     if (oldProps.file !== this.props.file) {
       this.updateCanvas();
+    } else if (oldProps.grid !== this.props.grid) {
+      this.gridRef.current.backgroundImage = this.props.grid
+        ? `url(${grid})`
+        : "none";
     }
   }
 
@@ -78,33 +82,26 @@ export default class PanZoomCanvas extends Component {
                 height: "100%",
               }}
             >
-              <div
+              <canvas
+                ref={this.canvasRef}
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
+                  imageRendering: "pixelated",
+                  border: "red 1px solid",
+                  backgroundColor: "black",
                 }}
-              >
-                <canvas
-                  ref={this.canvasRef}
-                  style={{
-                    imageRendering: "pixelated",
-                    border: "red 1px solid",
-                    backgroundColor: "black",
-                  }}
-                />
-                <div
-                  style={{
-                    width: "1000%",
-                    height: "1000%",
-                    backgroundImage: `url(${grid})`,
-                    position: "absolute",
-                  }}
-                />
-              </div>
+              />
+
+              <div
+                ref={this.gridRef}
+                style={{
+                  width: "4000%",
+                  height: "4000%",
+                  backgroundImage: this.props.grid ? `url(${grid})` : "none",
+                  position: "absolute",
+                  left: "-3000px",
+                  top: "-3000px",
+                }}
+              />
             </TransformComponent>
           </TransformWrapper>
         </div>

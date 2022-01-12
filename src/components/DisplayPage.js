@@ -30,18 +30,18 @@ class Toolbar extends Component {
     return (
       <div className="toolbar">
         <ToolButton
-          selected={this.props.grid}
-          onClick={() => {
-            this.props.toggleGrid();
-          }}
-        >
-          <RulerButton className="tabbarButton" />
-        </ToolButton>
-        <ToolButton
           onClick={() => {
             this.props.toggleRuler();
           }}
           selected={this.props.ruler}
+        >
+          <RulerButton className="tabbarButton" />
+        </ToolButton>
+        <ToolButton
+          selected={this.props.grid}
+          onClick={() => {
+            this.props.toggleGrid();
+          }}
         >
           <GridButton className="tabbarButton" />
         </ToolButton>
@@ -142,6 +142,7 @@ export default class DisplayPage extends Component {
   }
 
   toggleGrid = () => {
+    console.log(`grid set to ${this.state.grid}`);
     this.setState({
       grid: !this.state.grid,
     });
@@ -177,6 +178,7 @@ export default class DisplayPage extends Component {
         />
         <PanZoomCanvas
           ref={this.canvasRef}
+          grid={this.state.grid}
           file={this.props.file}
           onZoom={this.onZoom}
         />
