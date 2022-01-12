@@ -1,13 +1,14 @@
-import React from "react";
+import React, { Component } from "react";
 import { getBitmap } from "../utils/TiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { ReactComponent as Grid } from "../resources/GridFull.svg";
+import grid from "../resources/GridFull.svg";
 
-export default class PanZoomCanvas extends React.Component {
+export default class PanZoomCanvas extends Component {
   constructor(props) {
     super(props);
     this.canvasRef = React.createRef(null);
     this.viewRef = React.createRef(null);
+    this.gridRef = React.createRef(null);
     this.resetView = this.resetView.bind(this);
   }
 
@@ -61,23 +62,15 @@ export default class PanZoomCanvas extends React.Component {
     if (this.props.file.loadedFile == null) {
       return <div />;
     } else {
-      // const scale = this.viewRef.current ? this.viewRef.current.state.scale : 1;
-
       return (
         <div style={{ width: "100%", height: "100%" }}>
-          {/* <Grid
-            style={{
-              width: "50%",
-              height: "50%",
-              position: "absolute",
-              transform: `scale(${scale})`,
-            }}
-          /> */}
           <TransformWrapper
             ref={this.viewRef}
             initialScale={1}
             limitToBounds={false}
-            onZoom={this.props.onZoom}
+            onZoom={(ref) => {
+              this.props.onZoom(ref);
+            }}
           >
             <TransformComponent
               wrapperStyle={{
@@ -85,14 +78,33 @@ export default class PanZoomCanvas extends React.Component {
                 height: "100%",
               }}
             >
-              <canvas
-                ref={this.canvasRef}
+              <div
                 style={{
-                  imageRendering: "pixelated",
-                  border: "red 1px solid",
-                  backgroundColor: "black",
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
-              />
+              >
+                <canvas
+                  ref={this.canvasRef}
+                  style={{
+                    imageRendering: "pixelated",
+                    border: "red 1px solid",
+                    backgroundColor: "black",
+                  }}
+                />
+                <div
+                  style={{
+                    width: "1000%",
+                    height: "1000%",
+                    backgroundImage: `url(${grid})`,
+                    position: "absolute",
+                  }}
+                />
+              </div>
             </TransformComponent>
           </TransformWrapper>
         </div>
