@@ -17,6 +17,7 @@ export default class PanZoomCanvas extends Component {
     this.canvasRef = React.createRef(null);
     this.viewRef = React.createRef(null);
     this.gridRef = React.createRef(null);
+    this.portRef = React.createRef(null);
     this.resetView = this.resetView.bind(this);
 
     this.state = {
@@ -25,8 +26,17 @@ export default class PanZoomCanvas extends Component {
   }
 
   resetView() {
+    const scaleX =
+      this.portRef.current.offsetWidth / this.canvasRef.current.offsetWidth;
+    const scaleY =
+      this.portRef.current.offsetHeight / this.canvasRef.current.offsetHeight;
+
     this.viewRef.current.resetTransform(0, "easeOut");
-    this.viewRef.current.centerView(undefined, 0, "easeOut");
+    this.viewRef.current.centerView(
+      Math.min(scaleX, scaleY) * 0.99,
+      0,
+      "easeOut"
+    );
   }
 
   updateCanvas() {
@@ -74,12 +84,35 @@ export default class PanZoomCanvas extends Component {
     }
   }
 
+  handleMouseEvent = (event) => {
+    if (event.type === "mousedown") {
+      if (this.props.mode === Modes.Measure) {
+        this.setState({ measuring: true });
+      }
+    } else if (event.type === "mouseup") {
+      if (this.props.mode === Modes.Measure) {
+        this.setState({ measuring: false });
+      }
+      console.log(event);
+    } else {
+      if (this.state.measuring) {
+        console.log(`${event.pageX}, ${event.pageY}`);
+      }
+    }
+  };
+
   render() {
     if (this.props.file.loadedFile == null) {
       return <div />;
     } else {
       return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div
+          style={{ width: "100%", height: "100%" }}
+          ref={this.portRef}
+          onMouseDown={this.handleMouseEvent}
+          onMouseUp={this.handleMouseEvent}
+          onMouseMove={this.handleMouseEvent}
+        >
           <TransformWrapper
             ref={this.viewRef}
             initialScale={1}

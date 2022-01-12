@@ -29,6 +29,7 @@ class Toolbar extends Component {
   render() {
     return (
       <div className="toolbar">
+        {/* Ruler */}
         <ToolButton
           onClick={() => {
             this.props.toggleRuler();
@@ -37,6 +38,7 @@ class Toolbar extends Component {
         >
           <RulerButton className="tabbarButton" />
         </ToolButton>
+        {/* Grid */}
         <ToolButton
           selected={this.props.grid}
           onClick={() => {
@@ -45,10 +47,12 @@ class Toolbar extends Component {
         >
           <GridButton className="tabbarButton" />
         </ToolButton>
-        <ToolButton>
+        {/* View reset */}
+        <ToolButton onClick={this.props.resetView}>
           <ExpandButton className="tabbarButton" />
         </ToolButton>
         <div className="verticalRule" />
+        {/* Pan Mode */}
         <ToolButton
           onClick={() => {
             this.props.switchMode(Modes.Pan);
@@ -57,6 +61,7 @@ class Toolbar extends Component {
         >
           <TapButton className="tabbarButton" />
         </ToolButton>
+        {/* Zoom Mode */}
         <ToolButton
           onClick={() => {
             this.props.switchMode(Modes.Zoom);
@@ -65,6 +70,7 @@ class Toolbar extends Component {
         >
           <ZoomButton className="tabbarButton" />
         </ToolButton>
+        {/* Measure Mode */}
         <ToolButton
           onClick={() => {
             this.props.switchMode(Modes.Measure);
@@ -73,6 +79,7 @@ class Toolbar extends Component {
         >
           <MeasureButton className="tabbarButton" />
         </ToolButton>
+        {/* Annotate Square Mode */}
         <ToolButton
           onClick={() => {
             this.props.switchMode(Modes.AnnotateSquare);
@@ -81,6 +88,7 @@ class Toolbar extends Component {
         >
           <SquareButton className="tabbarButton" />
         </ToolButton>
+        {/* Annotate Circle Mode */}
         <ToolButton
           onClick={() => {
             this.props.switchMode(Modes.AnnotateCircle);
@@ -141,6 +149,10 @@ export default class DisplayPage extends Component {
     };
   }
 
+  resetView = () => {
+    this.canvasRef.current.resetView();
+  };
+
   toggleGrid = () => {
     this.setState({
       grid: !this.state.grid,
@@ -171,6 +183,7 @@ export default class DisplayPage extends Component {
           grid={this.state.grid}
           ruler={this.state.ruler}
           mode={this.state.mode}
+          resetView={this.resetView}
           toggleGrid={this.toggleGrid}
           toggleRuler={this.toggleRuler}
           switchMode={this.switchMode}
