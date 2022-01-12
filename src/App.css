@@ -241,3 +241,17 @@
   height: 24px;
   width: 24px;
 }
+
+.backgroundGrid {
+  width: 4000%;
+  height: 4000%;
+  position: absolute;
+  left: -3000px;
+  top: -3000px;
+}
+
+.displayCanvas {
+  image-rendering: pixelated;
+  border: red 1px solid;
+  background-color: black;
+}

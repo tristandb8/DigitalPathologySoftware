@@ -142,7 +142,6 @@ export default class DisplayPage extends Component {
   }
 
   toggleGrid = () => {
-    console.log(`grid set to ${this.state.grid}`);
     this.setState({
       grid: !this.state.grid,
     });
@@ -181,6 +180,7 @@ export default class DisplayPage extends Component {
           grid={this.state.grid}
           file={this.props.file}
           onZoom={this.onZoom}
+          mode={this.state.mode}
         />
       </div>
     );

@@ -3,6 +3,14 @@ import { getBitmap } from "../utils/TiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
 
+const Modes = {
+  Pan: "Pan",
+  Zoom: "Zoom",
+  Measure: "Measure",
+  AnnotateCircle: "AnnotateCircle",
+  AnnotateSquare: "AnnotateSquare",
+};
+
 export default class PanZoomCanvas extends Component {
   constructor(props) {
     super(props);
@@ -10,6 +18,10 @@ export default class PanZoomCanvas extends Component {
     this.viewRef = React.createRef(null);
     this.gridRef = React.createRef(null);
     this.resetView = this.resetView.bind(this);
+
+    this.state = {
+      measuring: false,
+    };
   }
 
   resetView() {
@@ -75,6 +87,9 @@ export default class PanZoomCanvas extends Component {
             onZoom={(ref) => {
               this.props.onZoom(ref);
             }}
+            panning={{
+              disabled: this.props.mode !== Modes.Pan,
+            }}
           >
             <TransformComponent
               wrapperStyle={{
@@ -82,24 +97,12 @@ export default class PanZoomCanvas extends Component {
                 height: "100%",
               }}
             >
-              <canvas
-                ref={this.canvasRef}
-                style={{
-                  imageRendering: "pixelated",
-                  border: "red 1px solid",
-                  backgroundColor: "black",
-                }}
-              />
-
+              <canvas ref={this.canvasRef} className="displayCanvas" />
               <div
                 ref={this.gridRef}
+                className="backgroundGrid"
                 style={{
-                  width: "4000%",
-                  height: "4000%",
                   backgroundImage: this.props.grid ? `url(${grid})` : "none",
-                  position: "absolute",
-                  left: "-3000px",
-                  top: "-3000px",
                 }}
               />
             </TransformComponent>
