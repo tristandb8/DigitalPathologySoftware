@@ -2,8 +2,15 @@ const { app, BrowserWindow, Menu, dialog } = require("electron");
 const path = require("path");
 const isMac = process.platform === "darwin";
 const fs = require("fs");
+const Store = require('electron-store');
+const store = new Store();
+
+const { ipcMain } = require('electron')
+
 // const UTIF = require('utif')
 // const tiff = require('tiff')
+// const Store = require('electron-store');
+// const store = new Store();
 
 const template = [
   // { role: 'appMenu' }
@@ -36,8 +43,6 @@ const template = [
           openFile();
         },
       },
-      { label: "Open Folder" },
-      isMac ? { role: "close" } : { role: "quit" },
     ],
   },
   // { role: 'editMenu' }
@@ -141,6 +146,11 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
+  if (getFilePath()){
+    openIntroFile();
+  }
+
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -164,7 +174,6 @@ function openFile() {
   const file = files[0];
   const fileType = path.extname(file);
   const imgBuffer = fs.readFileSync(file);
-
   let retval;
 
   if (fileType === ".tif" || fileType === ".tiff") {
@@ -174,5 +183,49 @@ function openFile() {
     retval = { type: "image", data: `data:image;base64,${imgDecode}` };
   }
 
+  store.set("Directory",file);
   mainWindow.webContents.send("new-image", retval);
+}
+
+
+
+function getFilePath() {
+  let tmp = ''
+  tmp = store.get("Directory") || null;
+  return tmp;
+}
+
+function openIntroFile(){
+
+  console.log('I AM ALIVE');
+  const file = getFilePath();
+  const fileType = path.extname(file);
+  const imgBuffer = fs.readFileSync(file);
+  let retval;
+
+  if (fileType === ".tif" || fileType === ".tiff") {
+    retval = { type: "tiff", data: imgBuffer };
+  } else {
+    const imgDecode = imgBuffer.toString("base64");
+    retval = { type: "image", data: `data:image;base64,${imgDecode}` };
+  }
+  //mainWindow.webContents.send("opening-image", retval);
+
+  ipcMain.handle('opening-image', async () => {
+    
+    const file = getFilePath();
+    const fileType = path.extname(file);
+    const imgBuffer = fs.readFileSync(file);
+    let retval;
+
+    if (fileType === ".tif" || fileType === ".tiff") {
+      retval = { type: "tiff", data: imgBuffer };
+    } else {
+      const imgDecode = imgBuffer.toString("base64");
+      retval = { type: "image", data: `data:image;base64,${imgDecode}` };
+    }
+    return retval;
+  })
+
+  console.log(file);
 }

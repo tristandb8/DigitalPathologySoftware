@@ -93,6 +93,8 @@ export const tiffImage = (fileData) => {
   const channels = idfArray.length;
 
   return { idfArray, width, height, channels };
+  // idfArray is almost like a python dictionary, we need to send the information from this array to 
+  // A json object (See SD paper).
 };
 
 export const getBitmap = (t) => {
