@@ -4,13 +4,7 @@ const isMac = process.platform === "darwin";
 const fs = require("fs");
 const Store = require("electron-store");
 const store = new Store();
-
 const { ipcMain } = require("electron");
-
-// const UTIF = require('utif')
-// const tiff = require('tiff')
-// const Store = require('electron-store');
-// const store = new Store();
 
 const template = [
   // { role: 'appMenu' }
@@ -147,9 +141,9 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 
-  if (getFilePath()) {
+  ipcMain.on("load-previous-image", (event) => {
     openIntroFile();
-  }
+  });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -161,6 +155,21 @@ app.on("window-all-closed", function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+function inferFile(file) {
+  const fileType = path.extname(file);
+  const imgBuffer = fs.readFileSync(file);
+  let retval;
+
+  if (fileType === ".tif" || fileType === ".tiff") {
+    retval = { type: "tiff", data: imgBuffer };
+  } else {
+    const imgDecode = imgBuffer.toString("base64");
+    retval = { type: "image", data: `data:image;base64,${imgDecode}` };
+  }
+
+  return retval;
+}
+
 function openFile() {
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile"],
@@ -171,53 +180,14 @@ function openFile() {
 
   if (!files) return;
   const file = files[0];
-  const fileType = path.extname(file);
-  const imgBuffer = fs.readFileSync(file);
-  let retval;
-
-  if (fileType === ".tif" || fileType === ".tiff") {
-    retval = { type: "tiff", data: imgBuffer };
-  } else {
-    const imgDecode = imgBuffer.toString("base64");
-    retval = { type: "image", data: `data:image;base64,${imgDecode}` };
-  }
-
+  const retval = inferFile(file);
   store.set("Directory", file);
   mainWindow.webContents.send("new-image", retval);
 }
 
-function getFilePath() {
-  let tmp = "";
-  tmp = store.get("Directory") || null;
-  return tmp;
-}
-
 function openIntroFile() {
-  const file = getFilePath();
-  const fileType = path.extname(file);
-  const imgBuffer = fs.readFileSync(file);
-  let retval;
-
-  if (fileType === ".tif" || fileType === ".tiff") {
-    retval = { type: "tiff", data: imgBuffer };
-  } else {
-    const imgDecode = imgBuffer.toString("base64");
-    retval = { type: "image", data: `data:image;base64,${imgDecode}` };
-  }
-  //mainWindow.webContents.send("opening-image", retval);
-
-  ipcMain.handle("opening-image", async () => {
-    const file = getFilePath();
-    const fileType = path.extname(file);
-    const imgBuffer = fs.readFileSync(file);
-    let retval;
-
-    if (fileType === ".tif" || fileType === ".tiff") {
-      retval = { type: "tiff", data: imgBuffer };
-    } else {
-      const imgDecode = imgBuffer.toString("base64");
-      retval = { type: "image", data: `data:image;base64,${imgDecode}` };
-    }
-    return retval;
-  });
+  const file = store.get("Directory") || null;
+  if (file == null) return;
+  const retval = inferFile(file);
+  mainWindow.webContents.send("new-image", retval);
 }

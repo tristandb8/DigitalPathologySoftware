@@ -70,11 +70,13 @@ class App extends Component {
   componentDidMount() {
     ipcRenderer.on("new-image", (event, fileContent) => {
       let file;
+
       if (fileContent.type === "tiff") {
         file = tiffImage(fileContent.data);
       } else if (fileContent.type === "image") {
         file = fileContent.data;
       }
+
       this.setState({
         loadedFileType: fileContent.type,
         loadedFile: file,
@@ -87,24 +89,7 @@ class App extends Component {
         this.displayPageRef.current.canvasRef.current.resetView();
     });
 
-    ipcRenderer.invoke("opening-image").then((firstFileContent) => {
-      let file;
-      if (firstFileContent.type === "tiff") {
-        file = tiffImage(firstFileContent.data);
-      } else if (firstFileContent.type === "image") {
-        file = firstFileContent.data;
-      }
-      this.setState({
-        loadedFileType: firstFileContent.type,
-        loadedFile: file,
-      });
-
-      if (
-        this.displayPageRef.current != null &&
-        this.displayPageRef.current.canvasRef.current != null
-      )
-        this.displayPageRef.current.canvasRef.current.resetView();
-    });
+    ipcRenderer.send("load-previous-image");
   }
 
   render() {
