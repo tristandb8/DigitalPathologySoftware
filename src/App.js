@@ -7,7 +7,6 @@ import LeftPane from "./components/LeftPane";
 import "./App.css";
 
 const { ipcRenderer } = window.require("electron");
-const fs = window.require('fs');
 
 class App extends Component {
   constructor(props) {
@@ -66,8 +65,6 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedFile: { ...prevState.loadedFile, idfArray: items },
     }));
-
-    console.log(`set name to ${name}`);
   }
 
   componentDidMount() {
@@ -83,9 +80,12 @@ class App extends Component {
         loadedFile: file,
       });
 
-      this.displayPageRef.current.canvasRef.current.resetView();
+      if (
+        this.displayPageRef.current != null &&
+        this.displayPageRef.current.canvasRef.current != null
+      )
+        this.displayPageRef.current.canvasRef.current.resetView();
     });
-
 
     ipcRenderer.invoke("opening-image").then((firstFileContent) => {
       let file;
@@ -99,12 +99,13 @@ class App extends Component {
         loadedFile: file,
       });
 
-      this.displayPageRef.current.canvasRef.current.resetView();
+      if (
+        this.displayPageRef.current != null &&
+        this.displayPageRef.current.canvasRef.current != null
+      )
+        this.displayPageRef.current.canvasRef.current.resetView();
     });
-
-
   }
-
 
   render() {
     return (

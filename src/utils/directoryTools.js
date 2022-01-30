@@ -1,36 +1,36 @@
 const path = window.require("path");
 const fs = window.require("fs");
-const Store = window.require('electron-store');
+const Store = window.require("electron-store");
 const store = new Store();
 
 export function getFilePath() {
-  let tmp = ''
+  let tmp = "";
   tmp = store.get("Directory") || null;
   return tmp;
 }
 
 export function setFilePath(file) {
-  store.set("Directory",file)
+  store.set("Directory", file);
 }
 
-export function setLoadedFileType(loadedFileType){
-  store.set("LOADEDFILETYPE", loadedFileType)
+export function setLoadedFileType(loadedFileType) {
+  store.set("LOADEDFILETYPE", loadedFileType);
 }
 
-export function getLoadedFileType(){
-  return store.get("LOADEDFILE")
+export function getLoadedFileType() {
+  return store.get("LOADEDFILE");
 }
 
-export function setFile(loadedFile){
-  store.set("LOADEDFILE", loadedFile)
+export function setFile(loadedFile) {
+  store.set("LOADEDFILE", loadedFile);
 }
 
-export function getFile(){
-  return store.get("LOADEDFILE")
+export function getFile() {
+  return store.get("LOADEDFILE");
 }
 
-export function imageDecoder(){
-  const file = getFilePath()
+export function imageDecoder() {
+  const file = getFilePath();
   const fileType = path.extname(file);
   const imgBuffer = fs.readFileSync(file);
   let retval;

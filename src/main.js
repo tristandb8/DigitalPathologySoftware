@@ -2,10 +2,10 @@ const { app, BrowserWindow, Menu, dialog } = require("electron");
 const path = require("path");
 const isMac = process.platform === "darwin";
 const fs = require("fs");
-const Store = require('electron-store');
+const Store = require("electron-store");
 const store = new Store();
 
-const { ipcMain } = require('electron')
+const { ipcMain } = require("electron");
 
 // const UTIF = require('utif')
 // const tiff = require('tiff')
@@ -147,10 +147,9 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 
-  if (getFilePath()){
+  if (getFilePath()) {
     openIntroFile();
   }
-
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -183,21 +182,17 @@ function openFile() {
     retval = { type: "image", data: `data:image;base64,${imgDecode}` };
   }
 
-  store.set("Directory",file);
+  store.set("Directory", file);
   mainWindow.webContents.send("new-image", retval);
 }
 
-
-
 function getFilePath() {
-  let tmp = ''
+  let tmp = "";
   tmp = store.get("Directory") || null;
   return tmp;
 }
 
-function openIntroFile(){
-
-  console.log('I AM ALIVE');
+function openIntroFile() {
   const file = getFilePath();
   const fileType = path.extname(file);
   const imgBuffer = fs.readFileSync(file);
@@ -211,8 +206,7 @@ function openIntroFile(){
   }
   //mainWindow.webContents.send("opening-image", retval);
 
-  ipcMain.handle('opening-image', async () => {
-    
+  ipcMain.handle("opening-image", async () => {
     const file = getFilePath();
     const fileType = path.extname(file);
     const imgBuffer = fs.readFileSync(file);
@@ -225,7 +219,5 @@ function openIntroFile(){
       retval = { type: "image", data: `data:image;base64,${imgDecode}` };
     }
     return retval;
-  })
-
-  console.log(file);
+  });
 }
