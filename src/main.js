@@ -188,6 +188,7 @@ function openFile() {
 function openIntroFile() {
   const file = store.get("Directory") || null;
   if (file == null) return;
+  if (!fs.existsSync(file)) return;
   const retval = inferFile(file);
   mainWindow.webContents.send("new-image", retval);
 }
