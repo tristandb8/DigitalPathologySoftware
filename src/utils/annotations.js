@@ -16,6 +16,6 @@ export const Square = (x, y, w, h, rot, color) => {
   return Annotation(AnnotationTypes.Square, color, { x, y, w, h, rot });
 };
 
-export const Polygon = (color, points) => {
+export const Polygon = (points, color) => {
   return Annotation(AnnotationTypes.Polygon, color, { points });
 };

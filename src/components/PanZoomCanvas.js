@@ -29,33 +29,34 @@ class AnnotatedCanvas extends Component {
       oldProps.scale !== this.props.scale ||
       oldProps.mode !== this.props.mode
     ) {
-      console.log(`scale: ${this.props.scale}`);
       this.updateCanvas();
     }
   }
 
   handleMouseEvent = (event) => {
     if (event.type === "mouseup") {
-      const boundingRect = this.canvasRef.current.getBoundingClientRect();
-      const start = Point.Point(
-        this.state.mouseStart.x - boundingRect.x,
-        this.state.mouseStart.y - boundingRect.y
-      );
-      const end = Point.Point(
-        this.state.mousePos.x - boundingRect.x,
-        this.state.mousePos.y - boundingRect.y
-      );
-      switch (this.props.mode) {
-        case Modes.Zoom:
-          this.props.onZoom(
-            start.x / this.props.scale,
-            start.y / this.props.scale,
-            (end.x - start.x) / this.props.scale,
-            (end.y - start.y) / this.props.scale
-          );
-          break;
-        default:
-          break;
+      if (this.state.dragging) {
+        const boundingRect = this.canvasRef.current.getBoundingClientRect();
+        const start = Point.Point(
+          this.state.mouseStart.x - boundingRect.x,
+          this.state.mouseStart.y - boundingRect.y
+        );
+        const end = Point.Point(
+          this.state.mousePos.x - boundingRect.x,
+          this.state.mousePos.y - boundingRect.y
+        );
+        switch (this.props.mode) {
+          case Modes.Zoom:
+            this.props.onZoom(
+              start.x / this.props.scale,
+              start.y / this.props.scale,
+              (end.x - start.x) / this.props.scale,
+              (end.y - start.y) / this.props.scale
+            );
+            break;
+          default:
+            break;
+        }
       }
       this.setState({
         dragging: false,
@@ -297,12 +298,6 @@ export default class PanZoomCanvas extends Component {
               }}
             >
               <canvas ref={this.canvasRef} className="displayCanvas" />
-              <AnnotatedCanvas
-                ref={this.annotationCanvasRef}
-                mode={this.props.mode}
-                scale={this.state.scale}
-                onZoom={this.zoomToCoords}
-              />
               <div
                 ref={this.gridRef}
                 className="backgroundGrid"
@@ -310,6 +305,12 @@ export default class PanZoomCanvas extends Component {
                   pointerEvents: "none",
                   backgroundImage: this.props.grid ? `url(${grid})` : "none",
                 }}
+              />
+              <AnnotatedCanvas
+                ref={this.annotationCanvasRef}
+                mode={this.props.mode}
+                scale={this.state.scale}
+                onZoom={this.zoomToCoords}
               />
             </TransformComponent>
           </TransformWrapper>

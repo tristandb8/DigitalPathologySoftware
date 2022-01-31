@@ -11,17 +11,18 @@ const { ipcRenderer } = window.require("electron");
 class App extends Component {
   constructor(props) {
     super(props);
+    this.displayPageRef = React.createRef(null);
+
     this.state = {
       loadedFileType: null,
       loadedFile: null,
+      annotations: [],
     };
-
-    this.handleChannelToggle = this.handleChannelToggle.bind(this);
-    this.handleChannelThresh = this.handleChannelThresh.bind(this);
-    this.handleChannelColor = this.handleChannelColor.bind(this);
-    this.handleChannelName = this.handleChannelName.bind(this);
-    this.displayPageRef = React.createRef(null);
   }
+
+  addAnnotation = (annotation) => {
+    this.state.annotations.push(annotation);
+  };
 
   handleChannelChange = (index, key, value) => {
     let items = [...this.state.loadedFile.idfArray];
@@ -33,7 +34,7 @@ class App extends Component {
     }));
   };
 
-  handleChannelToggle(index) {
+  handleChannelToggle = (index) => {
     let items = [...this.state.loadedFile.idfArray];
     let item = { ...items[index] };
     item.enabled = !item.enabled;
@@ -42,9 +43,9 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedFile: { ...prevState.loadedFile, idfArray: items },
     }));
-  }
+  };
 
-  handleChannelThresh(index, range) {
+  handleChannelThresh = (index, range) => {
     let items = [...this.state.loadedFile.idfArray];
     let item = { ...items[index] };
     item.threshold = range;
@@ -53,9 +54,9 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedFile: { ...prevState.loadedFile, idfArray: items },
     }));
-  }
+  };
 
-  handleChannelColor(index, color) {
+  handleChannelColor = (index, color) => {
     let items = [...this.state.loadedFile.idfArray];
     let item = { ...items[index] };
     item.channelColor = color;
@@ -64,9 +65,9 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedFile: { ...prevState.loadedFile, idfArray: items },
     }));
-  }
+  };
 
-  handleChannelName(index, name) {
+  handleChannelName = (index, name) => {
     let items = [...this.state.loadedFile.idfArray];
     let item = { ...items[index] };
     item.name = name;
@@ -75,7 +76,7 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedFile: { ...prevState.loadedFile, idfArray: items },
     }));
-  }
+  };
 
   componentDidMount() {
     ipcRenderer.on("new-image", (event, fileContent) => {
