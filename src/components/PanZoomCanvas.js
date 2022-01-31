@@ -18,45 +18,42 @@ class AnnotatedCanvas extends Component {
     this.canvasRef = React.createRef(null);
 
     this.state = {
-      measuring: false,
+      dragging: false,
       mouseStart: Point.ORIGIN,
       mousePos: Point.ORIGIN,
     };
   }
 
   componentDidUpdate(oldProps) {
-    if (oldProps.scale !== this.props.scale) {
-      console.log(this.props.scale);
+    if (
+      oldProps.scale !== this.props.scale ||
+      oldProps.mode !== this.props.mode
+    ) {
       this.updateCanvas();
     }
   }
 
   handleMouseEvent = (event) => {
     if (event.type === "mouseup") {
-      if (this.props.mode === Modes.Measure) {
-        this.setState({
-          measuring: false,
-          mouseStart: Point.ORIGIN,
-          mousePos: Point.ORIGIN,
-        });
-      }
+      this.setState({
+        dragging: false,
+      });
     } else if (event.type === "mousedown") {
-      if (this.props.mode === Modes.Measure) {
-        this.setState({
-          measuring: true,
-          mouseStart: Point.Point(event.pageX, event.pageY),
-          mousePos: Point.Point(event.pageX, event.pageY),
-        });
-      }
+      this.setState({
+        dragging: true,
+        mouseStart: Point.Point(event.pageX, event.pageY),
+        mousePos: Point.Point(event.pageX, event.pageY),
+      });
     } else if (event.type === "mouseleave") {
       this.setState({
-        measuring: false,
+        dragging: false,
       });
     } else {
       this.setState({
         mousePos: Point.Point(event.pageX, event.pageY),
       });
     }
+
     this.updateCanvas();
   };
 
@@ -64,43 +61,80 @@ class AnnotatedCanvas extends Component {
     const canvas = this.canvasRef.current;
     const ctx = canvas.getContext("2d");
     const boundingRect = this.canvasRef.current.getBoundingClientRect();
-    const start = Point.Point(
-      this.state.mouseStart.x - boundingRect.x,
-      this.state.mouseStart.y - boundingRect.y
-    );
-    const end = Point.Point(
-      this.state.mousePos.x - boundingRect.x,
-      this.state.mousePos.y - boundingRect.y
-    );
-
     canvas.width = boundingRect.width;
     canvas.height = boundingRect.height;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.fillStyle = "red";
-    ctx.strokeStyle = "red";
-    if (this.state.measuring) {
-      ctx.moveTo(start.x, start.y);
-      ctx.lineTo(end.x, end.y);
+
+    if (this.state.dragging) {
+      const start = Point.Point(
+        this.state.mouseStart.x - boundingRect.x,
+        this.state.mouseStart.y - boundingRect.y
+      );
+      const end = Point.Point(
+        this.state.mousePos.x - boundingRect.x,
+        this.state.mousePos.y - boundingRect.y
+      );
       const norm = Point.normalize(Point.norm(start, end));
       // TODO: Scale norm based on whether text goes OOB
       const normScaled = Point.scale(norm, Point.angle(norm) >= 0 ? -10 : 10);
-      const lineLength = parseInt(Point.dist(start, end) / this.props.scale);
       const startEndAvg = Point.sum(
         start,
         Point.scale(Point.diff(start, end), 0.5)
       );
       const normLine = Point.sum(startEndAvg, normScaled);
-      ctx.stroke();
-      ctx.font = "14 px";
-      ctx.fillStyle = "red";
-      ctx.textAlign = "center";
-      ctx.fillText(`${lineLength} px`, normLine.x, normLine.y);
-    } else {
-      // ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
-      // ctx.fill();
+
+      switch (this.props.mode) {
+        case Modes.Measure:
+          const lineLength = parseInt(
+            Point.dist(start, end) / this.props.scale
+          );
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.fillStyle = "red";
+          ctx.strokeStyle = "red";
+          ctx.moveTo(start.x, start.y);
+          ctx.lineTo(end.x, end.y);
+          ctx.stroke();
+          ctx.font = "22px serif";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.strokeStyle = "black";
+          ctx.strokeText(`${lineLength} px`, normLine.x, normLine.y);
+          ctx.fillText(`${lineLength} px`, normLine.x, normLine.y);
+          ctx.closePath();
+          break;
+        case Modes.AnnotateCircle:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.fillStyle = "#ff000010";
+          ctx.strokeStyle = "red";
+          const r = Point.dist(start, end);
+          ctx.arc(start.x, start.y, r, 0, 2 * Math.PI, false);
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        case Modes.AnnotateSquare:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.fillStyle = "#ff000010";
+          ctx.strokeStyle = "red";
+          ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
+          ctx.fillRect(start.x, start.y, end.x - start.x, end.y - start.y);
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        case Modes.Zoom:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "red";
+          ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        default:
+          break;
+      }
     }
   };
 
@@ -165,7 +199,6 @@ export default class PanZoomCanvas extends Component {
       // Update canvas size
       canvas.width = loadedFile.width;
       canvas.height = loadedFile.height;
-      console.log(loadedFile.width, loadedFile.height);
 
       // Ideally this would be changeable via dropdown
       // ctx.globalCompositeOperation = 'color'
