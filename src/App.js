@@ -23,6 +23,16 @@ class App extends Component {
     this.displayPageRef = React.createRef(null);
   }
 
+  handleChannelChange = (index, key, value) => {
+    let items = [...this.state.loadedFile.idfArray];
+    let item = { ...items[index] };
+    item[key] = value;
+
+    this.setState((prevState) => ({
+      loadedFile: { ...prevState.loadedFile, idfArray: items },
+    }));
+  };
+
   handleChannelToggle(index) {
     let items = [...this.state.loadedFile.idfArray];
     let item = { ...items[index] };

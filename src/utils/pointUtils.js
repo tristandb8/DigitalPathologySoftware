@@ -25,7 +25,26 @@ export const scale = (pointA, s) => {
   return Point(pointA.x * s, pointA.y * s);
 };
 
-export const angle = (pointA, pointB) => {
+export const norm = (pointA, pointB) => {
+  return Point(-(pointB.y - pointA.y), pointB.x - pointA.x);
+};
+
+export const mag = (pointA) => {
+  return Math.sqrt(pointA.x * pointA.x + pointA.y * pointA.y);
+};
+
+export const normalize = (pointA) => {
+  const m = mag(pointA);
+  if (m === 0) return pointA;
+  return scale(pointA, 1 / m);
+};
+
+export const angle = (pointA) => {
+  if (pointA.x === 0) return 0;
+  return Math.atan2(pointA.y, pointA.x);
+};
+
+export const angleBetween = (pointA, pointB) => {
   const euclideanDistance = dist(pointA, pointB);
 
   if (!euclideanDistance) {

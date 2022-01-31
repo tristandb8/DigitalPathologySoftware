@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { getBitmap } from "../utils/TiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
+import * as Point from "../utils/pointUtils";
 
 const Modes = {
   Pan: "Pan",
@@ -18,9 +19,16 @@ class AnnotatedCanvas extends Component {
 
     this.state = {
       measuring: false,
-      mouseStart: { x: 0, y: 0 },
-      mousePos: { x: 0, y: 0 },
+      mouseStart: Point.ORIGIN,
+      mousePos: Point.ORIGIN,
     };
+  }
+
+  componentDidUpdate(oldProps) {
+    if (oldProps.scale !== this.props.scale) {
+      console.log(this.props.scale);
+      this.updateCanvas();
+    }
   }
 
   handleMouseEvent = (event) => {
@@ -28,16 +36,16 @@ class AnnotatedCanvas extends Component {
       if (this.props.mode === Modes.Measure) {
         this.setState({
           measuring: false,
-          mouseStart: { x: 0, y: 0 },
-          mousePos: { x: 0, y: 0 },
+          mouseStart: Point.ORIGIN,
+          mousePos: Point.ORIGIN,
         });
       }
     } else if (event.type === "mousedown") {
       if (this.props.mode === Modes.Measure) {
         this.setState({
           measuring: true,
-          mouseStart: { x: event.pageX, y: event.pageY },
-          mousePos: { x: event.pageX, y: event.pageY },
+          mouseStart: Point.Point(event.pageX, event.pageY),
+          mousePos: Point.Point(event.pageX, event.pageY),
         });
       }
     } else if (event.type === "mouseleave") {
@@ -46,7 +54,7 @@ class AnnotatedCanvas extends Component {
       });
     } else {
       this.setState({
-        mousePos: { x: event.pageX, y: event.pageY },
+        mousePos: Point.Point(event.pageX, event.pageY),
       });
     }
     this.updateCanvas();
@@ -56,14 +64,14 @@ class AnnotatedCanvas extends Component {
     const canvas = this.canvasRef.current;
     const ctx = canvas.getContext("2d");
     const boundingRect = this.canvasRef.current.getBoundingClientRect();
-    const start = {
-      x: this.state.mouseStart.x - boundingRect.x,
-      y: this.state.mouseStart.y - boundingRect.y,
-    };
-    const end = {
-      x: this.state.mousePos.x - boundingRect.x,
-      y: this.state.mousePos.y - boundingRect.y,
-    };
+    const start = Point.Point(
+      this.state.mouseStart.x - boundingRect.x,
+      this.state.mouseStart.y - boundingRect.y
+    );
+    const end = Point.Point(
+      this.state.mousePos.x - boundingRect.x,
+      this.state.mousePos.y - boundingRect.y
+    );
 
     canvas.width = boundingRect.width;
     canvas.height = boundingRect.height;
@@ -76,7 +84,20 @@ class AnnotatedCanvas extends Component {
     if (this.state.measuring) {
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
+      const norm = Point.normalize(Point.norm(start, end));
+      // TODO: Scale norm based on whether text goes OOB
+      const normScaled = Point.scale(norm, Point.angle(norm) >= 0 ? -10 : 10);
+      const lineLength = parseInt(Point.dist(start, end) / this.props.scale);
+      const startEndAvg = Point.sum(
+        start,
+        Point.scale(Point.diff(start, end), 0.5)
+      );
+      const normLine = Point.sum(startEndAvg, normScaled);
       ctx.stroke();
+      ctx.font = "14 px";
+      ctx.fillStyle = "red";
+      ctx.textAlign = "center";
+      ctx.fillText(`${lineLength} px`, normLine.x, normLine.y);
     } else {
       // ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
       // ctx.fill();
@@ -112,9 +133,7 @@ export default class PanZoomCanvas extends Component {
     this.resetView = this.resetView.bind(this);
 
     this.state = {
-      measuring: false,
-      mousePos: { x: 0, y: 0 },
-      mouseStart: { x: 0, y: 0 },
+      scale: 1,
     };
   }
 
@@ -130,6 +149,8 @@ export default class PanZoomCanvas extends Component {
       0,
       "easeOut"
     );
+
+    this.setState({ scale: Math.min(scaleX, scaleY) });
   }
 
   updateCanvas() {
@@ -144,6 +165,7 @@ export default class PanZoomCanvas extends Component {
       // Update canvas size
       canvas.width = loadedFile.width;
       canvas.height = loadedFile.height;
+      console.log(loadedFile.width, loadedFile.height);
 
       // Ideally this would be changeable via dropdown
       // ctx.globalCompositeOperation = 'color'
@@ -163,8 +185,6 @@ export default class PanZoomCanvas extends Component {
       canvas.height = 150;
       ctx.drawImage(img, 0, 0);
     }
-
-    // this.resetView()
   }
 
   componentDidUpdate(oldProps) {
@@ -189,6 +209,9 @@ export default class PanZoomCanvas extends Component {
             limitToBounds={false}
             onZoom={(ref) => {
               this.props.onZoom(ref);
+              this.setState({
+                scale: ref.state.scale,
+              });
             }}
             panning={{
               disabled: this.props.mode !== Modes.Pan,
@@ -204,6 +227,7 @@ export default class PanZoomCanvas extends Component {
               <AnnotatedCanvas
                 ref={this.annotationCanvasRef}
                 mode={this.props.mode}
+                scale={this.state.scale}
               />
               <div
                 ref={this.gridRef}
