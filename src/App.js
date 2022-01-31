@@ -21,7 +21,9 @@ class App extends Component {
   }
 
   addAnnotation = (annotation) => {
-    this.state.annotations.push(annotation);
+    this.setState((prevState) => ({
+      annotations: [...prevState.annotations, annotation],
+    }));
   };
 
   handleChannelChange = (index, key, value) => {
@@ -108,7 +110,11 @@ class App extends Component {
       <div className="App">
         <Split>
           <LeftPane />
-          <DisplayPage ref={this.displayPageRef} file={this.state} />
+          <DisplayPage
+            ref={this.displayPageRef}
+            file={this.state}
+            addAnnotation={this.addAnnotation}
+          />
           <RightPane
             file={this.state.loadedFile}
             // Todo: Merge below functions

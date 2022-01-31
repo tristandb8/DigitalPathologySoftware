@@ -193,6 +193,7 @@ export default class DisplayPage extends Component {
           grid={this.state.grid}
           file={this.props.file}
           onZoom={this.onZoom}
+          addAnnotation={this.props.addAnnotation}
           mode={this.state.mode}
         />
       </div>

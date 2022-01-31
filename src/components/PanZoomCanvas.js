@@ -3,6 +3,7 @@ import { getBitmap } from "../utils/TiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
 import * as Point from "../utils/pointUtils";
+import * as Annotations from "../utils/annotations";
 
 const Modes = {
   Pan: "Pan",
@@ -52,6 +53,28 @@ class AnnotatedCanvas extends Component {
               start.y / this.props.scale,
               (end.x - start.x) / this.props.scale,
               (end.y - start.y) / this.props.scale
+            );
+            break;
+          case Modes.AnnotateCircle:
+            const r = Math.abs(Point.dist(start, end));
+            this.props.addAnnotation(
+              Annotations.Circle(
+                start.x / this.props.scale,
+                start.y / this.props.scale,
+                r / this.props.scale,
+                "red"
+              )
+            );
+            break;
+          case Modes.AnnotateSquare:
+            this.props.addAnnotation(
+              Annotations.Square(
+                start.x / this.props.scale,
+                start.y / this.props.scale,
+                (end.x - start.x) / this.props.scale,
+                (end.y - start.y) / this.props.scale,
+                "red"
+              )
             );
             break;
           default:
@@ -153,6 +176,50 @@ class AnnotatedCanvas extends Component {
           ctx.lineWidth = 1;
           ctx.strokeStyle = "red";
           ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (const annotation of this.props.annotations) {
+      switch (annotation.type) {
+        case Annotations.AnnotationTypes.Circle:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.fillStyle = "#ff000010";
+          ctx.strokeStyle = annotation.color;
+          ctx.arc(
+            annotation.params.x * this.props.scale,
+            annotation.params.y * this.props.scale,
+            annotation.params.r * this.props.scale,
+            0,
+            2 * Math.PI,
+            false
+          );
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        case Annotations.AnnotationTypes.Square:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.fillStyle = "#ff000010";
+          ctx.strokeStyle = "red";
+          ctx.strokeRect(
+            annotation.params.x * this.props.scale,
+            annotation.params.y * this.props.scale,
+            annotation.params.w * this.props.scale,
+            annotation.params.h * this.props.scale
+          );
+          ctx.fillRect(
+            annotation.params.x * this.props.scale,
+            annotation.params.y * this.props.scale,
+            annotation.params.w * this.props.scale,
+            annotation.params.h * this.props.scale
+          );
           ctx.stroke();
           ctx.closePath();
           break;
@@ -311,6 +378,8 @@ export default class PanZoomCanvas extends Component {
                 mode={this.props.mode}
                 scale={this.state.scale}
                 onZoom={this.zoomToCoords}
+                addAnnotation={this.props.addAnnotation}
+                annotations={this.props.file.annotations}
               />
             </TransformComponent>
           </TransformWrapper>
