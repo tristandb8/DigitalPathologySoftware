@@ -29,12 +29,34 @@ class AnnotatedCanvas extends Component {
       oldProps.scale !== this.props.scale ||
       oldProps.mode !== this.props.mode
     ) {
+      console.log(`scale: ${this.props.scale}`);
       this.updateCanvas();
     }
   }
 
   handleMouseEvent = (event) => {
     if (event.type === "mouseup") {
+      const boundingRect = this.canvasRef.current.getBoundingClientRect();
+      const start = Point.Point(
+        this.state.mouseStart.x - boundingRect.x,
+        this.state.mouseStart.y - boundingRect.y
+      );
+      const end = Point.Point(
+        this.state.mousePos.x - boundingRect.x,
+        this.state.mousePos.y - boundingRect.y
+      );
+      switch (this.props.mode) {
+        case Modes.Zoom:
+          this.props.onZoom(
+            start.x / this.props.scale,
+            start.y / this.props.scale,
+            (end.x - start.x) / this.props.scale,
+            (end.y - start.y) / this.props.scale
+          );
+          break;
+        default:
+          break;
+      }
       this.setState({
         dragging: false,
       });
@@ -99,6 +121,7 @@ class AnnotatedCanvas extends Component {
           ctx.fillStyle = "white";
           ctx.textAlign = "center";
           ctx.strokeStyle = "black";
+          ctx.lineWidth = 2;
           ctx.strokeText(`${lineLength} px`, normLine.x, normLine.y);
           ctx.fillText(`${lineLength} px`, normLine.x, normLine.y);
           ctx.closePath();
@@ -164,14 +187,13 @@ export default class PanZoomCanvas extends Component {
     this.viewRef = React.createRef(null);
     this.gridRef = React.createRef(null);
     this.portRef = React.createRef(null);
-    this.resetView = this.resetView.bind(this);
 
     this.state = {
       scale: 1,
     };
   }
 
-  resetView() {
+  resetView = () => {
     const scaleX =
       this.portRef.current.offsetWidth / this.canvasRef.current.offsetWidth;
     const scaleY =
@@ -184,8 +206,26 @@ export default class PanZoomCanvas extends Component {
       "easeOut"
     );
 
-    this.setState({ scale: Math.min(scaleX, scaleY) });
-  }
+    this.setState({ scale: Math.min(scaleX, scaleY) * 0.99 });
+  };
+
+  zoomToCoords = (x, y, w, h) => {
+    if (w < 0) {
+      x += w;
+      w = -w;
+    }
+    if (h < 0) {
+      y += h;
+      h = -h;
+    }
+    const boundingRect = this.portRef.current.getBoundingClientRect();
+    const scaleX = w / boundingRect.width;
+    const scaleY = h / boundingRect.height;
+    const s = Math.max(Math.min(1 / Math.max(scaleX, scaleY), 8), 1);
+    this.viewRef.current.centerView(s, 0, "easeOut");
+    this.viewRef.current.setTransform(-x * s, -y * s, s, 0, "easeOut");
+    this.setState({ scale: s });
+  };
 
   updateCanvas() {
     const canvas = this.canvasRef.current;
@@ -261,6 +301,7 @@ export default class PanZoomCanvas extends Component {
                 ref={this.annotationCanvasRef}
                 mode={this.props.mode}
                 scale={this.state.scale}
+                onZoom={this.zoomToCoords}
               />
               <div
                 ref={this.gridRef}
