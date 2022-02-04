@@ -1,10 +1,12 @@
 const { app, BrowserWindow, Menu, dialog } = require("electron");
+const { ipcMain } = require("electron");
 const path = require("path");
-const isMac = process.platform === "darwin";
+const os = require('os');
 const fs = require("fs");
 const Store = require("electron-store");
 const store = new Store();
-const { ipcMain } = require("electron");
+
+const isMac = process.platform === "darwin";
 
 const template = [
   // { role: 'appMenu' }
@@ -106,6 +108,37 @@ const template = [
       },
     ],
   },
+    // { role: 'temp buttons for testing' }
+    {
+      label: "TEST",
+      submenu: [
+        {
+          label: "TEST Create Object",
+          click() {
+            createObject();
+          },
+        },
+        {
+          label: "TEST Load",
+          click() {
+            loadObject();
+          },
+        },
+        {
+          label: "TEST Save",
+          accelerator: "CmdOrCtrl+O",
+          click() {
+            saveObject();
+          },
+        },
+        {
+          label: "TEST Python",
+          click() {
+            pythonScripts();
+          },
+        },
+      ],
+    },
 ];
 
 const menu = Menu.buildFromTemplate(template);
@@ -191,4 +224,48 @@ function openIntroFile() {
   if (!fs.existsSync(file)) return;
   const retval = inferFile(file);
   mainWindow.webContents.send("new-image", retval);
+}
+
+function createObject(){
+  console.log("Creating Object");
+  let student = { 
+      name: 'Ryan',
+      age: 26, 
+      gender: 'Male',
+      role: 'DPS'
+  };
+
+  var dir = os.homedir()+'/Desktop/DPSoftware';
+  console.log(dir);
+  if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+  }
+
+  fs.writeFileSync(path.resolve(dir, 'student.json'), JSON.stringify(student));
+
+}
+
+function loadObject(){
+  console.log("Loading Object");
+
+  var dir = os.homedir()+'/Desktop/DPSoftware';
+  console.log(dir);
+  if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+  }
+
+  let rawdata = fs.readFileSync(path.resolve(dir, 'student.json'));
+  let student = JSON.parse(rawdata);
+  console.log(student);
+
+}
+
+function saveObject(){
+  console.log("Saving Object");
+
+}
+
+function pythonScripts(){
+  console.log("Testing Python Scripts");
+
 }
