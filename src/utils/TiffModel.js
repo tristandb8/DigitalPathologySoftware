@@ -85,16 +85,14 @@ export const tiffImage = (fileData) => {
     idfArray[i].max = getMax(idfArray[i].data);
 
     // todo: calculate threshold value automatically using histogram
-    idfArray[i].threshold = [5, 25];
+    idfArray[i].threshold = { min: 5, max: 25 };
   }
 
   const width = idfArray[0].width;
   const height = idfArray[0].height;
   const channels = idfArray.length;
 
-  return { idfArray, width, height, channels };
-  // idfArray is almost like a python dictionary, we need to send the information from this array to
-  // A json object (See SD paper).
+  return { type: "tiff", idfArray, width, height, channels, annotations: [] };
 };
 
 export const getBitmap = (t) => {
@@ -120,8 +118,8 @@ export const getChannelImageData = (t, index) => {
   const color = hexToRgb(channel.channelColor);
 
   for (let i = 0, j = 0; i < data.length; i++) {
-    const lowThresh = (channel.max * channel.threshold[0]) / 100;
-    const highThresh = (channel.max * channel.threshold[1]) / 100;
+    const lowThresh = (channel.max * channel.threshold.min) / 100;
+    const highThresh = (channel.max * channel.threshold.max) / 100;
     const threshVal = (data[i] - lowThresh) / highThresh;
 
     intArray[j++] = threshVal * color.r; // R value

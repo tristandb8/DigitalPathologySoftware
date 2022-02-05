@@ -6,9 +6,10 @@ import { SketchPicker } from "react-color";
 
 class ChannelItem extends React.Component {
   render() {
-    const selected =
-      this.props.selectedChannel !== null &&
-      this.props.selectedChannel.index === this.props.index;
+    // const selected =
+    //   this.props.selectedChannel !== null &&
+    //   this.props.selectedChannel.index === this.props.index;
+    const selected = this.props.selectedChannel?.index === this.props.index;
     const className = selected ? "channelItemSelected" : "channelItem";
 
     return (
@@ -53,8 +54,6 @@ class ChannelInput extends React.Component {
     this.state = {
       color: "#fff",
     };
-
-    this.handleChange = this.handleChange.bind(this);
   }
 
   componentDidUpdate(oldProps) {
@@ -65,12 +64,12 @@ class ChannelInput extends React.Component {
     }
   }
 
-  handleChange(color, event) {
+  handleChange = (color, event) => {
     this.props.onColorChannel(this.props.selectedChannel.index, color.hex);
     this.setState({
       color: color.hex,
     });
-  }
+  };
 
   render() {
     // TODO: Create custom color picker
@@ -79,7 +78,7 @@ class ChannelInput extends React.Component {
         <div style={{ width: "80%" }}>
           <p>Threshold:</p>
           <Range
-            value={this.props.sliderRange}
+            value={[this.props.sliderRange.min, this.props.sliderRange.max]}
             onChange={(e) => {
               this.props.sliderChanged(e);
             }}
@@ -99,41 +98,36 @@ export default class RightPane extends React.Component {
     super(props);
 
     this.state = {
-      file: this.props.file,
+      file: this.props.project.openFiles[this.props.project.activeFile],
       selectedChannel: null,
-      sliderRange: [1, 100],
+      sliderRange: { min: 1, max: 100 },
     };
-
-    this.channelSelected = this.channelSelected.bind(this);
-    this.sliderChanged = this.sliderChanged.bind(this);
   }
 
-  channelSelected(channel, index) {
+  channelSelected = (channel, index) => {
     this.setState({
       selectedChannel: { channel, index },
       sliderRange: channel.threshold,
     });
-  }
+  };
 
-  sliderChanged(values) {
+  sliderChanged = (values) => {
     this.props.onThreshChannel(this.state.selectedChannel.index, values);
-    this.setState({ sliderRange: values });
-  }
+    this.setState({ sliderRange: { min: values[0], max: values[1] } });
+  };
 
   componentDidUpdate(prevProps) {
-    if (this.props.file !== prevProps.file) {
+    const oldFile = prevProps.project.openFiles[prevProps.project.activeFile];
+    const newFile = this.props.project.openFiles[this.props.project.activeFile];
+    if (newFile !== oldFile) {
       this.setState({
-        file: this.props.file,
-        // Need to differentiate whether an entire different file is loaded
-        // so the default selected stuff gets set right
-        // selectedChannel: null,
-        // sliderRange: [1, 100]
+        file: newFile,
       });
     }
   }
 
   render() {
-    if (this.state.file !== null) {
+    if (this.state.file != null) {
       return (
         <div className="rightPane">
           <div className="channelList">

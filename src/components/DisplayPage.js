@@ -191,7 +191,7 @@ export default class DisplayPage extends Component {
         <PanZoomCanvas
           ref={this.canvasRef}
           grid={this.state.grid}
-          file={this.props.file}
+          file={this.props.project.openFiles[this.props.project.activeFile]}
           onZoom={this.onZoom}
           addAnnotation={this.props.addAnnotation}
           mode={this.state.mode}

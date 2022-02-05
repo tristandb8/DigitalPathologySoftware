@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { tiffImage } from "./utils/TiffModel";
+import { tiffImage } from "./utils/tiffModel";
 import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
@@ -14,15 +14,32 @@ class App extends Component {
     this.displayPageRef = React.createRef(null);
 
     this.state = {
-      loadedFileType: null,
-      loadedFile: null,
-      annotations: [],
+      loadedProject: {
+        openFiles: [], // Files openened in any tab
+        activeFile: -1, // The currently selected tab index
+        filePaths: [], // Files that were opened
+      },
     };
   }
 
   addAnnotation = (annotation) => {
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+
+    // Create copy of the new file
+    const newFile = {
+      ...loadedFile,
+      annotations: [...loadedFile.annotations, annotation],
+    };
+
+    // Create a copy of the new openFiles array and set the new file
+    const newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
+
+    // Update the state of the loaded project with the new files array
     this.setState((prevState) => ({
-      annotations: [...prevState.annotations, annotation],
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
   };
 
@@ -37,46 +54,66 @@ class App extends Component {
   };
 
   handleChannelToggle = (index) => {
-    let items = [...this.state.loadedFile.idfArray];
-    let item = { ...items[index] };
-    item.enabled = !item.enabled;
-    items[index] = item;
-
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newArray = [...loadedFile.idfArray];
+    let newChannel = { ...newArray[index] };
+    newChannel.enabled = !newChannel.enabled;
+    newArray[index] = newChannel;
+    let newFile = { ...loadedFile, idfArray: newArray };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
-      loadedFile: { ...prevState.loadedFile, idfArray: items },
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
   };
 
   handleChannelThresh = (index, range) => {
-    let items = [...this.state.loadedFile.idfArray];
-    let item = { ...items[index] };
-    item.threshold = range;
-    items[index] = item;
-
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newArray = [...loadedFile.idfArray];
+    let newChannel = { ...newArray[index] };
+    newChannel.threshold = { min: range[0], max: range[1] };
+    newArray[index] = newChannel;
+    let newFile = { ...loadedFile, idfArray: newArray };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
-      loadedFile: { ...prevState.loadedFile, idfArray: items },
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
   };
 
   handleChannelColor = (index, color) => {
-    let items = [...this.state.loadedFile.idfArray];
-    let item = { ...items[index] };
-    item.channelColor = color;
-    items[index] = item;
-
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newArray = [...loadedFile.idfArray];
+    let newChannel = { ...newArray[index] };
+    newChannel.channelColor = color;
+    newArray[index] = newChannel;
+    let newFile = { ...loadedFile, idfArray: newArray };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
-      loadedFile: { ...prevState.loadedFile, idfArray: items },
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
   };
 
   handleChannelName = (index, name) => {
-    let items = [...this.state.loadedFile.idfArray];
-    let item = { ...items[index] };
-    item.name = name;
-    items[index] = item;
-
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newArray = [...loadedFile.idfArray];
+    let newChannel = { ...newArray[index] };
+    newChannel.name = name;
+    newArray[index] = newChannel;
+    let newFile = { ...loadedFile, idfArray: newArray };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
-      loadedFile: { ...prevState.loadedFile, idfArray: items },
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
   };
 
@@ -87,18 +124,20 @@ class App extends Component {
       if (fileContent.type === "tiff") {
         file = tiffImage(fileContent.data);
       } else if (fileContent.type === "image") {
-        file = fileContent.data;
+        file = { type: "image", data: fileContent.data, annotations: [] };
       }
 
-      this.setState({
-        loadedFileType: fileContent.type,
-        loadedFile: file,
-      });
+      this.setState((prevState) => ({
+        loadedProject: {
+          openFiles: [...prevState.loadedProject.openFiles, file],
+          // The currently selected tab index
+          activeFile: prevState.loadedProject.openFiles.length,
+          // TODO: Store all opened file paths
+          // filePaths: [...prevState.filePaths, filePath],
+        },
+      }));
 
-      if (
-        this.displayPageRef.current != null &&
-        this.displayPageRef.current.canvasRef.current != null
-      )
+      if (this.displayPageRef.current?.canvasRef?.current)
         this.displayPageRef.current.canvasRef.current.resetView();
     });
 
@@ -109,14 +148,14 @@ class App extends Component {
     return (
       <div className="App">
         <Split>
-          <LeftPane />
+          <LeftPane project={this.state.loadedProject} />
           <DisplayPage
             ref={this.displayPageRef}
-            file={this.state}
+            project={this.state.loadedProject}
             addAnnotation={this.addAnnotation}
           />
           <RightPane
-            file={this.state.loadedFile}
+            project={this.state.loadedProject}
             // Todo: Merge below functions
             onToggleChannel={this.handleChannelToggle}
             onThreshChannel={this.handleChannelThresh}

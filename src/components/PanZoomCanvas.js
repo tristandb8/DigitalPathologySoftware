@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { getBitmap } from "../utils/TiffModel";
+import { getBitmap } from "../utils/tiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
 import * as Point from "../utils/pointUtils";
@@ -298,12 +298,12 @@ export default class PanZoomCanvas extends Component {
   updateCanvas() {
     const canvas = this.canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const loadedFile = this.props.file.loadedFile;
+    const loadedFile = this.props.file;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (this.props.file.loadedFileType === "tiff") {
+    if (this.props.file.type === "tiff") {
       // Update canvas size
       canvas.width = loadedFile.width;
       canvas.height = loadedFile.height;
@@ -339,7 +339,7 @@ export default class PanZoomCanvas extends Component {
   }
 
   render() {
-    if (this.props.file.loadedFile == null) {
+    if (this.props.file == null) {
       return <div />;
     } else {
       return (
