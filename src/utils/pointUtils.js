@@ -40,7 +40,6 @@ export const normalize = (pointA) => {
 };
 
 export const angle = (pointA) => {
-  if (pointA.x === 0) return 0;
   return Math.atan2(pointA.y, pointA.x);
 };
 
