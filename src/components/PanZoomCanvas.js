@@ -28,7 +28,8 @@ class AnnotatedCanvas extends Component {
   componentDidUpdate(oldProps) {
     if (
       oldProps.scale !== this.props.scale ||
-      oldProps.mode !== this.props.mode
+      oldProps.mode !== this.props.mode ||
+      this.props.annotations !== oldProps.annotations
     ) {
       this.updateCanvas();
     }
@@ -136,8 +137,8 @@ class AnnotatedCanvas extends Component {
           );
           ctx.beginPath();
           ctx.lineWidth = 1;
-          ctx.fillStyle = "red";
-          ctx.strokeStyle = "red";
+          ctx.fillStyle = "white";
+          ctx.strokeStyle = "white";
           ctx.moveTo(start.x, start.y);
           ctx.lineTo(end.x, end.y);
           ctx.stroke();
@@ -174,7 +175,7 @@ class AnnotatedCanvas extends Component {
         case Modes.Zoom:
           ctx.beginPath();
           ctx.lineWidth = 1;
-          ctx.strokeStyle = "red";
+          ctx.strokeStyle = "white";
           ctx.strokeRect(start.x, start.y, end.x - start.x, end.y - start.y);
           ctx.stroke();
           ctx.closePath();
@@ -327,6 +328,11 @@ export default class PanZoomCanvas extends Component {
       canvas.height = 150;
       ctx.drawImage(img, 0, 0);
     }
+
+    // Not sure if this should go here or componentDidUpdate...
+    // Keeping it here for now unless I think of a better reason other than
+    // performance (which may or may not be enough?)
+    this.annotationCanvasRef.current?.updateCanvas();
   }
 
   componentDidUpdate(oldProps) {
