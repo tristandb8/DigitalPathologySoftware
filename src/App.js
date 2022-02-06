@@ -22,6 +22,28 @@ class App extends Component {
     };
   }
 
+  selectTab = (index) => {
+    this.setState((prevState) => ({
+      loadedProject: { ...prevState.loadedProject, activeFile: index },
+    }));
+  };
+
+  closeTab = (index) => {
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles.splice(index, 1);
+    let newActive =
+      this.state.loadedProject.activeFile < index
+        ? this.state.loadedProject.activeFile
+        : this.state.loadedProject.activeFile - 1;
+    this.setState((prevState) => ({
+      loadedProject: {
+        ...prevState.loadedProject,
+        openFiles: newFiles,
+        activeFile: newActive,
+      },
+    }));
+  };
+
   addAnnotation = (annotation) => {
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
@@ -153,6 +175,8 @@ class App extends Component {
             ref={this.displayPageRef}
             project={this.state.loadedProject}
             addAnnotation={this.addAnnotation}
+            closeTab={this.closeTab}
+            selectTab={this.selectTab}
           />
           <RightPane
             project={this.state.loadedProject}

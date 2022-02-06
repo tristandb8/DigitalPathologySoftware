@@ -297,6 +297,7 @@ export default class PanZoomCanvas extends Component {
 
   updateCanvas() {
     const canvas = this.canvasRef.current;
+    if (canvas == null) return;
     const ctx = canvas.getContext("2d");
     const loadedFile = this.props.file;
 

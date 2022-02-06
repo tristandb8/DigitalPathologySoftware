@@ -107,10 +107,26 @@ class Tab extends Component {
     const className = this.props.selected ? "tabSelected" : "tab";
 
     return (
-      <div className={className}>
-        <p className="tabTitle">{this.props.title}</p>
+      <div
+        className={className}
+        onClick={() => {
+          this.props.onClick();
+        }}
+      >
+        <p
+          className="tabTitle"
+          style={{ color: this.props.selected ? "red" : "black" }}
+        >
+          {this.props.title}
+        </p>
         <div className="tabClose">
-          <CloseButton className="tabCloseIcon" />
+          <CloseButton
+            className="tabCloseIcon"
+            onClick={(e) => {
+              e.stopPropagation();
+              this.props.closeTab();
+            }}
+          />
         </div>
       </div>
     );
@@ -121,9 +137,20 @@ class Tabbar extends Component {
   render() {
     return (
       <div className="tabbar">
-        <Tab selected={false} title={"tab 1"} />
-        <Tab selected={true} title={"tab 2"} />
-        <Tab selected={false} title={"tab 3"} />
+        {this.props.project.openFiles.map((file, index) => (
+          <Tab
+            key={index}
+            selected={index === this.props.project.activeFile}
+            onClick={(e) => {
+              this.props.selectTab(index);
+            }}
+            closeTab={() => {
+              this.props.closeTab(index);
+              this.props.resetView();
+            }}
+            title={`Tab ${index}`}
+          />
+        ))}
       </div>
     );
   }
@@ -150,7 +177,7 @@ export default class DisplayPage extends Component {
   }
 
   resetView = () => {
-    this.canvasRef.current.resetView();
+    if (this.canvasRef.current != null) this.canvasRef.current.resetView();
   };
 
   toggleGrid = () => {
@@ -178,7 +205,12 @@ export default class DisplayPage extends Component {
   render() {
     return (
       <div className="displayPage">
-        <Tabbar />
+        <Tabbar
+          project={this.props.project}
+          closeTab={this.props.closeTab}
+          selectTab={this.props.selectTab}
+          resetView={this.resetView}
+        />
         <Toolbar
           grid={this.state.grid}
           ruler={this.state.ruler}

@@ -59,7 +59,7 @@ class ChannelInput extends React.Component {
   componentDidUpdate(oldProps) {
     if (oldProps.selectedChannel !== this.props.selectedChannel) {
       this.setState({
-        color: this.props.selectedChannel.channel.channelColor,
+        color: this.props.selectedChannel?.channel.channelColor || "#fff",
       });
     }
   }
