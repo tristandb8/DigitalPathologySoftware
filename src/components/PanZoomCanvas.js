@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { getBitmap } from "../utils/tiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
+import { ReactComponent as LogoImage } from "../resources/Logo.svg";
 import * as Point from "../utils/pointUtils";
 import * as Annotations from "../utils/annotations";
 
@@ -347,7 +348,21 @@ export default class PanZoomCanvas extends Component {
 
   render() {
     if (this.props.file == null) {
-      return <div />;
+      return (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <LogoImage
+            style={{ fill: "#2f2f2f", width: "400px", height: "400px" }}
+          />
+        </div>
+      );
     } else {
       return (
         <div style={{ width: "100%", height: "100%" }} ref={this.portRef}>
