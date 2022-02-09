@@ -134,6 +134,12 @@ const template = [
           },
         },
         {
+          label: "TEST Load Project",
+          click() {
+            loadProject();
+          },
+        },
+        {
           label: "TEST Python",
           click() {
             pythonScripts();
@@ -257,6 +263,15 @@ function loadObject(){
 
 }
 
+function loadProject(){
+  console.log("Loading Project");
+  var dir = os.homedir()+'/Desktop/DPSoftware';
+  let rawdata = fs.readFileSync(path.resolve(dir, 'savedProject.json'));
+  let image = JSON.parse(rawdata);
+  console.log(image);
+
+}
+
 function saveObject(){
   console.log("Saving Object");
 
@@ -295,5 +310,5 @@ ipcMain.on('tiffImage', (event, args) => {
  });
 
  ipcMain.on('saveImage', (event, args) => {
-  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'savedImage.json'), JSON.stringify(args));
+  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'savedProject.json'), JSON.stringify(args));
  });
