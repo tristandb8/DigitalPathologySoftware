@@ -40,6 +40,20 @@ const template = [
           openFile();
         },
       },
+      {
+        label: "Load Project",
+        accelerator: "CmdOrCtrl+L",
+        click() {
+          loadObject();
+        },
+      },
+      {
+        label: "Save Project",
+        accelerator: "CmdOrCtrl+S",
+        click() {
+          saveObject();
+        },
+      },
     ],
   },
   // { role: 'editMenu' }
@@ -120,19 +134,6 @@ const template = [
           },
         },
         {
-          label: "TEST Load",
-          click() {
-            loadObject();
-          },
-        },
-        {
-          label: "TEST Save",
-          accelerator: "CmdOrCtrl+O",
-          click() {
-            saveObject();
-          },
-        },
-        {
           label: "TEST Python",
           click() {
             pythonScripts();
@@ -153,6 +154,7 @@ function createWindow() {
     height: 720,
     webPreferences: {
       nodeIntegration: true,
+      enableRemoteModule: true,
       contextIsolation: false,
       preload: path.join(__dirname, "preload.js"),
     },
@@ -178,6 +180,7 @@ app.whenReady().then(() => {
   ipcMain.on("load-previous-image", (event) => {
     openIntroFile();
   });
+  makeDir();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -243,21 +246,14 @@ function createObject(){
   }
 
   fs.writeFileSync(path.resolve(dir, 'student.json'), JSON.stringify(student));
-
 }
 
 function loadObject(){
   console.log("Loading Object");
-
   var dir = os.homedir()+'/Desktop/DPSoftware';
-  console.log(dir);
-  if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
-  }
-
-  let rawdata = fs.readFileSync(path.resolve(dir, 'student.json'));
-  let student = JSON.parse(rawdata);
-  console.log(student);
+  let rawdata = fs.readFileSync(path.resolve(dir, 'tiffImage.json'));
+  let image = JSON.parse(rawdata);
+  console.log(image);
 
 }
 
@@ -286,3 +282,18 @@ function pythonScripts(){
     // console.log('finished');
   });
 }
+
+function makeDir(){
+  var dir = os.homedir()+'/Desktop/DPSoftware';
+  if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+  }
+}
+
+ipcMain.on('tiffImage', (event, args) => {
+  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
+ });
+
+ ipcMain.on('saveImage', (event, args) => {
+  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'savedImage.json'), JSON.stringify(args));
+ });

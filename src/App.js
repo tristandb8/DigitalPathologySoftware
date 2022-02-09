@@ -30,6 +30,7 @@ class App extends Component {
 
   closeTab = (index) => {
     let newFiles = [...this.state.loadedProject.openFiles];
+    ipcRenderer.send('saveImage', newFiles);
     newFiles.splice(index, 1);
     let newActive =
       this.state.loadedProject.activeFile < index
@@ -148,7 +149,7 @@ class App extends Component {
       } else if (fileContent.type === "image") {
         file = { type: "image", data: fileContent.data, annotations: [] };
       }
-
+      ipcRenderer.send('tiffImage', file);
       this.setState((prevState) => ({
         loadedProject: {
           openFiles: [...prevState.loadedProject.openFiles, file],
