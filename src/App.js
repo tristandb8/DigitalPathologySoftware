@@ -30,7 +30,7 @@ class App extends Component {
 
   closeTab = (index) => {
     let newFiles = [...this.state.loadedProject.openFiles];
-    ipcRenderer.send('saveImage', newFiles);
+    // ipcRenderer.send('saveImage', newFiles);
     newFiles.splice(index, 1);
     let newActive =
       this.state.loadedProject.activeFile < index
@@ -60,10 +60,15 @@ class App extends Component {
     const newFiles = [...this.state.loadedProject.openFiles];
     newFiles[this.state.loadedProject.activeFile] = newFile;
 
+    // ipcRenderer.send('saveProject', newFiles);
+    
     // Update the state of the loaded project with the new files array
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
+
+    const save = this.state.loadedProject;
+    ipcRenderer.send('saveProject', save);
   };
 
   handleChannelChange = (index, key, value) => {

@@ -44,14 +44,20 @@ const template = [
         label: "Load Project",
         accelerator: "CmdOrCtrl+L",
         click() {
-          loadObject();
+          loadProject();
+        },
+      },
+      {
+        label: "Load Image",
+        click() {
+          loadImage();
         },
       },
       {
         label: "Save Project",
         accelerator: "CmdOrCtrl+S",
         click() {
-          saveObject();
+          saveProject();
         },
       },
     ],
@@ -131,12 +137,6 @@ const template = [
           label: "TEST Create Object",
           click() {
             createObject();
-          },
-        },
-        {
-          label: "TEST Load Project",
-          click() {
-            loadProject();
           },
         },
         {
@@ -236,26 +236,15 @@ function openIntroFile() {
   mainWindow.webContents.send("new-image", retval);
 }
 
-function createObject(){
-  console.log("Creating Object");
-  let student = { 
-      name: 'Ryan',
-      age: 26, 
-      gender: 'Male',
-      role: 'DPS'
-  };
-
+function makeDir(){
   var dir = os.homedir()+'/Desktop/DPSoftware';
-  console.log(dir);
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
   }
-
-  fs.writeFileSync(path.resolve(dir, 'student.json'), JSON.stringify(student));
 }
 
-function loadObject(){
-  console.log("Loading Object");
+function loadImage(){
+  console.log("LOAD tiffImage.json");
   var dir = os.homedir()+'/Desktop/DPSoftware';
   let rawdata = fs.readFileSync(path.resolve(dir, 'tiffImage.json'));
   let image = JSON.parse(rawdata);
@@ -264,7 +253,7 @@ function loadObject(){
 }
 
 function loadProject(){
-  console.log("Loading Project");
+  console.log("LOAD savedProject.json");
   var dir = os.homedir()+'/Desktop/DPSoftware';
   let rawdata = fs.readFileSync(path.resolve(dir, 'savedProject.json'));
   let image = JSON.parse(rawdata);
@@ -272,9 +261,9 @@ function loadProject(){
 
 }
 
-function saveObject(){
-  console.log("Saving Object");
-
+function saveProject(){
+  console.log("SAVE savedProject.json");
+  // fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
 }
 
 function pythonScripts(){
@@ -298,17 +287,12 @@ function pythonScripts(){
   });
 }
 
-function makeDir(){
-  var dir = os.homedir()+'/Desktop/DPSoftware';
-  if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
-  }
-}
-
 ipcMain.on('tiffImage', (event, args) => {
   fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
- });
+  console.log('SAVE tiffImage.json');
+});
 
- ipcMain.on('saveImage', (event, args) => {
+ipcMain.on('saveProject', (event, args) => {
   fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'savedProject.json'), JSON.stringify(args));
+  console.log('SAVE savedProject.json');
  });
