@@ -115,7 +115,7 @@ class Tab extends Component {
       >
         <p
           className="tabTitle"
-          style={{ color: this.props.selected ? "red" : "black" }}
+          style={{ color: this.props.selected ? "#333333" : "#616161" }}
         >
           {this.props.title}
         </p>

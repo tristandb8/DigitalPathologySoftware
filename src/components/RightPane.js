@@ -30,7 +30,11 @@ class ChannelItem extends React.Component {
             type="text"
             className="channelTextInput"
             onChange={(e) => {
-              this.props.onNameChannel(this.props.index, e.target.value);
+              this.props.onChannelChange(
+                this.props.index,
+                "name",
+                e.target.value
+              );
             }}
             defaultValue={this.props.channel.name}
           />
@@ -38,7 +42,13 @@ class ChannelItem extends React.Component {
             key="selected"
             type="checkbox"
             checked={this.props.channel.enabled}
-            onChange={() => this.props.onToggleChannel(this.props.index)}
+            onChange={() =>
+              this.props.onChannelChange(
+                this.props.index,
+                "enabled",
+                !this.props.channel.enabled
+              )
+            }
             style={{ width: "16px", height: "16px" }}
           />
         </div>
@@ -65,7 +75,11 @@ class ChannelInput extends React.Component {
   }
 
   handleChange = (color, event) => {
-    this.props.onColorChannel(this.props.selectedChannel.index, color.hex);
+    this.props.onChannelChange(
+      this.props.selectedChannel.index,
+      "channelColor",
+      color.hex
+    );
     this.setState({
       color: color.hex,
     });
@@ -98,7 +112,6 @@ export default class RightPane extends React.Component {
     super(props);
 
     this.state = {
-      file: this.props.project.openFiles[this.props.project.activeFile],
       selectedChannel: null,
       sliderRange: { min: 1, max: 100 },
     };
@@ -112,41 +125,34 @@ export default class RightPane extends React.Component {
   };
 
   sliderChanged = (values) => {
-    this.props.onThreshChannel(this.state.selectedChannel.index, values);
+    this.props.onChannelChange(this.state.selectedChannel.index, "threshold", {
+      min: values[0],
+      max: values[1],
+    });
     this.setState({ sliderRange: { min: values[0], max: values[1] } });
   };
 
-  componentDidUpdate(prevProps) {
-    const oldFile = prevProps.project.openFiles[prevProps.project.activeFile];
-    const newFile = this.props.project.openFiles[this.props.project.activeFile];
-    if (newFile !== oldFile) {
-      this.setState({
-        file: newFile,
-      });
-    }
-  }
-
   render() {
-    if (this.state.file != null) {
+    const file = this.props.project.openFiles[this.props.project.activeFile];
+    if (file != null) {
       return (
         <div className="rightPane">
           <div className="channelList">
-            {this.state.file.idfArray.map((channel, index) => (
+            {file.idfArray.map((channel, index) => (
               <ChannelItem
                 key={index}
                 channel={channel}
                 index={index}
                 selectedChannel={this.state.selectedChannel}
                 channelSelected={this.channelSelected}
-                onNameChannel={this.props.onNameChannel}
-                onToggleChannel={this.props.onToggleChannel}
+                onChannelChange={this.props.onChannelChange}
               />
             ))}
           </div>
           <hr className="channelHR" style={{ marginTop: "4px" }} />
           <ChannelInput
             sliderChanged={this.sliderChanged}
-            onColorChannel={this.props.onColorChannel}
+            onChannelChange={this.props.onChannelChange}
             selectedChannel={this.state.selectedChannel}
             sliderRange={this.state.sliderRange}
           />

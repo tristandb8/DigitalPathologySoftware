@@ -210,6 +210,9 @@ function inferFile(file) {
     retval = { type: "image", data: `data:image;base64,${imgDecode}` };
   }
 
+  retval.path = file;
+  retval.name = path.basename(file);
+
   return retval;
 }
 
@@ -225,11 +228,7 @@ function openFile() {
   const file = files[0];
   const retval = inferFile(file);
   store.set("Directory", file);
-  mainWindow.webContents.send("new-image", {
-    ...retval,
-    path: file,
-    name: path.basename(file),
-  });
+  mainWindow.webContents.send("new-image", retval);
 }
 
 function openIntroFile() {
@@ -292,15 +291,15 @@ function pythonScripts() {
 
 ipcMain.on("tiffImage", (event, args) => {
   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
-  fs.writeFileSync(path.resolve(dir, "tiffImage.json"), JSON.stringify(args));
+  // fs.writeFileSync(path.resolve(dir, "tiffImage.json"), JSON.stringify(args));
   console.log("SAVE tiffImage.json");
 });
 
 ipcMain.on("saveProject", (event, args) => {
   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
-  fs.writeFileSync(
-    path.resolve(dir, "savedProject.json"),
-    JSON.stringify(args)
-  );
+  // fs.writeFileSync(
+  //   path.resolve(dir, "savedProject.json"),
+  //   JSON.stringify(args)
+  // );
   console.log("SAVE savedProject.json");
 });

@@ -4,18 +4,18 @@ export const AnnotationTypes = {
   Polygon: "Polygon",
 };
 
-export const Annotation = (type, color, params) => {
-  return { type, color, params };
+export const Annotation = (type, color, params, name) => {
+  return { type, color, params, name, selected: false };
 };
 
-export const Circle = (x, y, r, color) => {
-  return Annotation(AnnotationTypes.Circle, color, { x, y, r });
+export const Circle = (x, y, r, color, name) => {
+  return Annotation(AnnotationTypes.Circle, color, { x, y, r }, name);
 };
 
-export const Square = (x, y, w, h, color) => {
-  return Annotation(AnnotationTypes.Square, color, { x, y, w, h });
+export const Square = (x, y, w, h, color, name) => {
+  return Annotation(AnnotationTypes.Square, color, { x, y, w, h }, name);
 };
 
-export const Polygon = (points, color) => {
-  return Annotation(AnnotationTypes.Polygon, color, { points });
+export const Polygon = (points, color, name) => {
+  return Annotation(AnnotationTypes.Polygon, color, points, name);
 };

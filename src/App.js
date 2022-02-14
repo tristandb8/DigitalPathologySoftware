@@ -18,6 +18,7 @@ class App extends Component {
         openFiles: [], // Files openened in any tab
         activeFile: -1, // The currently selected tab index
         filePaths: [], // Files that were opened
+        name: "Project 1",
       },
     };
   }
@@ -35,12 +36,13 @@ class App extends Component {
     let newActive =
       this.state.loadedProject.activeFile < index
         ? this.state.loadedProject.activeFile
-        : this.state.loadedProject.activeFile - 1;
+        : Math.max(this.state.loadedProject.activeFile - 1, 0);
     this.setState((prevState) => ({
       loadedProject: {
         ...prevState.loadedProject,
         openFiles: newFiles,
         activeFile: newActive,
+        name: "Project 1",
       },
     }));
   };
@@ -49,6 +51,8 @@ class App extends Component {
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     if (!loadedFile) return;
+
+    annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
 
     // Create copy of the new file
     const newFile = {
@@ -60,34 +64,37 @@ class App extends Component {
     const newFiles = [...this.state.loadedProject.openFiles];
     newFiles[this.state.loadedProject.activeFile] = newFile;
 
-    // ipcRenderer.send('saveProject', newFiles);
-    
     // Update the state of the loaded project with the new files array
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
+  };
 
-    const save = this.state.loadedProject;
-    ipcRenderer.send('saveProject', save);
+  removeAnnotation = (index) => {
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    const newFile = {
+      ...loadedFile,
+      annotations: [...loadedFile.annotations],
+    };
+    newFile.annotations.splice(index, 1);
+    const newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
+    this.setState((prevState) => ({
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+    }));
   };
 
   handleChannelChange = (index, key, value) => {
-    let items = [...this.state.loadedFile.idfArray];
-    let item = { ...items[index] };
-    item[key] = value;
-
-    this.setState((prevState) => ({
-      loadedFile: { ...prevState.loadedFile, idfArray: items },
-    }));
-  };
-
-  handleChannelToggle = (index) => {
+    // newChannel.enabled = !newChannel.enabled
+    // newChannel.threshold = { min: range[0], max: range[1] };
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     if (!loadedFile) return;
     let newArray = [...loadedFile.idfArray];
     let newChannel = { ...newArray[index] };
-    newChannel.enabled = !newChannel.enabled;
+    newChannel[key] = value;
     newArray[index] = newChannel;
     let newFile = { ...loadedFile, idfArray: newArray };
     let newFiles = [...this.state.loadedProject.openFiles];
@@ -97,47 +104,16 @@ class App extends Component {
     }));
   };
 
-  handleChannelThresh = (index, range) => {
+  handleAnnotationChange = (index, key, value) => {
+    console.log(`setting ${key} of ${index} to ${value}`);
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     if (!loadedFile) return;
-    let newArray = [...loadedFile.idfArray];
-    let newChannel = { ...newArray[index] };
-    newChannel.threshold = { min: range[0], max: range[1] };
-    newArray[index] = newChannel;
-    let newFile = { ...loadedFile, idfArray: newArray };
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
-    this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
-    }));
-  };
-
-  handleChannelColor = (index, color) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
-    if (!loadedFile) return;
-    let newArray = [...loadedFile.idfArray];
-    let newChannel = { ...newArray[index] };
-    newChannel.channelColor = color;
-    newArray[index] = newChannel;
-    let newFile = { ...loadedFile, idfArray: newArray };
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
-    this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
-    }));
-  };
-
-  handleChannelName = (index, name) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
-    if (!loadedFile) return;
-    let newArray = [...loadedFile.idfArray];
-    let newChannel = { ...newArray[index] };
-    newChannel.name = name;
-    newArray[index] = newChannel;
-    let newFile = { ...loadedFile, idfArray: newArray };
+    let newArray = [...loadedFile.annotations];
+    let newAnnotation = { ...newArray[index] };
+    newAnnotation[key] = value;
+    newArray[index] = newAnnotation;
+    let newFile = { ...loadedFile, annotations: newArray };
     let newFiles = [...this.state.loadedProject.openFiles];
     newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
@@ -154,14 +130,17 @@ class App extends Component {
       } else if (fileContent.type === "image") {
         file = { type: "image", data: fileContent.data, annotations: [] };
       }
-      ipcRenderer.send('tiffImage', file);
+
+      file.path = fileContent.path;
+      file.name = fileContent.name;
+
+      ipcRenderer.send("tiffImage", file); // This function is crazy slow
       this.setState((prevState) => ({
         loadedProject: {
           openFiles: [...prevState.loadedProject.openFiles, file],
-          // The currently selected tab index
           activeFile: prevState.loadedProject.openFiles.length,
-          // TODO: Store all opened file paths
-          // filePaths: [...prevState.filePaths, filePath],
+          filePaths: [...prevState.loadedProject.filePaths, fileContent.path],
+          name: "Project 1",
         },
       }));
 
@@ -176,7 +155,11 @@ class App extends Component {
     return (
       <div className="App">
         <Split>
-          <LeftPane project={this.state.loadedProject} />
+          <LeftPane
+            project={this.state.loadedProject}
+            onAnnotationChange={this.handleAnnotationChange}
+            removeAnnotation={this.removeAnnotation}
+          />
           <DisplayPage
             ref={this.displayPageRef}
             project={this.state.loadedProject}
@@ -186,11 +169,7 @@ class App extends Component {
           />
           <RightPane
             project={this.state.loadedProject}
-            // Todo: Merge below functions
-            onToggleChannel={this.handleChannelToggle}
-            onThreshChannel={this.handleChannelThresh}
-            onColorChannel={this.handleChannelColor}
-            onNameChannel={this.handleChannelName}
+            onChannelChange={this.handleChannelChange}
           />
         </Split>
       </div>
