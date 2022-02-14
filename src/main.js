@@ -1,11 +1,11 @@
 const { app, BrowserWindow, Menu, dialog } = require("electron");
 const { ipcMain } = require("electron");
 const path = require("path");
-const os = require('os');
+const os = require("os");
 const fs = require("fs");
 const Store = require("electron-store");
 const store = new Store();
-let {PythonShell} = require('python-shell')
+let { PythonShell } = require("python-shell");
 
 const isMac = process.platform === "darwin";
 
@@ -129,24 +129,24 @@ const template = [
       },
     ],
   },
-    // { role: 'temp buttons for testing' }
-    {
-      label: "TEST",
-      submenu: [
-        {
-          label: "TEST Create Object",
-          click() {
-            createObject();
-          },
+  // { role: 'temp buttons for testing' }
+  {
+    label: "TEST",
+    submenu: [
+      {
+        label: "TEST Create Object",
+        click() {
+          // createObject(); // This isn't defined?
         },
-        {
-          label: "TEST Python",
-          click() {
-            pythonScripts();
-          },
+      },
+      {
+        label: "TEST Python",
+        click() {
+          pythonScripts();
         },
-      ],
-    },
+      },
+    ],
+  },
 ];
 
 const menu = Menu.buildFromTemplate(template);
@@ -225,7 +225,7 @@ function openFile() {
   const file = files[0];
   const retval = inferFile(file);
   store.set("Directory", file);
-  mainWindow.webContents.send("new-image", retval);
+  mainWindow.webContents.send("new-image", { ...retval, path: file });
 }
 
 function openIntroFile() {
@@ -236,50 +236,49 @@ function openIntroFile() {
   mainWindow.webContents.send("new-image", retval);
 }
 
-function makeDir(){
-  var dir = os.homedir()+'/Desktop/DPSoftware';
-  if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
+function makeDir() {
+  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  if (!fs.existsSync(dir)) {
+    console.log(dir);
+    fs.mkdirSync(dir);
   }
 }
 
-function loadImage(){
+function loadImage() {
   console.log("LOAD tiffImage.json");
-  var dir = os.homedir()+'/Desktop/DPSoftware';
-  let rawdata = fs.readFileSync(path.resolve(dir, 'tiffImage.json'));
+  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  let rawdata = fs.readFileSync(path.resolve(dir, "tiffImage.json"));
   let image = JSON.parse(rawdata);
   console.log(image);
-
 }
 
-function loadProject(){
+function loadProject() {
   console.log("LOAD savedProject.json");
-  var dir = os.homedir()+'/Desktop/DPSoftware';
-  let rawdata = fs.readFileSync(path.resolve(dir, 'savedProject.json'));
+  var dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  let rawdata = fs.readFileSync(path.resolve(dir, "savedProject.json"));
   let image = JSON.parse(rawdata);
   console.log(image);
-
 }
 
-function saveProject(){
+function saveProject() {
   console.log("SAVE savedProject.json");
   // fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
 }
 
-function pythonScripts(){
+function pythonScripts() {
   console.log("Testing Python Scripts");
-  let pyshell = new PythonShell('./src/pythonScripts/test.py');
+  let pyshell = new PythonShell("./src/pythonScripts/test.py");
 
   // sends a message to the Python script via stdin
-  pyshell.send('hello');
-  
-  pyshell.on('message', function (message) {
+  pyshell.send("hello");
+
+  pyshell.on("message", function (message) {
     // received a message sent from the Python script (a simple "print" statement)
     console.log(message);
   });
-  
+
   // end the input stream and allow the process to exit
-  pyshell.end(function (err,code,signal) {
+  pyshell.end(function (err, code, signal) {
     if (err) throw err;
     // console.log('The exit code was: ' + code);
     // console.log('The exit signal was: ' + signal);
@@ -287,12 +286,17 @@ function pythonScripts(){
   });
 }
 
-ipcMain.on('tiffImage', (event, args) => {
-  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
-  console.log('SAVE tiffImage.json');
+ipcMain.on("tiffImage", (event, args) => {
+  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  fs.writeFileSync(path.resolve(dir, "tiffImage.json"), JSON.stringify(args));
+  console.log("SAVE tiffImage.json");
 });
 
-ipcMain.on('saveProject', (event, args) => {
-  fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'savedProject.json'), JSON.stringify(args));
-  console.log('SAVE savedProject.json');
- });
+ipcMain.on("saveProject", (event, args) => {
+  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  fs.writeFileSync(
+    path.resolve(dir, "savedProject.json"),
+    JSON.stringify(args)
+  );
+  console.log("SAVE savedProject.json");
+});
