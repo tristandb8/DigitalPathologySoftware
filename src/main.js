@@ -225,7 +225,11 @@ function openFile() {
   const file = files[0];
   const retval = inferFile(file);
   store.set("Directory", file);
-  mainWindow.webContents.send("new-image", { ...retval, path: file });
+  mainWindow.webContents.send("new-image", {
+    ...retval,
+    path: file,
+    name: path.basename(file),
+  });
 }
 
 function openIntroFile() {
@@ -267,7 +271,7 @@ function saveProject() {
 
 function pythonScripts() {
   console.log("Testing Python Scripts");
-  let pyshell = new PythonShell("./src/pythonScripts/test.py");
+  let pyshell = new PythonShell("./src/python/test.py");
 
   // sends a message to the Python script via stdin
   pyshell.send("hello");
