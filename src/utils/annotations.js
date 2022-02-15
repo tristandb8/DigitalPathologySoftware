@@ -5,7 +5,7 @@ export const AnnotationTypes = {
 };
 
 export const Annotation = (type, color, params, name) => {
-  return { type, color, params, name, selected: false };
+  return { type, color, params, name };
 };
 
 export const Circle = (x, y, r, color, name) => {

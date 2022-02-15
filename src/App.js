@@ -20,6 +20,7 @@ class App extends Component {
         filePaths: [], // Files that were opened
         name: "Project 1",
       },
+      selectedAnnotation: -1,
     };
   }
 
@@ -55,13 +56,13 @@ class App extends Component {
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
 
     // Create copy of the new file
-    const newFile = {
+    let newFile = {
       ...loadedFile,
       annotations: [...loadedFile.annotations, annotation],
     };
 
     // Create a copy of the new openFiles array and set the new file
-    const newFiles = [...this.state.loadedProject.openFiles];
+    let newFiles = [...this.state.loadedProject.openFiles];
     newFiles[this.state.loadedProject.activeFile] = newFile;
 
     // Update the state of the loaded project with the new files array
@@ -74,29 +75,11 @@ class App extends Component {
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     if (!loadedFile) return;
-    const newFile = {
+    let newFile = {
       ...loadedFile,
       annotations: [...loadedFile.annotations],
     };
     newFile.annotations.splice(index, 1);
-    const newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
-    this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
-    }));
-  };
-
-  handleChannelChange = (index, key, value) => {
-    // newChannel.enabled = !newChannel.enabled
-    // newChannel.threshold = { min: range[0], max: range[1] };
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
-    if (!loadedFile) return;
-    let newArray = [...loadedFile.idfArray];
-    let newChannel = { ...newArray[index] };
-    newChannel[key] = value;
-    newArray[index] = newChannel;
-    let newFile = { ...loadedFile, idfArray: newArray };
     let newFiles = [...this.state.loadedProject.openFiles];
     newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
@@ -119,6 +102,28 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
     }));
+  };
+
+  handleChannelChange = (index, key, value) => {
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newArray = [...loadedFile.idfArray];
+    let newChannel = { ...newArray[index] };
+    newChannel[key] = value;
+    newArray[index] = newChannel;
+    let newFile = { ...loadedFile, idfArray: newArray };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
+    this.setState((prevState) => ({
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+    }));
+  };
+
+  handleSelectedAnnotationChange = (index) => {
+    this.setState({
+      selectedAnnotation: index,
+    });
   };
 
   componentDidMount() {
@@ -158,6 +163,8 @@ class App extends Component {
           <LeftPane
             project={this.state.loadedProject}
             onAnnotationChange={this.handleAnnotationChange}
+            selectAnnotation={this.handleSelectedAnnotationChange}
+            selectedAnnotation={this.state.selectedAnnotation}
             removeAnnotation={this.removeAnnotation}
           />
           <DisplayPage

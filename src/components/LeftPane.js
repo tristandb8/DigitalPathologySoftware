@@ -100,7 +100,7 @@ class AnnotationItem extends Component {
   };
 
   render() {
-    const className = this.props.annotation.selected
+    const className = this.props.selected
       ? "annotationItemSelected"
       : "annotationItem";
     return (
@@ -122,18 +122,15 @@ class AnnotationItem extends Component {
                 e.target.value
               );
             }}
-            defaultValue={this.props.annotation.name}
+            value={this.props.annotation.name}
           />
-          <div>
-            {/* <EditButton className="annotationButton" /> */}
-            <TrashButton
-              className="annotationButton"
-              onClick={(e) => {
-                e.stopPropagation();
-                this.props.removeAnnotation(this.props.index);
-              }}
-            />
-          </div>
+          <TrashButton
+            className="annotationButton"
+            onClick={(e) => {
+              e.stopPropagation();
+              this.props.removeAnnotation(this.props.index);
+            }}
+          />
         </div>
         <hr className="channelHR" />
       </div>
@@ -142,24 +139,8 @@ class AnnotationItem extends Component {
 }
 
 class AnnotationPane extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selectedAnnotation: -1,
-    };
-  }
-
   selectAnnotation = (index) => {
-    if (this.state.selectedAnnotation >= 0)
-      this.props.onAnnotationChange(
-        this.state.selectedAnnotation,
-        "selected",
-        false
-      );
-    this.setState({
-      selectedAnnotation: index,
-    });
-    this.props.onAnnotationChange(index, "selected", true);
+    this.props.selectAnnotation(index);
   };
 
   render() {
@@ -172,9 +153,13 @@ class AnnotationPane extends Component {
             key={index}
             index={index}
             annotation={annotation}
+            // name={annotation.name}
+            // type={annotation.type}
+            // color={annotation.color}
             onAnnotationChange={this.props.onAnnotationChange}
             removeAnnotation={this.props.removeAnnotation}
             selectAnnotation={this.selectAnnotation}
+            selected={this.props.selectedAnnotation === index}
           />
         ))}
       </div>
@@ -237,7 +222,9 @@ export default class LeftPane extends Component {
           <AnnotationPane
             project={this.props.project}
             onAnnotationChange={this.props.onAnnotationChange}
+            selectAnnotation={this.props.selectAnnotation}
             removeAnnotation={this.props.removeAnnotation}
+            selectedAnnotation={this.props.selectedAnnotation}
           />
         );
       default:
