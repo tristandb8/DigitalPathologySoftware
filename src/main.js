@@ -270,23 +270,23 @@ function saveProject() {
 
 function pythonScripts() {
   console.log("Testing Python Scripts");
-  let pyshell = new PythonShell("./src/python/test.py");
+  const pathToh5 = path.join(process.cwd(), "python", "mask_rcnn_cell_0030.h5");
+  let options = {
+    mode: 'text',
+    pythonOptions: ['-u'], // get print results in real-time
+    args: [pathToh5] //An argument which can be accessed in the script using sys.argv[1]
+};
 
-  // sends a message to the Python script via stdin
-  pyshell.send("hello");
+PythonShell.run('./src/python/NucleiDetect.py', options, function (err, result){
+  if (err) throw err;
+  // result is an array consisting of messages collected
+  //during execution of script.
+  console.log('result: ', result.toString());
+  //res.send(result.toString())
+});
 
-  pyshell.on("message", function (message) {
-    // received a message sent from the Python script (a simple "print" statement)
-    console.log(message);
-  });
 
-  // end the input stream and allow the process to exit
-  pyshell.end(function (err, code, signal) {
-    if (err) throw err;
-    // console.log('The exit code was: ' + code);
-    // console.log('The exit signal was: ' + signal);
-    // console.log('finished');
-  });
+
 }
 
 ipcMain.on("tiffImage", (event, args) => {
