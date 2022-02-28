@@ -3,16 +3,9 @@ import { getBitmap } from "../utils/tiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import grid from "../resources/GridFull.svg";
 import { ReactComponent as LogoImage } from "../resources/Logo.svg";
+import { Modes } from "../utils/canvasModes";
 import * as Point from "../utils/pointUtils";
 import * as Annotations from "../utils/annotations";
-
-const Modes = {
-  Pan: "Pan",
-  Zoom: "Zoom",
-  Measure: "Measure",
-  AnnotateCircle: "AnnotateCircle",
-  AnnotateSquare: "AnnotateSquare",
-};
 
 class AnnotatedCanvas extends Component {
   constructor(props) {
@@ -23,6 +16,8 @@ class AnnotatedCanvas extends Component {
       dragging: false,
       mouseStart: Point.ORIGIN,
       mousePos: Point.ORIGIN,
+      canClosePoly: false,
+      clickPoints: [],
     };
   }
 
@@ -33,13 +28,64 @@ class AnnotatedCanvas extends Component {
       this.props.annotations !== oldProps.annotations
     ) {
       this.updateCanvas();
+      this.setState({ clickPoints: [] });
     }
   }
 
+  checkAnnotationSelected = (hit) => {
+    for (let anni = 0; anni < this.props.annotations.length; anni++) {
+      const annotation = this.props.annotations[anni];
+      switch (annotation.type) {
+        case Annotations.AnnotationTypes.Circle:
+          const center = Point.Point(annotation.params.x, annotation.params.y);
+          if (Point.dist(hit, center) < annotation.params.r)
+            console.log(`hit ${anni}`);
+          break;
+        case Annotations.AnnotationTypes.Square:
+          const start = Point.Point(annotation.params.x, annotation.params.y);
+          const end = Point.sum(
+            start,
+            Point.Point(annotation.params.w, annotation.params.h)
+          );
+          if (
+            hit.x >= start.x &&
+            hit.x <= end.x &&
+            hit.y >= start.y &&
+            hit.y <= end.y
+          )
+            console.log(`hit ${anni}`);
+          break;
+        case Annotations.AnnotationTypes.Polygon:
+          // Polygon Hit Detection: https://stackoverflow.com/a/2922778
+          let isHit = false;
+          for (
+            let i = 0, j = annotation.params.length - 1;
+            i < annotation.params.length;
+            j = i++
+          ) {
+            const vi = annotation.params[i];
+            const vj = annotation.params[j];
+            const t1 = vi.y > hit.y;
+            const t2 = vj.y > hit.y;
+            if (
+              t1 !== t2 &&
+              hit.x < ((vj.x - vi.x) * (hit.y - vi.y)) / (vj.y - vi.y) + vi.x
+            )
+              isHit = !isHit;
+          }
+          if (isHit) console.log(`hit ${anni}`);
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
   handleMouseEvent = (event) => {
-    if (event.type === "mouseup") {
+    const boundingRect = this.canvasRef.current.getBoundingClientRect();
+    if (event.type === "mouseup" && event.button === 0) {
+      // Finish annotations currently being drawn
       if (this.state.dragging) {
-        const boundingRect = this.canvasRef.current.getBoundingClientRect();
         const start = Point.Point(
           this.state.mouseStart.x - boundingRect.x,
           this.state.mouseStart.y - boundingRect.y
@@ -86,19 +132,62 @@ class AnnotatedCanvas extends Component {
       this.setState({
         dragging: false,
       });
-    } else if (event.type === "mousedown") {
+    } else if (event.type === "mousedown" && event.button === 0) {
+      let clickPoints = [...this.state.clickPoints];
+      const clickPoint = Point.Point(
+        event.pageX - boundingRect.x,
+        event.pageY - boundingRect.y
+      );
+
+      // If annotating a polygon add the hit to the array of hits
+      if (this.props.mode === Modes.AnnotatePolygon) {
+        // If the mouse was close enough to the original point just add the anno
+        if (this.state.canClosePoly) {
+          this.props.addAnnotation(
+            Annotations.Polygon(
+              [...this.state.clickPoints].map((x) =>
+                Point.scale(x, 1 / this.props.scale)
+              ),
+              "red"
+            )
+          );
+
+          clickPoints = [];
+        } else {
+          // Add annotation
+          clickPoints = [...clickPoints, clickPoint];
+        }
+      } else if (this.props.mode === Modes.Pan) {
+        this.checkAnnotationSelected(
+          Point.scale(clickPoint, 1 / this.props.scale)
+        );
+      }
+
       this.setState({
         dragging: true,
         mouseStart: Point.Point(event.pageX, event.pageY),
         mousePos: Point.Point(event.pageX, event.pageY),
+        clickPoints: clickPoints,
       });
     } else if (event.type === "mouseleave") {
       this.setState({
         dragging: false,
       });
-    } else {
+    } else if (event.type === "mousemove") {
+      const mousePos = Point.Point(event.pageX, event.pageY);
+      let canClosePoly =
+        this.state.clickPoints.length > 2 &&
+        Point.dist(
+          mousePos,
+          Point.sum(
+            this.state.clickPoints[0],
+            Point.Point(boundingRect.x, boundingRect.y)
+          )
+        ) < 10;
+
       this.setState({
-        mousePos: Point.Point(event.pageX, event.pageY),
+        mousePos: mousePos,
+        canClosePoly: canClosePoly,
       });
     }
 
@@ -186,6 +275,30 @@ class AnnotatedCanvas extends Component {
       }
     }
 
+    if (this.props.mode === Modes.AnnotatePolygon) {
+      const clickPoints = this.state.clickPoints;
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#ff000010";
+      ctx.strokeStyle = "red";
+      if (clickPoints.length > 0) {
+        ctx.moveTo(clickPoints[0].x, clickPoints[0].y);
+        for (let i = 1; i < clickPoints.length; i++) {
+          ctx.lineTo(clickPoints[i].x, clickPoints[i].y);
+        }
+        if (!this.state.canClosePoly) {
+          ctx.lineTo(
+            this.state.mousePos.x - boundingRect.x,
+            this.state.mousePos.y - boundingRect.y
+          );
+        }
+        ctx.lineTo(clickPoints[0].x, clickPoints[0].y);
+      }
+      ctx.stroke();
+      ctx.closePath();
+      ctx.fill();
+    }
+
     for (const annotation of this.props.annotations) {
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
@@ -224,6 +337,33 @@ class AnnotatedCanvas extends Component {
           );
           ctx.stroke();
           ctx.closePath();
+          break;
+        case Annotations.AnnotationTypes.Polygon:
+          ctx.beginPath();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "red";
+          ctx.fillStyle = "#ff000010";
+
+          ctx.moveTo(
+            annotation.params[0].x * this.props.scale,
+            annotation.params[0].y * this.props.scale
+          );
+
+          for (let i = 1; i < annotation.params.length; i++) {
+            ctx.lineTo(
+              annotation.params[i].x * this.props.scale,
+              annotation.params[i].y * this.props.scale
+            );
+          }
+
+          ctx.lineTo(
+            annotation.params[0].x * this.props.scale,
+            annotation.params[0].y * this.props.scale
+          );
+
+          ctx.stroke();
+          ctx.closePath();
+          ctx.fill();
           break;
         default:
           break;

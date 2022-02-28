@@ -8,6 +8,8 @@ import { ReactComponent as MeasureButton } from "../resources/RulerRound.svg";
 import { ReactComponent as SquareButton } from "../resources/ShadedSquare.svg";
 import { ReactComponent as CircleButton } from "../resources/ShadedCircle.svg";
 import { ReactComponent as CloseButton } from "../resources/Close.svg";
+import { ReactComponent as PolyButton } from "../resources/Polygon.svg";
+import { Modes } from "../utils/canvasModes";
 import "../App.css";
 
 import PanZoomCanvas from "./PanZoomCanvas";
@@ -97,6 +99,15 @@ class Toolbar extends Component {
         >
           <CircleButton className="tabbarButton" />
         </ToolButton>
+        {/* Annotate Polygon Mode */}
+        <ToolButton
+          onClick={() => {
+            this.props.switchMode(Modes.AnnotatePolygon);
+          }}
+          selected={this.props.mode === Modes.AnnotatePolygon}
+        >
+          <PolyButton className="tabbarButton" />
+        </ToolButton>
       </div>
     );
   }
@@ -155,14 +166,6 @@ class Tabbar extends Component {
     );
   }
 }
-
-const Modes = {
-  Pan: "Pan",
-  Zoom: "Zoom",
-  Measure: "Measure",
-  AnnotateCircle: "AnnotateCircle",
-  AnnotateSquare: "AnnotateSquare",
-};
 
 export default class DisplayPage extends Component {
   constructor(props) {
