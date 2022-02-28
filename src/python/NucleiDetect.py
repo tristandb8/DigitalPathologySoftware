@@ -8,61 +8,70 @@ from IPython import get_ipython
 import cv2
 import sys
 import json
-# print('HELLO')
 
 if __name__ == '__main__':
-    print('Hello'sys.argv[0])
-    # # Set path to Mask RCNN folder
-    # ROOT_DIR = os.path.abspath(r"./")
-    # # Directory to save logs and trained model
-    # MODEL_DIR = os.path.join(ROOT_DIR, "logs")
-    # warnings.filterwarnings("ignore")
-    # # get_ipython().run_line_magic('matplotlib', 'inline')
+    # These are the arguments that we have sent to the python scripts.
+    # print('The Model path is: ', sys.argv[1])
+    # print('The Image path is: ', sys.argv[2])
 
-    # model_path = r"/Users/ryanmac/Documents/Projects/DigitalPatholySoftware/src/python/mask_rcnn_cell_0030.h5"
-    # imagePath = '/Users/ryanmac/Documents/Projects/DigitalPatholySoftware/src/python/X35Nuclei.jpg'
+    # Set path to Mask RCNN folder
+    ROOT_DIR = os.path.abspath(r"./")
+    # Directory to save logs and trained model
+    MODEL_DIR = os.path.join(ROOT_DIR, "logs")
+    warnings.filterwarnings("ignore")
+    # get_ipython().run_line_magic('matplotlib', 'inline')
 
-    # class InferenceConfig(CellConfig):
-    #     GPU_COUNT = 1
-    #     IMAGES_PER_GPU = 1
-    #     IMAGE_RESIZE_MODE = "pad64"  # 'none' #
-    #     DETECTION_MAX_INSTANCES = 3500  # 3000
-    #     DETECTION_MIN_CONFIDENCE = 0.5
-    #     DETECTION_NMS_THRESHOLD = 0.20
-    #     #ROI_POSITIVE_RATIO = 0.8
-    #     RPN_ANCHOR_SCALES = (8, 16, 32, 64, 128)
-    #     #MEAN_PIXEL = np.array([40,15,30])
+    class InferenceConfig(CellConfig):
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+        IMAGE_RESIZE_MODE = "pad64"  # 'none' #
+        DETECTION_MAX_INSTANCES = 3500  # 3000
+        DETECTION_MIN_CONFIDENCE = 0.5
+        DETECTION_NMS_THRESHOLD = 0.20
+        # ROI_POSITIVE_RATIO = 0.8
+        RPN_ANCHOR_SCALES = (8, 16, 32, 64, 128)
+        # MEAN_PIXEL = np.array([40,15,30])
 
-    #     POST_NMS_ROIS_INFERENCE = 12000  # 15000
+        POST_NMS_ROIS_INFERENCE = 12000  # 15000
 
-    # inference_config = InferenceConfig()
-    # model = modellib.MaskRCNN(mode="inference",
-    #                           config=inference_config,
-    #                           model_dir=MODEL_DIR)
+    inference_config = InferenceConfig()
+    model = modellib.MaskRCNN(mode="inference",
+                              config=inference_config,
+                              model_dir=MODEL_DIR)
 
-    # model.load_weights(model_path, by_name=True)
+    model.load_weights(sys.argv[1], by_name=True)
 
-    # # Load image
-    # im = imageio.imread(imagePath)
+    # Load image
+    im = imageio.imread(sys.argv[2])
 
-    # # Transform image to 3 channels
-    # im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
+    # Transform image to 3 channels
+    im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
 
-    # r = model.detect([im], verbose=1)[0]
+    r = model.detect([im], verbose=1)[0]
 
-    # # print('different things in data returned: ' + str(r.keys()))
-    # # print('You have ' + str(r['masks'].shape[2]) + ' nuclei detected')
-    # # print(r['masks'])
-
-    # # get first mask as image
-    # maskIndex = 0
-    # oneMask = Image.fromarray(r['masks'][:, :, maskIndex]).convert("1")
-    # # print(type(oneMask))
-    # # print(oneMask)
-
-    # ret = r['masks']
-
+    # print('different things in data returned: ' + str(r.keys()))
+    # print('You have ' + str(r['masks'].shape[2]) + ' nuclei detected')
     # print(r['masks'])
+
+    # get first mask as image
+    maskIndex = 0
+    oneMask = Image.fromarray(r['masks'][:, :, maskIndex]).convert("1")
+
+    ret = r['masks']
+
+    # print(oneMask)
+    # print(type(oneMask))
+    # print(type(r['masks']))
+
+    # print(oneMask)
+    # asNumpyArray = numpy.array(oneMask)
+    # asList = list(asNumpyArray)
+    # print(json.dumps(asList))
+
+    print(r['masks'])
+
+    # new_image = Image.fromarray(np.array(json.loads(json_data), dtype='uint8'))
+
     ###################################################################################################################
     # this is what they used to plot all nuclei with colors and more
 

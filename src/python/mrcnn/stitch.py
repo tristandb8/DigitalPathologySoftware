@@ -25,7 +25,7 @@ class NumpyEncoder(json.JSONEncoder):
 
 
 def init(MODEL_PATH,POST_NMS_ROIS_INFERENCE_in=5000, DETECTION_MAX_INSTANCES_in = 1000, DETECTION_MIN_CONFIDENCE_in=0.7,DETECTION_NMS_THRESHOLD_in=0.2, GPU_COUNT_in=1):   
-    print("DETECTION_MAX_INSTANCES_in: " + str(DETECTION_MAX_INSTANCES_in))
+    #print("DETECTION_MAX_INSTANCES_in: " + str(DETECTION_MAX_INSTANCES_in))
     ROOT_DIR = os.path.abspath("")
     
     
@@ -95,12 +95,12 @@ def mask_to_rle_nonoverlap(image_id, mask, scores):
     plt.imshow(mask)
     # Loop over instance masks
     lines = []
-    print(order)
+    #print(order)
     for o in order:
         m = np.where(mask == o, 1, 0)
         # Skip if empty
         if m.sum() == 0.0:
-            print("K")
+            #Sprint("K")
             continue
         rle = rle_encode(m)
         lines.append("{}, {}".format(image_id, rle))

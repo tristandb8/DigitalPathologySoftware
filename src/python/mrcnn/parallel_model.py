@@ -96,7 +96,8 @@ class ParallelModel(KM.Model):
                 # Keras expects losses and metrics to be scalars.
                 if K.int_shape(outputs[0]) == ():
                     # Average
-                    m = KL.Lambda(lambda o: tf.add_n(o) / len(outputs), name=name)(outputs)
+                    m = KL.Lambda(lambda o: tf.add_n(
+                        o) / len(outputs), name=name)(outputs)
                 else:
                     # Concatenate
                     m = KL.Concatenate(axis=0, name=name)(outputs)
@@ -148,8 +149,8 @@ if __name__ == "__main__":
     x_train = np.expand_dims(x_train, -1).astype('float32') / 255
     x_test = np.expand_dims(x_test, -1).astype('float32') / 255
 
-    print('x_train shape:', x_train.shape)
-    print('x_test shape:', x_test.shape)
+    # print('x_train shape:', x_train.shape)
+    # print('x_test shape:', x_test.shape)
 
     # Build data generator and model
     datagen = ImageDataGenerator()

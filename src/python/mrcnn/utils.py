@@ -99,7 +99,7 @@ def compute_overlaps_masks(masks1, masks2):
     '''Computes IoU overlaps between two sets of masks.
     masks1, masks2: [Height, Width, instances]
     '''
-    
+
     # If either set of masks is empty return empty result
     if masks1.shape[0] == 0 or masks2.shape[0] == 0:
         return np.zeros((masks1.shape[0], masks2.shape[-1]))
@@ -576,7 +576,8 @@ def unmold_mask(mask, bbox, image_shape):
     """
     threshold = 0.5
     y1, x1, y2, x2 = bbox
-    mask = skimage.transform.resize(mask, (y2 - y1, x2 - x1), order=1, mode="constant")
+    mask = skimage.transform.resize(
+        mask, (y2 - y1, x2 - x1), order=1, mode="constant")
     mask = np.where(mask >= threshold, 1, 0).astype(np.bool)
 
     # Put the mask in the right location.
@@ -766,21 +767,21 @@ def compute_ap_range(gt_box, gt_class_id, gt_mask,
     """Compute AP over a range or IoU thresholds. Default range is 0.5-0.95."""
     # Default is 0.5 to 0.95 with increments of 0.05
     iou_thresholds = iou_thresholds or np.arange(0.5, 1.0, 0.05)
-    
+
     # Compute AP over range of IoU thresholds
     AP = []
     for iou_threshold in iou_thresholds:
         ap, precisions, recalls, overlaps =\
             compute_ap(gt_box, gt_class_id, gt_mask,
-                        pred_box, pred_class_id, pred_score, pred_mask,
-                        iou_threshold=iou_threshold)
-        if verbose:
-            print("AP @{:.2f}:\t {:.3f}".format(iou_threshold, ap))
+                       pred_box, pred_class_id, pred_score, pred_mask,
+                       iou_threshold=iou_threshold)
+        # if verbose:
+        #     print("AP @{:.2f}:\t {:.3f}".format(iou_threshold, ap))
         AP.append(ap)
     AP = np.array(AP).mean()
-    if verbose:
-        print("AP @{:.2f}-{:.2f}:\t {:.3f}".format(
-            iou_thresholds[0], iou_thresholds[-1], AP))
+    # if verbose:
+    #     print("AP @{:.2f}-{:.2f}:\t {:.3f}".format(
+    #         iou_thresholds[0], iou_thresholds[-1], AP))
     return AP
 
 
@@ -851,12 +852,12 @@ def download_trained_weights(coco_model_path, verbose=1):
 
     coco_model_path: local path of COCO trained weights
     """
-    if verbose > 0:
-        print("Downloading pretrained model to " + coco_model_path + " ...")
+    # if verbose > 0:
+    #     print("Downloading pretrained model to " + coco_model_path + " ...")
     with urllib.request.urlopen(COCO_MODEL_URL) as resp, open(coco_model_path, 'wb') as out:
         shutil.copyfileobj(resp, out)
-    if verbose > 0:
-        print("... done downloading pretrained model!")
+    # if verbose > 0:
+    #     print("... done downloading pretrained model!")
 
 
 def norm_boxes(boxes, shape):
@@ -893,7 +894,6 @@ def denorm_boxes(boxes, shape):
     return np.around(np.multiply(boxes, scale) + shift).astype(np.int32)
 
 
-
 def rle_encode(mask):
     """Encodes a mask in Run Length Encoding (RLE).
     Returns a string of space-separated values.
@@ -909,49 +909,54 @@ def rle_encode(mask):
     rle[:, 1] = rle[:, 1] - rle[:, 0]
     return " ".join(map(str, rle.flatten()))
 
+
 def rle_decode(rle, shape):
     """Decodes an RLE encoded list of space separated
     numbers and returns a binary mask."""
     rle = list(map(int, rle.split()))
     if(len(rle) % 2 != 0):
-        #rle.append(0)
-        rle=rle[:-1]
+        # rle.append(0)
+        rle = rle[:-1]
     rle = np.array(rle, dtype=np.int32).reshape([-1, 2])
     rle[:, 1] += rle[:, 0]
     rle -= 1
     mask = np.zeros([shape[0] * shape[1]], np.bool)
     for s, e in rle:
         assert 0 <= s < mask.shape[0]
-        assert 1 <= e <= mask.shape[0], "shape: {}  s {}  e {}".format(shape, s, e)
+        assert 1 <= e <= mask.shape[0], "shape: {}  s {}  e {}".format(
+            shape, s, e)
         mask[s:e] = 1
     # Reshape and transpose
     mask = mask.reshape([shape[1], shape[0]]).T
     return mask
 
+
 def rle2mask(file):
-    with open(file,'r') as OpenRLE:
+    with open(file, 'r') as OpenRLE:
         shape = [int(x) for x in OpenRLE.readline().split(',')]
-        mask=[]
-        #print(shape)
-        #shape=[1004,1340]
-        
-        for i,line in enumerate(OpenRLE):
-            #print(shape)
+        mask = []
+        # print(shape)
+        # shape=[1004,1340]
+
+        for i, line in enumerate(OpenRLE):
+            # print(shape)
             #print((' '.join(line.split(',')[1].split(' ')[1:])))
-            mask.append(rle_decode(' '.join(line.split(',')[1].split(' ')[1:]),shape))
-            #plt.imshow()
-            #break
+            mask.append(rle_decode(
+                ' '.join(line.split(',')[1].split(' ')[1:]), shape))
+            # plt.imshow()
+            # break
     return mask
+
 
 def mask_to_rle_overlap(image_id, mask):
     "Encodes instance masks to submission format."
     assert mask.ndim == 3, "Mask must be [count, H, W]"
     lines = []
     for m in mask:
-#         m = np.where(mask == o, 1, 0)
-# #         Skip if empty
-#         if m.sum() == 0.0:
-#             continue
+        #         m = np.where(mask == o, 1, 0)
+        # #         Skip if empty
+        #         if m.sum() == 0.0:
+        #             continue
         rle = rle_encode(m)
         lines.append("{}, {}".format(image_id, rle))
     return "\n".join(lines)
