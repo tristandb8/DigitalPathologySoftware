@@ -58,6 +58,9 @@ if __name__ == '__main__':
     oneMask = Image.fromarray(r['masks'][:, :, maskIndex]).convert("1")
 
     ret = r['masks']
+    lists = ret.tolist()
+    json_str = json.dumps(lists)
+    print(json_str)
 
     # print(oneMask)
     # print(type(oneMask))
@@ -68,7 +71,7 @@ if __name__ == '__main__':
     # asList = list(asNumpyArray)
     # print(json.dumps(asList))
 
-    print(r['masks'])
+    # print(r['masks'])
 
     # new_image = Image.fromarray(np.array(json.loads(json_data), dtype='uint8'))
 

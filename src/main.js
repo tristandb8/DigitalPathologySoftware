@@ -270,38 +270,20 @@ function saveProject() {
 
 function pythonScripts() {
   console.log("Testing Python Scripts");
-  const pathToh5 = path.join(
-    process.cwd(),
-    "src",
-    "python",
-    "mask_rcnn_cell_0030.h5"
-  );
-  const pathToImage = path.join(
-    process.cwd(),
-    "src",
-    "python",
-    "X35Nuclei.jpg"
-  );
-
+  const pathToh5 = path.join(process.cwd(), "python", "mask_rcnn_cell_0030.h5");
   let options = {
-    mode: "json",
+    mode: "text",
     pythonOptions: ["-u"], // get print results in real-time
-    args: [pathToh5, pathToImage], //An argument which can be accessed in the script using sys.argv[1]
+    args: [pathToh5], //An argument which can be accessed in the script using sys.argv[1]
   };
 
-  PythonShell.run(
-    "./src/python/NucleiDetect.py",
-    options,
-    function (err, result) {
-      if (err) throw err;
-      // result is an array consisting of messages collected
-      //during execution of script.
-      console.log("result: ", result.toString());
-      const jsonObjects = result.jsonObjects();
-      console.log(jsonObjects);
-      //res.send(result.toString())
-    }
-  );
+  PythonShell.run("./src/python/test.py", options, function (err, result) {
+    if (err) throw err;
+    // result is an array consisting of messages collected
+    //during execution of script.
+    console.log("result: ", result.toString());
+    //res.send(result.toString())
+  });
 }
 
 ipcMain.on("tiffImage", (event, args) => {
