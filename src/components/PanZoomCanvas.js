@@ -16,8 +16,11 @@ class AnnotatedCanvas extends Component {
       dragging: false,
       mouseStart: Point.ORIGIN,
       mousePos: Point.ORIGIN,
+      annotationPos: Point.ORIGIN,
       canClosePoly: false,
       clickPoints: [],
+      selectedAnnotation: -1,
+      hoveredAnnotation: -1,
     };
   }
 
@@ -32,15 +35,14 @@ class AnnotatedCanvas extends Component {
     }
   }
 
-  checkAnnotationSelected = (hit) => {
+  checkAnnotationHit = (hit) => {
     for (let anni = 0; anni < this.props.annotations.length; anni++) {
       const annotation = this.props.annotations[anni];
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
           const center = Point.Point(annotation.params.x, annotation.params.y);
-          if (Point.dist(hit, center) < annotation.params.r)
-            console.log(`hit ${anni}`);
-          break;
+          if (Point.dist(hit, center) < annotation.params.r) return anni;
+          else break;
         case Annotations.AnnotationTypes.Square:
           const start = Point.Point(annotation.params.x, annotation.params.y);
           const end = Point.sum(
@@ -53,8 +55,8 @@ class AnnotatedCanvas extends Component {
             hit.y >= start.y &&
             hit.y <= end.y
           )
-            console.log(`hit ${anni}`);
-          break;
+            return anni;
+          else break;
         case Annotations.AnnotationTypes.Polygon:
           // Polygon Hit Detection: https://stackoverflow.com/a/2922778
           let isHit = false;
@@ -73,12 +75,14 @@ class AnnotatedCanvas extends Component {
             )
               isHit = !isHit;
           }
-          if (isHit) console.log(`hit ${anni}`);
-          break;
+          if (isHit) return anni;
+          else break;
         default:
           break;
       }
     }
+
+    return -1;
   };
 
   handleMouseEvent = (event) => {
@@ -157,17 +161,15 @@ class AnnotatedCanvas extends Component {
           // Add annotation
           clickPoints = [...clickPoints, clickPoint];
         }
-      } else if (this.props.mode === Modes.Pan) {
-        this.checkAnnotationSelected(
-          Point.scale(clickPoint, 1 / this.props.scale)
-        );
       }
 
+      this.props.selectAnnotation(this.state.hoveredAnnotation);
       this.setState({
         dragging: true,
         mouseStart: Point.Point(event.pageX, event.pageY),
         mousePos: Point.Point(event.pageX, event.pageY),
         clickPoints: clickPoints,
+        selectedAnnotation: this.state.hoveredAnnotation,
       });
     } else if (event.type === "mouseleave") {
       this.setState({
@@ -175,6 +177,10 @@ class AnnotatedCanvas extends Component {
       });
     } else if (event.type === "mousemove") {
       const mousePos = Point.Point(event.pageX, event.pageY);
+      const adjustedPos = Point.scale(
+        Point.Point(mousePos.x - boundingRect.x, mousePos.y - boundingRect.y),
+        1 / this.props.scale
+      );
       let canClosePoly =
         this.state.clickPoints.length > 2 &&
         Point.dist(
@@ -185,9 +191,16 @@ class AnnotatedCanvas extends Component {
           )
         ) < 10;
 
+      let hoveredAnnotation = -1;
+      if (this.props.mode === Modes.Pan) {
+        hoveredAnnotation = this.checkAnnotationHit(adjustedPos);
+      }
+
       this.setState({
         mousePos: mousePos,
+        annotationPos: adjustedPos,
         canClosePoly: canClosePoly,
+        hoveredAnnotation: hoveredAnnotation,
       });
     }
 
@@ -202,6 +215,7 @@ class AnnotatedCanvas extends Component {
     canvas.height = boundingRect.height;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Elements to draw if a drag is required
     if (this.state.dragging) {
       const start = Point.Point(
         this.state.mouseStart.x - boundingRect.x,
@@ -299,11 +313,14 @@ class AnnotatedCanvas extends Component {
       ctx.fill();
     }
 
-    for (const annotation of this.props.annotations) {
+    for (let i = 0; i < this.props.annotations.length; i++) {
+      const annotation = this.props.annotations[i];
+      const isSelected = i === this.state.selectedAnnotation;
+      const lineWidth = isSelected ? 3 : 1;
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
           ctx.beginPath();
-          ctx.lineWidth = 1;
+          ctx.lineWidth = lineWidth;
           ctx.fillStyle = "#ff000010";
           ctx.strokeStyle = annotation.color;
           ctx.arc(
@@ -320,7 +337,7 @@ class AnnotatedCanvas extends Component {
           break;
         case Annotations.AnnotationTypes.Square:
           ctx.beginPath();
-          ctx.lineWidth = 1;
+          ctx.lineWidth = lineWidth;
           ctx.fillStyle = "#ff000010";
           ctx.strokeStyle = "red";
           ctx.strokeRect(
@@ -340,7 +357,7 @@ class AnnotatedCanvas extends Component {
           break;
         case Annotations.AnnotationTypes.Polygon:
           ctx.beginPath();
-          ctx.lineWidth = 1;
+          ctx.lineWidth = lineWidth;
           ctx.strokeStyle = "red";
           ctx.fillStyle = "#ff000010";
 
@@ -371,18 +388,61 @@ class AnnotatedCanvas extends Component {
     }
   };
 
+  RenderAnnotationHover = () => {
+    const annotation = this.props.annotations[this.state.hoveredAnnotation];
+    return annotation ? (
+      <div
+        className="annotationHover"
+        style={{
+          left: `${this.state.annotationPos.x}px`,
+          top: `${this.state.annotationPos.y}px`,
+        }}
+      >
+        <p className="annotationText">{annotation.name}</p>
+      </div>
+    ) : (
+      <div
+        style={{
+          pointerEvents: "none",
+        }}
+      />
+    );
+  };
+
   render() {
     return (
-      <canvas
-        ref={this.canvasRef}
-        onMouseDown={this.handleMouseEvent}
-        onMouseMove={this.handleMouseEvent}
-        onMouseUp={this.handleMouseEvent}
-        onMouseLeave={this.handleMouseEvent}
+      <div style={{ width: "100%", height: "100%", position: "absolute" }}>
+        <canvas
+          ref={this.canvasRef}
+          onMouseDown={this.handleMouseEvent}
+          onMouseMove={this.handleMouseEvent}
+          onMouseUp={this.handleMouseEvent}
+          onMouseLeave={this.handleMouseEvent}
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+          }}
+        />
+        <this.RenderAnnotationHover />
+      </div>
+    );
+  }
+}
+
+class SelectedAnnotation extends Component {
+  render() {
+    const annotation = this.props.annotation;
+    return annotation ? (
+      <div className="annotationWrapper">
+        <div className="annotationHover">
+          <p className="annotationText">{annotation.name}</p>
+        </div>
+      </div>
+    ) : (
+      <div
         style={{
-          width: "100%",
-          height: "100%",
-          position: "absolute",
+          pointerEvents: "none",
         }}
       />
     );
@@ -504,11 +564,14 @@ export default class PanZoomCanvas extends Component {
         </div>
       );
     } else {
+      const annotation =
+        this.props.file.annotations[this.props.selectedAnnotation];
       return (
         <div style={{ width: "100%", height: "100%" }} ref={this.portRef}>
           <TransformWrapper
             ref={this.viewRef}
             initialScale={1}
+            doubleClick={{ disabled: true }}
             limitToBounds={false}
             onZoom={(ref) => {
               this.props.onZoom(ref);
@@ -541,6 +604,7 @@ export default class PanZoomCanvas extends Component {
                 scale={this.state.scale}
                 onZoom={this.zoomToCoords}
                 addAnnotation={this.props.addAnnotation}
+                selectAnnotation={this.props.selectAnnotation}
                 annotations={this.props.file.annotations}
               />
             </TransformComponent>

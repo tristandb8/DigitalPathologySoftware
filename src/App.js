@@ -88,7 +88,6 @@ class App extends Component {
   };
 
   handleAnnotationChange = (index, key, value) => {
-    console.log(`setting ${key} of ${index} to ${value}`);
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     if (!loadedFile) return;
@@ -170,6 +169,8 @@ class App extends Component {
           <DisplayPage
             ref={this.displayPageRef}
             project={this.state.loadedProject}
+            selectAnnotation={this.handleSelectedAnnotationChange}
+            selectedAnnotation={this.state.selectedAnnotation}
             addAnnotation={this.addAnnotation}
             closeTab={this.closeTab}
             selectTab={this.selectTab}

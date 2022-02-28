@@ -229,6 +229,8 @@ export default class DisplayPage extends Component {
           file={this.props.project.openFiles[this.props.project.activeFile]}
           onZoom={this.onZoom}
           addAnnotation={this.props.addAnnotation}
+          selectedAnnotation={this.props.selectedAnnotation}
+          selectAnnotation={this.props.selectAnnotation}
           mode={this.state.mode}
         />
       </div>
