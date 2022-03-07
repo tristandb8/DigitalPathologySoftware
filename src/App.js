@@ -165,6 +165,7 @@ class App extends Component {
         <Split>
           <LeftPane
             project={this.state.loadedProject}
+            selectTab={this.selectTab}
             onAnnotationChange={this.handleAnnotationChange}
             selectAnnotation={this.handleSelectedAnnotationChange}
             selectedAnnotation={this.state.selectedAnnotation}

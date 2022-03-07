@@ -18,7 +18,9 @@ const LeftPanes = {
 
 class ProjectFile extends Component {
   handleDoubleClick = (e) => {
-    ipcRenderer.send("request-image-load", this.props.file.path);
+    if (this.props.tabIndex < 0)
+      ipcRenderer.send("request-image-load", this.props.file.path);
+    else this.props.selectTab(this.props.tabIndex);
   };
 
   render() {
@@ -39,6 +41,14 @@ class ProjectFile extends Component {
 }
 
 class ProjectPane extends Component {
+  getTabIndex = (file) => {
+    for (let index = 0; index < this.props.project.openFiles.length; index++) {
+      const openFile = this.props.project.openFiles[index];
+      if (openFile.path === file.path) return index;
+    }
+    return -1;
+  };
+
   render() {
     const selectedImage =
       this.props.project.openFiles[this.props.project.activeFile];
@@ -50,6 +60,8 @@ class ProjectPane extends Component {
           <ProjectFile
             file={file}
             key={index}
+            selectTab={this.props.selectTab}
+            tabIndex={this.getTabIndex(file)}
             selected={file.path === selectedImage?.path}
           />
         ))}
@@ -230,7 +242,12 @@ export default class LeftPane extends Component {
   paneRender = () => {
     switch (this.state.selectedPane) {
       case LeftPanes.Project:
-        return <ProjectPane project={this.props.project} />;
+        return (
+          <ProjectPane
+            project={this.props.project}
+            selectTab={this.props.selectTab}
+          />
+        );
       case LeftPanes.Image:
         return <ImagePane project={this.props.project} />;
       case LeftPanes.Annotation:
