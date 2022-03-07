@@ -27,6 +27,7 @@ class App extends Component {
   selectTab = (index) => {
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, activeFile: index },
+      selectedAnnotation: -1,
     }));
   };
 
@@ -44,6 +45,7 @@ class App extends Component {
         openFiles: newFiles,
         activeFile: newActive,
       },
+      selectedAnnotation: -1,
     }));
   };
 

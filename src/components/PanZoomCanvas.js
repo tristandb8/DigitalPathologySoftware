@@ -545,8 +545,6 @@ export default class PanZoomCanvas extends Component {
         </div>
       );
     } else {
-      const annotation =
-        this.props.file.annotations[this.props.selectedAnnotation];
       return (
         <div style={{ width: "100%", height: "100%" }} ref={this.portRef}>
           <TransformWrapper
