@@ -186,6 +186,12 @@ app.whenReady().then(() => {
   ipcMain.on("load-previous-image", (event) => {
     openIntroFile();
   });
+
+  ipcMain.on("request-image-load", (event, path) => {
+    let file = inferFile(path);
+    if (file) mainWindow.webContents.send("new-image", file, false);
+  });
+
   makeDir();
 });
 
@@ -218,17 +224,20 @@ function inferFile(file) {
 
 function openFile() {
   const files = dialog.showOpenDialogSync(mainWindow, {
-    properties: ["openFile"],
+    properties: ["openFile", "multiSelections"],
     filters: [
       { name: "Images", extensions: ["jpg", "jpeg", "png", "tif", "tiff"] },
     ],
   });
 
   if (!files) return;
-  const file = files[0];
-  const retval = inferFile(file);
-  store.set("Directory", file);
-  mainWindow.webContents.send("new-image", retval);
+
+  for (const file of files) {
+    const retval = inferFile(file);
+    mainWindow.webContents.send("new-image", retval, true);
+  }
+
+  store.set("Directory", files[files.length - 1]);
 }
 
 function openIntroFile() {
@@ -236,7 +245,8 @@ function openIntroFile() {
   if (file == null) return;
   if (!fs.existsSync(file)) return;
   const retval = inferFile(file);
-  mainWindow.webContents.send("new-image", retval);
+  // Set "append" to true now, but in the future we will load the project instead
+  mainWindow.webContents.send("new-image", retval, true);
 }
 
 function makeDir() {

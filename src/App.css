@@ -197,13 +197,15 @@
 
 .leftPane {
   width: 400px;
+  max-width: 400px;
   height: 100%;
   background-color: #f3f3f3;
   display: flex;
 }
 
 .leftPaneSwitcher {
-  width: 48px;
+  width: 40px;
+  max-width: 40px;
   background-color: #1b1b1b;
   display: inline-flex;
   flex-direction: column;
@@ -336,10 +338,10 @@
 
 .annotationItem {
   background-color: #f3f3f3;
-  display: flex;
+  display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 8px 0px 8px;
+  padding: 2px 4px 2px 4px;
 }
 
 .annotationItem:hover {
@@ -348,10 +350,10 @@
 
 .annotationItemSelected {
   background-color: #cccccc;
-  display: flex;
+  display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 8px 0px 8px;
+  padding: 2px 4px 2px 4px;
 }
 
 .annotationButton {

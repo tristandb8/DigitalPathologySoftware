@@ -19,7 +19,6 @@ class AnnotatedCanvas extends Component {
       annotationPos: Point.ORIGIN,
       canClosePoly: false,
       clickPoints: [],
-      selectedAnnotation: -1,
       hoveredAnnotation: -1,
     };
   }
@@ -27,8 +26,9 @@ class AnnotatedCanvas extends Component {
   componentDidUpdate(oldProps) {
     if (
       oldProps.scale !== this.props.scale ||
+      oldProps.selectedAnnotation !== this.props.selectedAnnotation ||
       oldProps.mode !== this.props.mode ||
-      this.props.annotations !== oldProps.annotations
+      oldProps.annotations !== this.props.annotations
     ) {
       this.updateCanvas();
       this.setState({ clickPoints: [] });
@@ -78,6 +78,7 @@ class AnnotatedCanvas extends Component {
           if (isHit) return anni;
           else break;
         default:
+          console.error("Unknown annotation type");
           break;
       }
     }
@@ -169,7 +170,6 @@ class AnnotatedCanvas extends Component {
         mouseStart: Point.Point(event.pageX, event.pageY),
         mousePos: Point.Point(event.pageX, event.pageY),
         clickPoints: clickPoints,
-        selectedAnnotation: this.state.hoveredAnnotation,
       });
     } else if (event.type === "mouseleave") {
       this.setState({
@@ -315,7 +315,7 @@ class AnnotatedCanvas extends Component {
 
     for (let i = 0; i < this.props.annotations.length; i++) {
       const annotation = this.props.annotations[i];
-      const isSelected = i === this.state.selectedAnnotation;
+      const isSelected = i === this.props.selectedAnnotation;
       const lineWidth = isSelected ? 3 : 1;
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
@@ -426,25 +426,6 @@ class AnnotatedCanvas extends Component {
         />
         <this.RenderAnnotationHover />
       </div>
-    );
-  }
-}
-
-class SelectedAnnotation extends Component {
-  render() {
-    const annotation = this.props.annotation;
-    return annotation ? (
-      <div className="annotationWrapper">
-        <div className="annotationHover">
-          <p className="annotationText">{annotation.name}</p>
-        </div>
-      </div>
-    ) : (
-      <div
-        style={{
-          pointerEvents: "none",
-        }}
-      />
     );
   }
 }
@@ -605,6 +586,7 @@ export default class PanZoomCanvas extends Component {
                 onZoom={this.zoomToCoords}
                 addAnnotation={this.props.addAnnotation}
                 selectAnnotation={this.props.selectAnnotation}
+                selectedAnnotation={this.props.selectedAnnotation}
                 annotations={this.props.file.annotations}
               />
             </TransformComponent>

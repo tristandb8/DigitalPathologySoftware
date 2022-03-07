@@ -128,7 +128,7 @@ class Tab extends Component {
           className="tabTitle"
           style={{ color: this.props.selected ? "#333333" : "#616161" }}
         >
-          {this.props.title}
+          {this.props.file.name}
         </p>
         <div className="tabClose">
           <CloseButton
@@ -152,6 +152,7 @@ class Tabbar extends Component {
           <Tab
             key={index}
             selected={index === this.props.project.activeFile}
+            file={file}
             onClick={(e) => {
               this.props.selectTab(index);
             }}

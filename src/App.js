@@ -43,7 +43,6 @@ class App extends Component {
         ...prevState.loadedProject,
         openFiles: newFiles,
         activeFile: newActive,
-        name: "Project 1",
       },
     }));
   };
@@ -126,7 +125,7 @@ class App extends Component {
   };
 
   componentDidMount() {
-    ipcRenderer.on("new-image", (event, fileContent) => {
+    ipcRenderer.on("new-image", (event, fileContent, append) => {
       let file;
 
       if (fileContent.type === "tiff") {
@@ -138,13 +137,17 @@ class App extends Component {
       file.path = fileContent.path;
       file.name = fileContent.name;
 
-      ipcRenderer.send("tiffImage", file); // This function is crazy slow
       this.setState((prevState) => ({
         loadedProject: {
           openFiles: [...prevState.loadedProject.openFiles, file],
           activeFile: prevState.loadedProject.openFiles.length,
-          filePaths: [...prevState.loadedProject.filePaths, fileContent.path],
-          name: "Project 1",
+          filePaths: append
+            ? [
+                ...prevState.loadedProject.filePaths,
+                { path: file.path, name: file.name },
+              ]
+            : prevState.loadedProject.filePaths,
+          name: prevState.loadedProject.name,
         },
       }));
 
@@ -152,7 +155,8 @@ class App extends Component {
         this.displayPageRef.current.canvasRef.current.resetView();
     });
 
-    ipcRenderer.send("load-previous-image");
+    // We want this to change to load previous project
+    // ipcRenderer.send("load-previous-image");
   }
 
   render() {

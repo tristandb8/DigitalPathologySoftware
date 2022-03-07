@@ -8,6 +8,7 @@ import { ReactComponent as PolygonButton } from "../resources/Polygon.svg";
 import { ReactComponent as CircleButton } from "../resources/Circle.svg";
 import { ReactComponent as SquareButton } from "../resources/Square.svg";
 import { AnnotationTypes } from "../utils/annotations";
+const { ipcRenderer } = window.require("electron");
 
 const LeftPanes = {
   Project: "Project",
@@ -16,18 +17,22 @@ const LeftPanes = {
 };
 
 class ProjectFile extends Component {
+  handleDoubleClick = (e) => {
+    ipcRenderer.send("request-image-load", this.props.file.path);
+  };
+
   render() {
     const className = this.props.selected
       ? "projectFileSelected"
       : "projectFile";
     return (
-      <div className={className}>
+      <div className={className} onDoubleClick={this.handleDoubleClick}>
         <div className="imageThumb">
           <p className="imageText" style={{ margin: "0", fontSize: "20px" }}>
             T
           </p>
         </div>
-        <p className="imageText">{this.props.name}</p>
+        <p className="imageText">{this.props.file.name}</p>
       </div>
     );
   }
@@ -35,12 +40,19 @@ class ProjectFile extends Component {
 
 class ProjectPane extends Component {
   render() {
+    const selectedImage =
+      this.props.project.openFiles[this.props.project.activeFile];
+
     return (
       <div className="projectPane">
         <h1 className="paneHeader">{this.props.project.name}</h1>
-        <ProjectFile selected={false} name="Image1.tiff" />
-        <ProjectFile selected={true} name="Image2.tiff" />
-        <ProjectFile selected={false} name="Image3.tiff" />
+        {this.props.project.filePaths.map((file, index) => (
+          <ProjectFile
+            file={file}
+            key={index}
+            selected={file.path === selectedImage?.path}
+          />
+        ))}
       </div>
     );
   }
@@ -50,7 +62,7 @@ class ImagePane extends Component {
   render() {
     const selectedImage =
       this.props.project.openFiles[this.props.project.activeFile];
-    return (
+    return selectedImage ? (
       <div className="imagePane">
         <h1 className="imagePaneHeader">Name</h1>
         <p className="imagePaneLabel">{selectedImage.name}</p>
@@ -61,6 +73,8 @@ class ImagePane extends Component {
         <h1 className="imagePaneHeader">Channels</h1>
         <p className="imagePaneLabel">{selectedImage.channels}</p>
       </div>
+    ) : (
+      <div className="imagePane" />
     );
   }
 }
@@ -146,7 +160,7 @@ class AnnotationPane extends Component {
   render() {
     const selectedImage =
       this.props.project.openFiles[this.props.project.activeFile];
-    return (
+    return selectedImage ? (
       <div className="annotationPane">
         {selectedImage.annotations.map((annotation, index) => (
           <AnnotationItem
@@ -163,6 +177,8 @@ class AnnotationPane extends Component {
           />
         ))}
       </div>
+    ) : (
+      <div className="annotationPane" />
     );
   }
 }
