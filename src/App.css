@@ -130,7 +130,7 @@
 .tabSelected {
   height: 100%;
   width: 100px;
-  background-color: #ececec;
+  background-color: #cccccc;
   display: flex;
   justify-content: space-between;
   align-items: center;

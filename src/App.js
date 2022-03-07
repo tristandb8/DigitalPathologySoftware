@@ -139,10 +139,35 @@ class App extends Component {
       file.path = fileContent.path;
       file.name = fileContent.name;
 
+      // Check if the file path is already stored in the project
+      for (const storedFile of this.state.loadedProject.filePaths) {
+        if (storedFile.path === file.path) append = false;
+      }
+
+      // Check if the file is already opened (switch to the tab)
+      let openIndex = -1;
+      for (
+        let index = 0;
+        index < this.state.loadedProject.openFiles.length;
+        index++
+      ) {
+        const openFile = this.state.loadedProject.openFiles[index];
+        if (openFile.path === fileContent.path) {
+          openIndex = index;
+          append = false;
+        }
+      }
+
       this.setState((prevState) => ({
         loadedProject: {
-          openFiles: [...prevState.loadedProject.openFiles, file],
-          activeFile: prevState.loadedProject.openFiles.length,
+          openFiles:
+            openIndex === -1
+              ? [...prevState.loadedProject.openFiles, file]
+              : prevState.loadedProject.openFiles,
+          activeFile:
+            openIndex === -1
+              ? prevState.loadedProject.openFiles.length
+              : openIndex,
           filePaths: append
             ? [
                 ...prevState.loadedProject.filePaths,
