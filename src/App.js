@@ -184,6 +184,15 @@ class App extends Component {
 
     // We want this to change to load previous project
     // ipcRenderer.send("load-previous-image");
+
+    ipcRenderer.on("get-channel-info", (event, fileContent) => {
+      const loadedFile =
+        this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+      const dimensions =  [loadedFile.width, loadedFile.height]
+      if (!loadedFile) return;
+      ipcRenderer.send("single-channel-info",loadedFile.idfArray[36].data,loadedFile.name,dimensions); 
+    });
+
   }
 
   render() {
