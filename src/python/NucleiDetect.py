@@ -75,14 +75,14 @@ if __name__ == '__main__':
                     arr2d[a][b] = c
 
     # Here is what is returned:
-    stringArray = np.array2string(arr2d, precision=4, separator=',',
-                                  suppress_small=True)
+    stringArray = np.array2string(
+        arr2d, precision=4, separator=',', suppress_small=True)
     saveFile = os.path.join(os.path.expanduser(
         '~'), 'Documents', 'DPSoftware', sys.argv[6]+"_2D.json")
-    dict = {
-        "Dimensions": arr2d.shape,
-        "Array": stringArray
-    }
+    # dict = {
+    #     "Dimensions": arr2d.shape,
+    #     "Array": stringArray
+    # }
 
     with open(saveFile, 'w') as fp:
         json.dump(arr2d, fp, cls=NumpyArrayEncoder)

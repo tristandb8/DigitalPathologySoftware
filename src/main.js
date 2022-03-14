@@ -313,25 +313,26 @@ function getSingleChannelInfo(){ mainWindow.webContents.send("get-channel-info")
 
 // Receives information from App.js and sends it to nucleiDetect().
 ipcMain.on("single-channel-info", (event, imageArray, imageTitle, dimensions) => {
-  imageTitle = imageTitle.substr(0, imageTitle.lastIndexOf(".")) + ".json";
-  fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",imageTitle), JSON.stringify(imageArray));
-  nucleiDetect(imageTitle, dimensions[0], dimensions[1]);
+  // imageTitle = imageTitle.substr(0, imageTitle.lastIndexOf(".")) + ".json";
+  let lastChannelPath = path.join(process.cwd(),"src", "python","tmp","tmpLastChannel.json")
+  fs.writeFileSync(lastChannelPath, JSON.stringify(imageArray));
+  nucleiDetect(imageTitle, dimensions[0], dimensions[1], lastChannelPath);
 });
 
 // Uses python-shell to detect the images. Returns arrays that are saved as IMAGE_NAME.json in /Documents/DPSoftware/.
-function nucleiDetect(fileName,width, height) {
+function nucleiDetect(fileName,width, height, lastChannelPath) {
   console.log("Testing Nucleus Scripts...");
 
   // Paths used as arguments that will be sent into python scripts.
   const pathToh5 = path.join(process.cwd(),"src", "python","mask_rcnn_cell_0030.h5");
-  const pathToImage = path.join(os.homedir(), "Documents", "DPSoftware",fileName)
+  // const pathToImage = path.join(os.homedir(), "Documents", "DPSoftware",fileName)
   const pathForTMPchannel = path.join(process.cwd(),"src", "python","tmp","tmp.jpg");
 
   // Pre-defined options and arguments that python-shell will read in.
   let options = {
     mode: 'text',
     pythonOptions: ['-u'], // get print results in real-time
-    args: [pathToh5,pathToImage, width, height,pathForTMPchannel,fileName] //An argument which can be accessed in the script, index starts at 1, not 0.
+    args: [pathToh5,lastChannelPath, width, height,pathForTMPchannel,fileName] //An argument which can be accessed in the script, index starts at 1, not 0.
   };
 
   // I had to use this if-else statement because I could not get the './' added to src/python/NucleiDetect.py, would not work otherwise...
@@ -362,7 +363,7 @@ function nucleiDetect(fileName,width, height) {
   }
 }
 
-
+// FUNCTION NOT COMPLETE
 function cytoplasmDetect(){
   console.log("Testing Cytoplasm Scripts...");
 
