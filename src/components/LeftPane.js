@@ -84,6 +84,22 @@ class ImagePane extends Component {
         <p className="imagePaneLabel">{selectedImage.height}</p>
         <h1 className="imagePaneHeader">Channels</h1>
         <p className="imagePaneLabel">{selectedImage.channels}</p>
+        <h1 className="imagePaneHeader">Cell Channel</h1>
+        <select
+          onChange={this.props.selectCellChannel}
+          value={selectedImage.cellDetectChannel}
+        >
+          {selectedImage.idfArray.map((item, index) => {
+            return (
+              <option value={index} key={index}>
+                {item.name}
+              </option>
+            );
+          })}
+        </select>
+        <button onClick={this.props.executeNucleusDetection}>
+          Execute Nucleus Detection
+        </button>
       </div>
     ) : (
       <div className="imagePane" />
@@ -249,7 +265,13 @@ export default class LeftPane extends Component {
           />
         );
       case LeftPanes.Image:
-        return <ImagePane project={this.props.project} />;
+        return (
+          <ImagePane
+            project={this.props.project}
+            executeNucleusDetection={this.props.executeNucleusDetection}
+            selectCellChannel={this.props.selectCellChannel}
+          />
+        );
       case LeftPanes.Annotation:
         return (
           <AnnotationPane

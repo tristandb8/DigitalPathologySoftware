@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { tiffImage } from "./utils/tiffModel";
+import { tiffImage, sliceImageFromAnnotation } from "./utils/tiffModel";
 import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
@@ -17,12 +17,40 @@ class App extends Component {
       loadedProject: {
         openFiles: [], // Files openened in any tab
         activeFile: -1, // The currently selected tab index
+        // Admittedly this should be renamed at somepoint and all the save data in
+        // openFiles may be moved here in order to keep data persistence
         filePaths: [], // Files that were opened
+        cellDetectChannel: 0,
         name: "Project 1",
       },
       selectedAnnotation: -1,
     };
   }
+
+  executeNucleusDetection = () => {
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const annotation = loadedFile.annotations[this.state.selectedAnnotation];
+    if (!loadedFile) return;
+    const x = sliceImageFromAnnotation(loadedFile, annotation);
+    console.log(x);
+  };
+
+  selectCellChannel = (e) => {
+    const index = e.target.value;
+    const loadedFile =
+      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    if (!loadedFile) return;
+    let newFile = {
+      ...loadedFile,
+      cellDetectChannel: index,
+    };
+    let newFiles = [...this.state.loadedProject.openFiles];
+    newFiles[this.state.loadedProject.activeFile] = newFile;
+    this.setState((prevState) => ({
+      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+    }));
+  };
 
   selectTab = (index) => {
     this.setState((prevState) => ({
@@ -138,6 +166,7 @@ class App extends Component {
 
       file.path = fileContent.path;
       file.name = fileContent.name;
+      file.cellDetectChannel = file.idfArray.length - 1;
 
       // Check if the file path is already stored in the project
       for (const storedFile of this.state.loadedProject.filePaths) {
@@ -188,11 +217,15 @@ class App extends Component {
     ipcRenderer.on("get-channel-info", (event, fileContent) => {
       const loadedFile =
         this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
-      const dimensions =  [loadedFile.width, loadedFile.height]
       if (!loadedFile) return;
-      ipcRenderer.send("single-channel-info",loadedFile.idfArray[36].data,loadedFile.name,dimensions); 
+      const dimensions = [loadedFile.width, loadedFile.height];
+      ipcRenderer.send(
+        "single-channel-info",
+        loadedFile.idfArray[36].data,
+        loadedFile.name,
+        dimensions
+      );
     });
-
   }
 
   render() {
@@ -206,6 +239,8 @@ class App extends Component {
             selectAnnotation={this.handleSelectedAnnotationChange}
             selectedAnnotation={this.state.selectedAnnotation}
             removeAnnotation={this.removeAnnotation}
+            executeNucleusDetection={this.executeNucleusDetection}
+            selectCellChannel={this.selectCellChannel}
           />
           <DisplayPage
             ref={this.displayPageRef}
@@ -232,6 +267,5 @@ const Split = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: stretch;
   height: 100vh;
 `;

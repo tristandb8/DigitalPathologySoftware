@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { getBitmap } from "../utils/tiffModel";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import grid from "../resources/GridFull.svg";
 import { ReactComponent as LogoImage } from "../resources/Logo.svg";
 import { Modes } from "../utils/canvasModes";
+import grid from "../resources/GridFull.svg";
 import * as Point from "../utils/pointUtils";
 import * as Annotations from "../utils/annotations";
 
@@ -120,6 +120,8 @@ class AnnotatedCanvas extends Component {
             );
             break;
           case Modes.AnnotateSquare:
+            if (start.x > end.x) [start.x, end.x] = [end.x, start.x];
+            if (start.y > end.y) [start.y, end.y] = [end.y, start.y];
             this.props.addAnnotation(
               Annotations.Square(
                 start.x / this.props.scale,

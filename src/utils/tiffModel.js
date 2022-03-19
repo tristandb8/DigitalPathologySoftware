@@ -1,3 +1,4 @@
+import { AnnotationTypes } from "../utils/annotations";
 const tiff = require("tiff");
 
 function hexToRgb(hex) {
@@ -81,7 +82,7 @@ export const tiffImage = (fileData) => {
   for (let i = 0; i < idfArray.length; i++) {
     idfArray[i].channelColor = Object.values(colors)[i];
     idfArray[i].enabled = i === 0;
-    idfArray[i].name = `Layer ${i + 1}`;
+    idfArray[i].name = `Channel ${i + 1}`;
     idfArray[i].max = getMax(idfArray[i].data);
 
     // todo: calculate threshold value automatically using histogram
@@ -109,6 +110,66 @@ export const getBitmap = (t) => {
   // createImageBitmap returns a future object, so we make a promise to return
   // all the images
   return Promise.all(images);
+};
+
+export const sliceImageFromAnnotation = (t, annotation) => {
+  let roi = { x: 0, y: 0, w: 0, h: 0 };
+  if (annotation) {
+    switch (annotation.type) {
+      case AnnotationTypes.Circle:
+        roi = {
+          x: annotation.params.x - annotation.params.r,
+          y: annotation.params.y - annotation.params.r,
+          w: annotation.params.r * 2,
+          h: annotation.params.r * 2,
+        };
+        break;
+      case AnnotationTypes.Square:
+        roi = annotation.params;
+        break;
+      case AnnotationTypes.Polygon:
+        let minX = Number.MAX_SAFE_INTEGER,
+          minY = Number.MAX_SAFE_INTEGER;
+        let maxX = Number.MIN_SAFE_INTEGER,
+          maxY = Number.MIN_SAFE_INTEGER;
+
+        for (const coord of annotation.params) {
+          minX = Math.min(minX, coord.x);
+          minY = Math.min(minY, coord.y);
+          maxX = Math.max(maxX, coord.x);
+          maxY = Math.max(maxY, coord.y);
+        }
+
+        roi = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        break;
+      default:
+        console.error(`Unknown annotation type ${annotation.type}`);
+        break;
+    }
+  } else {
+    // If no annotation, just use whole image
+    roi = { x: 0, y: 0, w: t.width, h: t.height };
+  }
+
+  roi = {
+    x: Math.trunc(roi.x),
+    y: Math.trunc(roi.y),
+    w: Math.trunc(roi.w),
+    h: Math.trunc(roi.h),
+  };
+
+  const intArray = new Uint8ClampedArray(roi.w * roi.h);
+  const channel = t.idfArray[t.cellDetectChannel];
+  const data = channel.data;
+
+  for (let row = 0; row < roi.h; row++) {
+    for (let col = 0; col < roi.w; col++) {
+      intArray[row * roi.w + col] =
+        data[(roi.y + row) * t.width + (roi.x + col)];
+    }
+  }
+
+  return intArray;
 };
 
 export const getChannelImageData = (t, index) => {

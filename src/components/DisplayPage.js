@@ -32,14 +32,14 @@ class Toolbar extends Component {
     return (
       <div className="toolbar">
         {/* Ruler */}
-        <ToolButton
+        {/* <ToolButton
           onClick={() => {
             this.props.toggleRuler();
           }}
           selected={this.props.ruler}
         >
           <RulerButton className="tabbarButton" />
-        </ToolButton>
+        </ToolButton> */}
         {/* Grid */}
         <ToolButton
           selected={this.props.grid}
@@ -81,6 +81,7 @@ class Toolbar extends Component {
         >
           <MeasureButton className="tabbarButton" />
         </ToolButton>
+        <div className="verticalRule" />
         {/* Annotate Square Mode */}
         <ToolButton
           onClick={() => {
