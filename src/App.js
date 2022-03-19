@@ -32,8 +32,14 @@ class App extends Component {
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     const annotation = loadedFile.annotations[this.state.selectedAnnotation];
     if (!loadedFile) return;
-    const x = sliceImageFromAnnotation(loadedFile, annotation);
-    console.log(x);
+    const imageData = sliceImageFromAnnotation(loadedFile, annotation);
+
+    ipcRenderer.send(
+      "single-channel-info",
+      imageData.intArray,
+      loadedFile.name,
+      [imageData.width, imageData.height]
+    );
   };
 
   selectCellChannel = (e) => {
@@ -166,7 +172,6 @@ class App extends Component {
 
       file.path = fileContent.path;
       file.name = fileContent.name;
-      file.cellDetectChannel = file.idfArray.length - 1;
 
       // Check if the file path is already stored in the project
       for (const storedFile of this.state.loadedProject.filePaths) {

@@ -273,11 +273,9 @@ function loadArray2D() {
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Images", extensions: ["json"] },
-    ],
+    filters: [{ name: "Images", extensions: ["json"] }],
   });
-  console.log(files)
+  console.log(files);
 
   // const dir = path.join(os.homedir(), "Documents", "DPSoftware");
   // let rawdata = fs.readFileSync(path.resolve(dir, "array2D.json"));
@@ -309,92 +307,122 @@ function saveProject() {
 
 // ------------------------------- Next three functions are used for NUCLEUS DETECTION -------------------------------
 // Requests information from App.js, returns the last channel from the current open image.
-function getSingleChannelInfo(){ mainWindow.webContents.send("get-channel-info"); }
+function getSingleChannelInfo() {
+  mainWindow.webContents.send("get-channel-info");
+}
 
 // Receives information from App.js and sends it to nucleiDetect().
-ipcMain.on("single-channel-info", (event, imageArray, imageTitle, dimensions) => {
-  // imageTitle = imageTitle.substr(0, imageTitle.lastIndexOf(".")) + ".json";
-  let lastChannelPath = path.join(process.cwd(),"src", "python","tmp","tmpLastChannel.json")
-  fs.writeFileSync(lastChannelPath, JSON.stringify(imageArray));
-  nucleiDetect(imageTitle, dimensions[0], dimensions[1], lastChannelPath);
-});
+ipcMain.on(
+  "single-channel-info",
+  (event, imageArray, imageTitle, dimensions) => {
+    // imageTitle = imageTitle.substr(0, imageTitle.lastIndexOf(".")) + ".json";
+    let lastChannelPath = path.join(
+      process.cwd(),
+      "src",
+      "python",
+      "tmp",
+      "tmpLastChannel.json"
+    );
+    fs.writeFileSync(lastChannelPath, JSON.stringify(imageArray));
+    nucleiDetect(imageTitle, dimensions[0], dimensions[1], lastChannelPath);
+  }
+);
 
 // Uses python-shell to detect the images. Returns arrays that are saved as IMAGE_NAME.json in /Documents/DPSoftware/.
-function nucleiDetect(fileName,width, height, lastChannelPath) {
+function nucleiDetect(fileName, width, height, lastChannelPath) {
   console.log("Testing Nucleus Scripts...");
 
   // Paths used as arguments that will be sent into python scripts.
-  const pathToh5 = path.join(process.cwd(),"src", "python","mask_rcnn_cell_0030.h5");
+  const pathToh5 = path.join(
+    process.cwd(),
+    "src",
+    "python",
+    "mask_rcnn_cell_0030.h5"
+  );
   // const pathToImage = path.join(os.homedir(), "Documents", "DPSoftware",fileName)
-  const pathForTMPchannel = path.join(process.cwd(),"src", "python","tmp","tmp.jpg");
+  const pathForTMPchannel = path.join(
+    process.cwd(),
+    "src",
+    "python",
+    "tmp",
+    "tmp.jpg"
+  );
 
   // Pre-defined options and arguments that python-shell will read in.
   let options = {
-    mode: 'text',
-    pythonOptions: ['-u'], // get print results in real-time
-    args: [pathToh5,lastChannelPath, width, height,pathForTMPchannel,fileName] //An argument which can be accessed in the script, index starts at 1, not 0.
+    mode: "text",
+    pythonOptions: ["-u"], // get print results in real-time
+    args: [
+      pathToh5,
+      lastChannelPath,
+      width,
+      height,
+      pathForTMPchannel,
+      fileName,
+    ], //An argument which can be accessed in the script, index starts at 1, not 0.
   };
 
   // I had to use this if-else statement because I could not get the './' added to src/python/NucleiDetect.py, would not work otherwise...
   if (isMac) {
-    PythonShell.run('./src/python/NucleiDetect.py', options, function (err, result){
-      if (err) throw err;
-      // result is an array consisting of messages collected
-      // during execution of script.
-      // console.log(result)
-      //let array2D = [result[0], result[1]]
-      // let array3D = [result[2],result[3]]
-      // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
-      // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
-      console.log('NUCLEI DETECT FINISHED...')
-    });
+    PythonShell.run(
+      "./src/python/NucleiDetect.py",
+      options,
+      function (err, result) {
+        if (err) throw err;
+        // result is an array consisting of messages collected
+        // during execution of script.
+        // console.log(result)
+        //let array2D = [result[0], result[1]]
+        // let array3D = [result[2],result[3]]
+        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
+        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
+        console.log("NUCLEI DETECT FINISHED...");
+      }
+    );
   } else {
-    PythonShell.run('.\src\python\NucleiDetect.py', options, function (err, result){
-      if (err) throw err;
-      // result is an array consisting of messages collected
-      // during execution of script.
-      // console.log(result)
-      // let array2D = [result[0], result[1]]
-      // let array3D = [result[2],result[3]]
-      //fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
-      // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
-      console.log('NUCLEI DETECT FINISHED...')
-    });
+    PythonShell.run(
+      "./src/python/NucleiDetect.py",
+      options,
+      function (err, result) {
+        if (err) throw err;
+        // result is an array consisting of messages collected
+        // during execution of script.
+        // console.log(result)
+        // let array2D = [result[0], result[1]]
+        // let array3D = [result[2],result[3]]
+        //fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
+        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
+        console.log("NUCLEI DETECT FINISHED...");
+      }
+    );
   }
 }
 
 // FUNCTION NOT COMPLETE
-function cytoplasmDetect(){
+function cytoplasmDetect() {
   console.log("Testing Cytoplasm Scripts...");
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Images", extensions: ["json"] },
-    ],
+    filters: [{ name: "Images", extensions: ["json"] }],
   });
   let options = {
-    mode: 'text',
-    pythonOptions: ['-u'], // get print results in real-time
-    args: [files] //An argument which can be accessed in the script using sys.argv[1]
+    mode: "text",
+    pythonOptions: ["-u"], // get print results in real-time
+    args: [files], //An argument which can be accessed in the script using sys.argv[1]
   };
 
-
-  PythonShell.run('./src/python/cytoplasm.py', options, function (err, result){
+  PythonShell.run("./src/python/cytoplasm.py", options, function (err, result) {
     if (err) throw err;
     // result is an array consisting of messages collected
     // during execution of script.
-    console.log('#########################################');
-    console.log('....       CYTOPLASM DETECTED        ....');
-    console.log('#########################################');
-    console.log(result)
+    console.log("#########################################");
+    console.log("....       CYTOPLASM DETECTED        ....");
+    console.log("#########################################");
+    console.log(result);
     // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware","Cells_Found.json"), JSON.stringify(result));
   });
 }
-
-
-
-
 
 // ipcMain.on("tiffImage", (event, args) => {
 //   const dir = path.join(os.homedir(), "Documents", "DPSoftware");

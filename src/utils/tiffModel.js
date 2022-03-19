@@ -81,7 +81,7 @@ export const tiffImage = (fileData) => {
   let idfArray = tiff.decode(fileData);
   for (let i = 0; i < idfArray.length; i++) {
     idfArray[i].channelColor = Object.values(colors)[i];
-    idfArray[i].enabled = i === 0;
+    idfArray[i].enabled = i === idfArray.length - 1;
     idfArray[i].name = `Channel ${i + 1}`;
     idfArray[i].max = getMax(idfArray[i].data);
 
@@ -92,8 +92,17 @@ export const tiffImage = (fileData) => {
   const width = idfArray[0].width;
   const height = idfArray[0].height;
   const channels = idfArray.length;
+  const cellDetectChannel = idfArray.length - 1;
 
-  return { type: "tiff", idfArray, width, height, channels, annotations: [] };
+  return {
+    type: "tiff",
+    idfArray,
+    width,
+    height,
+    cellDetectChannel,
+    channels,
+    annotations: [],
+  };
 };
 
 export const getBitmap = (t) => {
@@ -169,7 +178,7 @@ export const sliceImageFromAnnotation = (t, annotation) => {
     }
   }
 
-  return intArray;
+  return { intArray, width: roi.w, height: roi.h };
 };
 
 export const getChannelImageData = (t, index) => {
