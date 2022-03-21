@@ -54,12 +54,6 @@ const template = [
         },
       },
       {
-        label: "Load 3D-Array",
-        click() {
-          loadArray3D();
-        },
-      },
-      {
         label: "Save Project",
         accelerator: "CmdOrCtrl+S",
         click() {
@@ -135,24 +129,17 @@ const template = [
       },
     ],
   },
-  // { role: 'temp buttons for testing' }
   {
-    label: "TEST",
+    label: "Detect",
     submenu: [
       {
-        label: "TEST Create Object",
-        click() {
-          // createObject(); // This isn't defined?
-        },
-      },
-      {
-        label: "TEST NUCLEUS",
+        label: "Detect Nucleus",
         click() {
           getSingleChannelInfo();
         },
       },
       {
-        label: "TEST CYTOPLASM",
+        label: "Detect Cytoplasm",
         click() {
           cytoplasmDetect();
         },
@@ -195,8 +182,8 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 
-  ipcMain.on("load-previous-image", (event) => {
-    openIntroFile();
+  ipcMain.on("load-previous-project", (event) => {
+    openIntroProject();
   });
 
   ipcMain.on("request-image-load", (event, path) => {
@@ -247,17 +234,6 @@ function openFile() {
   store.set("Directory", files[files.length - 1]);
 }
 
-// User can select an image from their local computer and the data is sent to App.js
-// by using the componentDidMount() function.
-function openIntroFile() {
-  const file = store.get("Directory") || null;
-  if (file == null) return;
-  if (!fs.existsSync(file)) return;
-  const retval = inferFile(file);
-  // Set "append" to true now, but in the future we will load the project instead
-  mainWindow.webContents.send("new-image", retval, true);
-}
-
 // Creates DPSoftware folder in 'Documents'.
 function makeDir() {
   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
@@ -267,42 +243,65 @@ function makeDir() {
   }
 }
 
+// User can select an image from their local computer and the data is sent to App.js
+// by using the componentDidMount() function.
+function openIntroProject() {
+  const file = store.get("Directory") || null;
+  if (file == null) return;
+  if (!fs.existsSync(file)) return;
+  const retval = inferFile(file);
+  // Set "append" to true now, but in the future we will load the project instead
+  mainWindow.webContents.send("new-image", retval, true);
+}
+
 // Loads the saved array2D.json object saved in 'DPSoftware'.
 function loadArray2D() {
-  console.log("LOAD 2D Array");
+  console.log("LOAD 2D ARRAY...");
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [{ name: "Images", extensions: ["json"] }],
+    filters: [
+      { name: "Images", extensions: ["json"] },
+    ],
   });
-  console.log(files);
-
-  // const dir = path.join(os.homedir(), "Documents", "DPSoftware");
-  // let rawdata = fs.readFileSync(path.resolve(dir, "array2D.json"));
-  // let array2D = JSON.parse(rawdata);
-  // console.log(array2D);
+  let rawdata = fs.readFileSync(path.resolve(files[0]));
+  let array2D = JSON.parse(rawdata);
+  console.log('Height: ' + array2D.length);
+  console.log('Width: ' + array2D[0].length)
 }
 
-// Loads the saved array3D.json object saved in 'DPSoftware'.
-function loadArray3D() {
-  console.log("LOAD 3D Array");
-  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
-  let rawdata = fs.readFileSync(path.resolve(dir, "array3D.json"));
-  let array3D = JSON.parse(rawdata);
-  console.log(array3D);
-}
 
+// ------------------------------ LOAD PROJECT -------------------------------
 function loadProject() {
-  console.log("LOAD savedProject.json");
-  var dir = path.join(os.homedir(), "Documents", "DPSoftware");
-  let rawdata = fs.readFileSync(path.resolve(dir, "savedProject.json"));
-  let image = JSON.parse(rawdata);
-  console.log(image);
+  console.log("LOAD PROJECT...");
+  const files = dialog.showOpenDialogSync(mainWindow, {
+    properties: ["openDirectory", 
+                 "multiSelections", 
+                "createDirectory", // For Mac 
+                "promptToCreate"], // For Windows
+  });
+
+  if (!files) return;
+  let project_name = path.basename(files[0])
+
+  let file_paths = store.get(project_name) || null;
+  if (file_paths == null) return;
+  let parsed_file_paths = JSON.parse(file_paths);
+  mainWindow.webContents.send("send_title_and_open_files",project_name, parsed_file_paths);
 }
 
+// ------------------------------ SAVE PROJECT -------------------------------
 function saveProject() {
-  console.log("SAVE savedProject.json");
-  // fs.writeFileSync(path.resolve(os.homedir()+'/Desktop/DPSoftware', 'tiffImage.json'), JSON.stringify(args));
+  console.log("SAVE PROJECT...");
+  mainWindow.webContents.send("needSaveInfo");
+  ipcMain.on("filePaths", (event, project_name, file_paths) => {
+    const dir = path.join(os.homedir(), "Documents", "DPSoftware",project_name);
+    
+    // Creates a string from the JSON object that can be saved to store.
+    let save_to_store = JSON.stringify(file_paths);
+    store.set(project_name, save_to_store); // Saves the file paths to the project name.
+    store.set("Directory", dir);            // Saves the last project path of the last project saved.
+  });
 }
 
 // ------------------------------- Next three functions are used for NUCLEUS DETECTION -------------------------------
@@ -328,7 +327,6 @@ ipcMain.on(
   }
 );
 
-// Uses python-shell to detect the images. Returns arrays that are saved as IMAGE_NAME.json in /Documents/DPSoftware/.
 function nucleiDetect(fileName, width, height, lastChannelPath) {
   console.log("Testing Nucleus Scripts...");
 
@@ -339,7 +337,7 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
     "python",
     "mask_rcnn_cell_0030.h5"
   );
-  // const pathToImage = path.join(os.homedir(), "Documents", "DPSoftware",fileName)
+
   const pathForTMPchannel = path.join(
     process.cwd(),
     "src",
@@ -369,13 +367,6 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
       options,
       function (err, result) {
         if (err) throw err;
-        // result is an array consisting of messages collected
-        // during execution of script.
-        // console.log(result)
-        //let array2D = [result[0], result[1]]
-        // let array3D = [result[2],result[3]]
-        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
-        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
         console.log("NUCLEI DETECT FINISHED...");
       }
     );
@@ -385,13 +376,6 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
       options,
       function (err, result) {
         if (err) throw err;
-        // result is an array consisting of messages collected
-        // during execution of script.
-        // console.log(result)
-        // let array2D = [result[0], result[1]]
-        // let array3D = [result[2],result[3]]
-        //fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_3D.json"), JSON.stringify(array2D));
-        // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware",fileName+"_2D.json"), JSON.stringify(array3D));
         console.log("NUCLEI DETECT FINISHED...");
       }
     );
@@ -399,42 +383,46 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
 }
 
 // FUNCTION NOT COMPLETE
-function cytoplasmDetect() {
-  console.log("Testing Cytoplasm Scripts...");
+// ------------------------------ CYTOPLASM DETECTION -------------------------------
+function cytoplasmDetect(){
+  console.log("TESTING CYTOPLASM SCRIPTS...");
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [{ name: "Images", extensions: ["json"] }],
+    filters: [
+      { name: "Images", extensions: ["json"] },
+    ],
   });
   let options = {
-    mode: "text",
-    pythonOptions: ["-u"], // get print results in real-time
-    args: [files], //An argument which can be accessed in the script using sys.argv[1]
+    mode: 'text',
+    pythonOptions: ['-u'], // get print results in real-time
+    args: [files[0]] //An argument which can be accessed in the script using sys.argv[1]
   };
 
-  PythonShell.run("./src/python/cytoplasm.py", options, function (err, result) {
+  PythonShell.run('./src/python/cytoplasm.py', options, function (err, result){
     if (err) throw err;
     // result is an array consisting of messages collected
     // during execution of script.
-    console.log("#########################################");
-    console.log("....       CYTOPLASM DETECTED        ....");
-    console.log("#########################################");
-    console.log(result);
+    console.log('#########################################');
+    console.log('....       CYTOPLASM DETECTED        ....');
+    console.log('#########################################');
+    console.log(result)
     // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware","Cells_Found.json"), JSON.stringify(result));
   });
 }
+
+
 
 // ipcMain.on("tiffImage", (event, args) => {
 //   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
 //   // fs.writeFileSync(path.resolve(dir, "tiffImage.json"), JSON.stringify(args));
 //   // console.log("SAVE tiffImage.json");
 // });
-
 // ipcMain.on("saveProject", (event, args) => {
 //   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
-//   // fs.writeFileSync(
-//   //   path.resolve(dir, "savedProject.json"),
-//   //   JSON.stringify(args)
-//   // );
-//   // console.log("SAVE savedProject.json");
+//   fs.writeFileSync(
+//     path.resolve(dir, "savedProject.json"),
+//     JSON.stringify(args)
+//   );
+//   console.log("SAVE savedProject.json");
 // });

@@ -21,7 +21,7 @@ class App extends Component {
         // openFiles may be moved here in order to keep data persistence
         filePaths: [], // Files that were opened
         cellDetectChannel: 0,
-        name: "Project 1",
+        name: "No Project Loaded",
       },
       selectedAnnotation: -1,
     };
@@ -219,6 +219,32 @@ class App extends Component {
     // We want this to change to load previous project
     // ipcRenderer.send("load-previous-image");
 
+    // ------------------- Load Project: -------------------
+    ipcRenderer.on("send_title_and_open_files", (event, project_name, new_file_paths) => {
+      
+      // new_file_paths is null if the user created a new project.
+      if (new_file_paths == null){
+        new_file_paths = "No Project Loaded";
+      }
+
+      // Sets the new project title and file paths.       // NOT FINISHED. The files are saved on the left pane but do not open.
+      this.setState((prevState) => ({
+        loadedProject: { 
+          ...prevState.loadedProject, 
+          name: project_name,
+          filePaths: new_file_paths
+        },
+      }));
+    });
+
+    // ------------------- Save Project: -------------------
+    ipcRenderer.on("needSaveInfo", (event, fileContent) => {
+      const projectName = this.state.loadedProject.name;
+      const loadedFilePaths = this.state.loadedProject.filePaths;
+      ipcRenderer.send("filePaths",projectName, loadedFilePaths);
+    });
+
+    // ------------------ Nucleus Detect: ------------------
     ipcRenderer.on("get-channel-info", (event, fileContent) => {
       const loadedFile =
         this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
