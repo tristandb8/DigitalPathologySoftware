@@ -1,43 +1,39 @@
 const fs = require("fs");
 const path = require("path");
-const os = require('os');
+const os = require("os");
 
-
-function createObject(){
+function createObject() {
   console.log("Creating Object");
-  let student = { 
-      name: 'Ryan',
-      age: 26, 
-      gender: 'Male',
-      role: 'DPS'
+  let student = {
+    name: "Ryan",
+    age: 26,
+    gender: "Male",
+    role: "DPS",
   };
 
-  var dir = os.homedir()+'/Desktop/DPSoftware';
+  var dir = os.homedir() + "/Desktop/ZDFocus";
   console.log(dir);
-  if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
   }
 
-  fs.writeFileSync(path.resolve(dir, 'student.json'), JSON.stringify(student));
-
+  fs.writeFileSync(path.resolve(dir, "student.json"), JSON.stringify(student));
 }
 
-function loadObject(){
+function loadObject() {
   console.log("Loading Object");
 
-  var dir = os.homedir()+'/Desktop/DPSoftware';
+  var dir = os.homedir() + "/Desktop/ZDFocus";
   console.log(dir);
-  if (!fs.existsSync(dir)){
-      fs.mkdirSync(dir);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
   }
 
-  let rawdata = fs.readFileSync(path.resolve(dir, 'student.json'));
+  let rawdata = fs.readFileSync(path.resolve(dir, "student.json"));
   let student = JSON.parse(rawdata);
   console.log(student);
-
 }
 
-function saveObject(){
+function saveObject() {
   console.log("Saving Object");
-
 }

@@ -22,3 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *.pyc
+sample out.png
+src/python/tmp/tmp.jpg
+src/python/tmp/tmpLastChannel.json

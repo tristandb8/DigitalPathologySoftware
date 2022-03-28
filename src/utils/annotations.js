@@ -4,8 +4,33 @@ export const AnnotationTypes = {
   Polygon: "Polygon",
 };
 
+function hexToRgb(hex) {
+  // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+    return r + r + g + g + b + b;
+  });
+
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
+
+function standardizeColor(str) {
+  // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes
+  var ctx = document.createElement("canvas").getContext("2d");
+  ctx.fillStyle = str;
+  return ctx.fillStyle;
+}
+
 export const Annotation = (type, color, params, name) => {
-  return { type, color, params, name };
+  return { type, color, params, name, nucleusDetection: null };
 };
 
 export const Circle = (x, y, r, color, name) => {
@@ -18,4 +43,45 @@ export const Square = (x, y, w, h, color, name) => {
 
 export const Polygon = (points, color, name) => {
   return Annotation(AnnotationTypes.Polygon, color, points, name);
+};
+
+export const getAnnotationFills = (annotations) => {
+  let fillStyles = [];
+
+  // Fill the images array with each enabled channel of the idfArray
+  for (let i = 0; i < annotations.length; i++) {
+    const annotation = annotations[i];
+    const nucleusImage = getNucleusDetectionImage(annotation);
+
+    if (nucleusImage) {
+      fillStyles.push(createImageBitmap(nucleusImage));
+    } else {
+      fillStyles.push("#ff000010");
+    }
+  }
+
+  return Promise.all(fillStyles);
+};
+
+export const getNucleusDetectionImage = (annotation) => {
+  if (annotation.nucleusDetection == null) return null;
+  const data = annotation.nucleusDetection.detectionArray;
+  const intArray = new Uint8ClampedArray(
+    annotation.nucleusDetection.width * annotation.nucleusDetection.height * 4
+  );
+  const color = hexToRgb(standardizeColor(annotation.color));
+
+  for (let i = 0, j = 0; i < data.length; i++) {
+    const threshVal = data[i] > 0 ? 255 : 10;
+    intArray[j++] = threshVal * color.r; // R value
+    intArray[j++] = threshVal * color.g; // G value
+    intArray[j++] = threshVal * color.b; // B value
+    intArray[j++] = threshVal > 10 ? 225 : 10; // A value
+  }
+
+  return new ImageData(
+    intArray,
+    annotation.nucleusDetection.width,
+    annotation.nucleusDetection.height
+  );
 };

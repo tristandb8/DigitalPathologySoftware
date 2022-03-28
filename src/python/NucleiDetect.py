@@ -4,7 +4,6 @@ from mrcnn.config import Config
 from PIL import Image
 import numpy
 import warnings
-from IPython import get_ipython
 import cv2
 import sys
 import json
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     model.load_weights(sys.argv[1], by_name=True)
 
     # Load back image.
-    im = imageio.imread(sys.argv[5])
+    im = np.array(Image.open(sys.argv[5]))
 
     # Transform image to 3 channels.
     im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
@@ -66,26 +65,18 @@ if __name__ == '__main__':
 
     # Traverses through array mapping where the individual cells are located.
     # End result is a 2-D array.
-    x, y, z = tmpArray.shape
-    arr2d = np.zeros([x, y])
-    for a in range(x):
-        for b in range(y):
-            for c in range(z):
-                if tmpArray[a][b][c] != 0:
-                    arr2d[a][b] = c
-
+    arr2d = np.argmax(tmpArray, axis=-1)
     # Here is what is returned:
-    stringArray = np.array2string(
-        arr2d, precision=4, separator=',', suppress_small=True)
+    Image.fromarray(arr2d.astype(np.uint8)).save('sample out.png')
     saveFile = os.path.join(os.path.expanduser(
-        '~'), 'Documents', 'DPSoftware', sys.argv[6]+"_2D.json")
+        '~'), 'Documents', 'ZDFocus', sys.argv[6]+"_2D")
     # dict = {
     #     "Dimensions": arr2d.shape,
     #     "Array": stringArray
     # }
 
-    with open(saveFile, 'w') as fp:
-        json.dump(arr2d, fp, cls=NumpyArrayEncoder)
+    with open(saveFile, 'wb') as fp:
+        fp.write(arr2d.astype(np.uint32).tobytes())
     # print(arr2d.shape)
     # print(arr2d)
     # array3Dshape = [x, y, z]

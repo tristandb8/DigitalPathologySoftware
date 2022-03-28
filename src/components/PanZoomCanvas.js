@@ -315,79 +315,127 @@ class AnnotatedCanvas extends Component {
       ctx.fill();
     }
 
-    for (let i = 0; i < this.props.annotations.length; i++) {
-      const annotation = this.props.annotations[i];
-      const isSelected = i === this.props.selectedAnnotation;
-      const lineWidth = isSelected ? 3 : 1;
-      switch (annotation.type) {
-        case Annotations.AnnotationTypes.Circle:
-          ctx.beginPath();
-          ctx.lineWidth = lineWidth;
-          ctx.fillStyle = "#ff000010";
-          ctx.strokeStyle = annotation.color;
-          ctx.arc(
-            annotation.params.x * this.props.scale,
-            annotation.params.y * this.props.scale,
-            annotation.params.r * this.props.scale,
-            0,
-            2 * Math.PI,
-            false
-          );
-          ctx.fill();
-          ctx.stroke();
-          ctx.closePath();
-          break;
-        case Annotations.AnnotationTypes.Square:
-          ctx.beginPath();
-          ctx.lineWidth = lineWidth;
-          ctx.fillStyle = "#ff000010";
-          ctx.strokeStyle = "red";
-          ctx.strokeRect(
-            annotation.params.x * this.props.scale,
-            annotation.params.y * this.props.scale,
-            annotation.params.w * this.props.scale,
-            annotation.params.h * this.props.scale
-          );
-          ctx.fillRect(
-            annotation.params.x * this.props.scale,
-            annotation.params.y * this.props.scale,
-            annotation.params.w * this.props.scale,
-            annotation.params.h * this.props.scale
-          );
-          ctx.stroke();
-          ctx.closePath();
-          break;
-        case Annotations.AnnotationTypes.Polygon:
-          ctx.beginPath();
-          ctx.lineWidth = lineWidth;
-          ctx.strokeStyle = "red";
-          ctx.fillStyle = "#ff000010";
+    const scale = this.props.scale;
+    const annotations = this.props.annotations;
+    const selected = this.props.selectedAnnotation;
 
-          ctx.moveTo(
-            annotation.params[0].x * this.props.scale,
-            annotation.params[0].y * this.props.scale
-          );
+    Annotations.getAnnotationFills(this.props.annotations).then(function (
+      fillStyles
+    ) {
+      for (let i = 0; i < fillStyles.length; i++) {
+        const annotation = annotations[i];
+        const isSelected = i === selected;
+        const lineWidth = isSelected ? 3 : 1;
 
-          for (let i = 1; i < annotation.params.length; i++) {
-            ctx.lineTo(
-              annotation.params[i].x * this.props.scale,
-              annotation.params[i].y * this.props.scale
-            );
+        if (
+          typeof fillStyles[i] === "string" ||
+          fillStyles[i] instanceof String
+        ) {
+          ctx.fillStyle = fillStyles[i];
+        } else {
+          const pattern = ctx.createPattern(fillStyles[i], "no-repeat");
+          const transform = ctx.getTransform();
+          switch (annotation.type) {
+            case Annotations.AnnotationTypes.Circle:
+              transform.translateSelf(
+                (annotation.params.x - annotation.params.r) * scale,
+                (annotation.params.y - annotation.params.r) * scale,
+                0
+              );
+              break;
+            case Annotations.AnnotationTypes.Square:
+              transform.translateSelf(
+                annotation.params.x * scale,
+                annotation.params.y * scale,
+                0
+              );
+              break;
+            case Annotations.AnnotationTypes.Polygon:
+              let minX = Number.MAX_SAFE_INTEGER,
+                minY = Number.MAX_SAFE_INTEGER;
+
+              for (const coord of annotation.params) {
+                minX = Math.min(minX, coord.x);
+                minY = Math.min(minY, coord.y);
+              }
+
+              transform.translateSelf(minX * scale, minY * scale, 0);
+              break;
+            default:
+              break;
           }
+          transform.scaleSelf(scale, scale, scale);
+          pattern.setTransform(transform);
+          ctx.fillStyle = pattern;
+        }
 
-          ctx.lineTo(
-            annotation.params[0].x * this.props.scale,
-            annotation.params[0].y * this.props.scale
-          );
+        switch (annotation.type) {
+          case Annotations.AnnotationTypes.Circle:
+            ctx.beginPath();
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = annotation.color;
+            ctx.arc(
+              annotation.params.x * scale,
+              annotation.params.y * scale,
+              annotation.params.r * scale,
+              0,
+              2 * Math.PI,
+              false
+            );
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+            break;
+          case Annotations.AnnotationTypes.Square:
+            ctx.beginPath();
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(
+              annotation.params.x * scale,
+              annotation.params.y * scale,
+              annotation.params.w * scale,
+              annotation.params.h * scale
+            );
+            ctx.fillRect(
+              annotation.params.x * scale,
+              annotation.params.y * scale,
+              annotation.params.w * scale,
+              annotation.params.h * scale
+            );
+            ctx.stroke();
+            ctx.closePath();
+            break;
+          case Annotations.AnnotationTypes.Polygon:
+            ctx.beginPath();
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = "red";
 
-          ctx.stroke();
-          ctx.closePath();
-          ctx.fill();
-          break;
-        default:
-          break;
+            ctx.moveTo(
+              annotation.params[0].x * scale,
+              annotation.params[0].y * scale
+            );
+
+            for (let i = 1; i < annotation.params.length; i++) {
+              ctx.lineTo(
+                annotation.params[i].x * scale,
+                annotation.params[i].y * scale
+              );
+            }
+
+            ctx.lineTo(
+              annotation.params[0].x * scale,
+              annotation.params[0].y * scale
+            );
+
+            ctx.stroke();
+            ctx.closePath();
+            ctx.fill();
+            break;
+          default:
+            break;
+        }
       }
-    }
+    });
   };
 
   RenderAnnotationHover = () => {
@@ -424,6 +472,7 @@ class AnnotatedCanvas extends Component {
             width: "100%",
             height: "100%",
             position: "absolute",
+            imageRendering: "pixelated",
           }}
         />
         <this.RenderAnnotationHover />
@@ -496,7 +545,8 @@ export default class PanZoomCanvas extends Component {
 
       // Ideally this would be changeable via dropdown
       // ctx.globalCompositeOperation = 'color'
-      ctx.globalCompositeOperation = "source-over";
+      // ctx.globalCompositeOperation = "source-over";
+      ctx.globalCompositeOperation = "screen";
 
       // Draw each channel overlapping
       getBitmap(loadedFile).then(function (layers) {

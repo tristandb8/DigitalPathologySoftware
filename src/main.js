@@ -234,9 +234,9 @@ function openFile() {
   store.set("Directory", files[files.length - 1]);
 }
 
-// Creates DPSoftware folder in 'Documents'.
+// Creates ZDFocus folder in 'Documents'.
 function makeDir() {
-  const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+  const dir = path.join(os.homedir(), "Documents", "ZDFocus");
   if (!fs.existsSync(dir)) {
     console.log(dir);
     fs.mkdirSync(dir);
@@ -254,40 +254,43 @@ function openIntroProject() {
   mainWindow.webContents.send("new-image", retval, true);
 }
 
-// Loads the saved array2D.json object saved in 'DPSoftware'.
+// Loads the saved array2D.json object saved in 'ZDFocus'.
 function loadArray2D() {
   console.log("LOAD 2D ARRAY...");
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Images", extensions: ["json"] },
-    ],
+    filters: [{ name: "Images", extensions: ["json"] }],
   });
   let rawdata = fs.readFileSync(path.resolve(files[0]));
   let array2D = JSON.parse(rawdata);
-  console.log('Height: ' + array2D.length);
-  console.log('Width: ' + array2D[0].length)
+  console.log("Height: " + array2D.length);
+  console.log("Width: " + array2D[0].length);
 }
-
 
 // ------------------------------ LOAD PROJECT -------------------------------
 function loadProject() {
   console.log("LOAD PROJECT...");
   const files = dialog.showOpenDialogSync(mainWindow, {
-    properties: ["openDirectory", 
-                 "multiSelections", 
-                "createDirectory", // For Mac 
-                "promptToCreate"], // For Windows
+    properties: [
+      "openDirectory",
+      "multiSelections",
+      "createDirectory", // For Mac
+      "promptToCreate",
+    ], // For Windows
   });
 
   if (!files) return;
-  let project_name = path.basename(files[0])
+  let project_name = path.basename(files[0]);
 
   let file_paths = store.get(project_name) || null;
   if (file_paths == null) return;
   let parsed_file_paths = JSON.parse(file_paths);
-  mainWindow.webContents.send("send_title_and_open_files",project_name, parsed_file_paths);
+  mainWindow.webContents.send(
+    "send_title_and_open_files",
+    project_name,
+    parsed_file_paths
+  );
 }
 
 // ------------------------------ SAVE PROJECT -------------------------------
@@ -295,12 +298,12 @@ function saveProject() {
   console.log("SAVE PROJECT...");
   mainWindow.webContents.send("needSaveInfo");
   ipcMain.on("filePaths", (event, project_name, file_paths) => {
-    const dir = path.join(os.homedir(), "Documents", "DPSoftware",project_name);
-    
+    const dir = path.join(os.homedir(), "Documents", "ZDFocus", project_name);
+
     // Creates a string from the JSON object that can be saved to store.
     let save_to_store = JSON.stringify(file_paths);
     store.set(project_name, save_to_store); // Saves the file paths to the project name.
-    store.set("Directory", dir);            // Saves the last project path of the last project saved.
+    store.set("Directory", dir); // Saves the last project path of the last project saved.
   });
 }
 
@@ -346,9 +349,19 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
     "tmp.jpg"
   );
 
+  const pathForResults = path.join(
+    os.homedir(),
+    "Documents",
+    "ZDFocus",
+    `${fileName}_2D`
+  );
+
   // Pre-defined options and arguments that python-shell will read in.
   let options = {
     mode: "text",
+    // I enable/disable this when on my (mike) machine
+    // pythonPath:
+    //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
     pythonOptions: ["-u"], // get print results in real-time
     args: [
       pathToh5,
@@ -360,66 +373,50 @@ function nucleiDetect(fileName, width, height, lastChannelPath) {
     ], //An argument which can be accessed in the script, index starts at 1, not 0.
   };
 
-  // I had to use this if-else statement because I could not get the './' added to src/python/NucleiDetect.py, would not work otherwise...
-  if (isMac) {
-    PythonShell.run(
-      "./src/python/NucleiDetect.py",
-      options,
-      function (err, result) {
-        if (err) throw err;
-        console.log("NUCLEI DETECT FINISHED...");
-      }
-    );
-  } else {
-    PythonShell.run(
-      "./src/python/NucleiDetect.py",
-      options,
-      function (err, result) {
-        if (err) throw err;
-        console.log("NUCLEI DETECT FINISHED...");
-      }
-    );
-  }
+  const resultFn = (err, result) => {
+    if (err) throw err;
+    console.log("NUCLEI DETECT FINISHED...");
+    const fileContent = fs.readFileSync(pathForResults);
+    mainWindow.webContents.send("nucleus-detect-result-buffer", fileContent);
+  };
+
+  PythonShell.run("./src/python/NucleiDetect.py", options, resultFn);
 }
 
 // FUNCTION NOT COMPLETE
 // ------------------------------ CYTOPLASM DETECTION -------------------------------
-function cytoplasmDetect(){
+function cytoplasmDetect() {
   console.log("TESTING CYTOPLASM SCRIPTS...");
 
   const files = dialog.showOpenDialogSync(mainWindow, {
     properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Images", extensions: ["json"] },
-    ],
+    filters: [{ name: "Images", extensions: ["json"] }],
   });
   let options = {
-    mode: 'text',
-    pythonOptions: ['-u'], // get print results in real-time
-    args: [files[0]] //An argument which can be accessed in the script using sys.argv[1]
+    mode: "text",
+    pythonOptions: ["-u"], // get print results in real-time
+    args: [files[0]], //An argument which can be accessed in the script using sys.argv[1]
   };
 
-  PythonShell.run('./src/python/cytoplasm.py', options, function (err, result){
+  PythonShell.run("./src/python/cytoplasm.py", options, function (err, result) {
     if (err) throw err;
     // result is an array consisting of messages collected
     // during execution of script.
-    console.log('#########################################');
-    console.log('....       CYTOPLASM DETECTED        ....');
-    console.log('#########################################');
-    console.log(result)
-    // fs.writeFileSync(path.join(os.homedir(), "Documents", "DPSoftware","Cells_Found.json"), JSON.stringify(result));
+    console.log("#########################################");
+    console.log("....       CYTOPLASM DETECTED        ....");
+    console.log("#########################################");
+    console.log(result);
+    // fs.writeFileSync(path.join(os.homedir(), "Documents", "ZDFocus","Cells_Found.json"), JSON.stringify(result));
   });
 }
 
-
-
 // ipcMain.on("tiffImage", (event, args) => {
-//   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+//   const dir = path.join(os.homedir(), "Documents", "ZDFocus");
 //   // fs.writeFileSync(path.resolve(dir, "tiffImage.json"), JSON.stringify(args));
 //   // console.log("SAVE tiffImage.json");
 // });
 // ipcMain.on("saveProject", (event, args) => {
-//   const dir = path.join(os.homedir(), "Documents", "DPSoftware");
+//   const dir = path.join(os.homedir(), "Documents", "ZDFocus");
 //   fs.writeFileSync(
 //     path.resolve(dir, "savedProject.json"),
 //     JSON.stringify(args)

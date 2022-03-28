@@ -23,6 +23,7 @@ class App extends Component {
         cellDetectChannel: 0,
         name: "No Project Loaded",
       },
+      nucleusDetectInfo: null,
       selectedAnnotation: -1,
     };
   }
@@ -31,8 +32,18 @@ class App extends Component {
     const loadedFile =
       this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
     const annotation = loadedFile.annotations[this.state.selectedAnnotation];
-    if (!loadedFile) return;
+    if (!loadedFile || this.state.nucleusDetectInfo != null) return;
+
     const imageData = sliceImageFromAnnotation(loadedFile, annotation);
+
+    this.setState((prevState) => ({
+      nucleusDetectInfo: {
+        width: imageData.width,
+        height: imageData.height,
+        loadedFile: this.state.loadedProject.activeFile,
+        selectedAnnotation: this.state.selectedAnnotation,
+      },
+    }));
 
     ipcRenderer.send(
       "single-channel-info",
@@ -220,28 +231,30 @@ class App extends Component {
     // ipcRenderer.send("load-previous-image");
 
     // ------------------- Load Project: -------------------
-    ipcRenderer.on("send_title_and_open_files", (event, project_name, new_file_paths) => {
-      
-      // new_file_paths is null if the user created a new project.
-      if (new_file_paths == null){
-        new_file_paths = "No Project Loaded";
-      }
+    ipcRenderer.on(
+      "send_title_and_open_files",
+      (event, project_name, new_file_paths) => {
+        // new_file_paths is null if the user created a new project.
+        if (new_file_paths == null) {
+          new_file_paths = "No Project Loaded";
+        }
 
-      // Sets the new project title and file paths.       // NOT FINISHED. The files are saved on the left pane but do not open.
-      this.setState((prevState) => ({
-        loadedProject: { 
-          ...prevState.loadedProject, 
-          name: project_name,
-          filePaths: new_file_paths
-        },
-      }));
-    });
+        // Sets the new project title and file paths.       // NOT FINISHED. The files are saved on the left pane but do not open.
+        this.setState((prevState) => ({
+          loadedProject: {
+            ...prevState.loadedProject,
+            name: project_name,
+            filePaths: new_file_paths,
+          },
+        }));
+      }
+    );
 
     // ------------------- Save Project: -------------------
     ipcRenderer.on("needSaveInfo", (event, fileContent) => {
       const projectName = this.state.loadedProject.name;
       const loadedFilePaths = this.state.loadedProject.filePaths;
-      ipcRenderer.send("filePaths",projectName, loadedFilePaths);
+      ipcRenderer.send("filePaths", projectName, loadedFilePaths);
     });
 
     // ------------------ Nucleus Detect: ------------------
@@ -256,6 +269,39 @@ class App extends Component {
         loadedFile.name,
         dimensions
       );
+    });
+
+    ipcRenderer.on("nucleus-detect-result-buffer", (event, nucleusBuffer) => {
+      console.log("received");
+      const detectionArray = new Uint32Array(nucleusBuffer.buffer);
+      if (this.state.nucleusDetectInfo == null) return;
+      const info = this.state.nucleusDetectInfo;
+      console.log(info);
+      const loadedFile = this.state.loadedProject.openFiles[info.loadedFile];
+      if (loadedFile == null) return;
+      const annotation = loadedFile.annotations[info.selectedAnnotation];
+
+      if (annotation != null) {
+        let newArray = [...loadedFile.annotations];
+        let newAnnotation = { ...newArray[info.selectedAnnotation] };
+        newAnnotation.nucleusDetection = {
+          detectionArray,
+          height: info.height,
+          width: info.width,
+        };
+        newArray[info.selectedAnnotation] = newAnnotation;
+        let newFile = { ...loadedFile, annotations: newArray };
+        let newFiles = [...this.state.loadedProject.openFiles];
+        newFiles[this.state.loadedProject.activeFile] = newFile;
+        this.setState((prevState) => ({
+          loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+          nucleusDetectInfo: null,
+        }));
+      } else {
+        this.setState((prevState) => ({
+          nucleusDetectInfo: null,
+        }));
+      }
     });
   }
 
