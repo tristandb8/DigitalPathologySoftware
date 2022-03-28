@@ -38,7 +38,8 @@ class App extends Component {
       "single-channel-info",
       imageData.intArray,
       loadedFile.name,
-      [imageData.width, imageData.height]
+      [imageData.width, imageData.height],
+      this.state.loadedProject.name
     );
   };
 
@@ -217,17 +218,17 @@ class App extends Component {
     });
 
     // We want this to change to load previous project
-    // ipcRenderer.send("load-previous-image");
+    ipcRenderer.send("load-previous-project");
 
     // ------------------- Load Project: -------------------
     ipcRenderer.on("send_title_and_open_files", (event, project_name, new_file_paths) => {
       
       // new_file_paths is null if the user created a new project.
       if (new_file_paths == null){
-        new_file_paths = "No Project Loaded";
+        new_file_paths = [];
       }
 
-      // Sets the new project title and file paths.       // NOT FINISHED. The files are saved on the left pane but do not open.
+      // Sets the new project title and file paths.
       this.setState((prevState) => ({
         loadedProject: { 
           ...prevState.loadedProject, 
@@ -254,9 +255,33 @@ class App extends Component {
         "single-channel-info",
         loadedFile.idfArray[36].data,
         loadedFile.name,
-        dimensions
+        dimensions,
+        loadedFile.name
       );
     });
+
+    // ----------------- Cytoplasm Detect: -----------------
+    ipcRenderer.on("get_cytoplasm_info", (event, fileContent) => {
+      ipcRenderer.send("cytoplasm_info", this.state.loadedProject.name);
+    });
+
+    // ------------------ Delete Project: ------------------
+    ipcRenderer.on("delete_project", (event, project_name) => {
+      if(project_name === this.state.loadedProject.name){
+        //Set to Default.
+        this.setState((prevState) => ({
+          loadedProject: { 
+            ...prevState.loadedProject, 
+            openFiles: [],
+            activeFile: -1,
+            filePaths: [],
+            cellDetectChannel: 0,
+            name: "No Project Loaded",
+          },
+        }));
+      }
+    });
+
   }
 
   render() {

@@ -77,8 +77,13 @@ if __name__ == '__main__':
     # Here is what is returned:
     stringArray = np.array2string(
         arr2d, precision=4, separator=',', suppress_small=True)
-    saveFile = os.path.join(os.path.expanduser(
-        '~'), 'Documents', 'DPSoftware', sys.argv[6]+"_2D.json")
+
+    if (sys.argv[7] == "No Project Loaded"):
+        saveFile = os.path.join(os.path.expanduser(
+            '~'), 'Documents', 'DPSoftware', 'Detect Nucleus', sys.argv[6]+"_nucleus_2D.json")
+    else:
+        saveFile = os.path.join(os.path.expanduser(
+            '~'), 'Documents', 'DPSoftware', sys.argv[7], 'Detect Nucleus', sys.argv[6]+"_nucleus_2D.json")
     # dict = {
     #     "Dimensions": arr2d.shape,
     #     "Array": stringArray

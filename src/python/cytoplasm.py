@@ -1,11 +1,18 @@
-from email.mime import image
 import math
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
+import numpy
 import sys
 import json
 from PIL import Image
+from tifffile import imread
+from json import JSONEncoder
+import os
+
+
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 
 class Nucleus(object):
@@ -18,7 +25,7 @@ class Nucleus(object):
 
 # 2-D array with unique values:
 args = json.load(open(sys.argv[1], 'r'))
-detections = np.asarray(args)
+detections = numpy.asarray(args)
 detections = detections.astype(int)
 print(detections.shape)
 print(detections[30][120:160])
@@ -100,7 +107,7 @@ for r in range(nrows):
 ids_arr = detections.copy()
 
 inf = 9999
-distance = np.zeros((len(detections), len(detections[0])), dtype=float)
+distance = numpy.zeros((len(detections), len(detections[0])), dtype=float)
 for r in range(len(detections)):
     for c in range(len(detections[0])):
         distance[r][c] = inf if detections[r][c] == 0 else -1
@@ -143,8 +150,8 @@ while len(queue) > 0:
             queue.append((nr, nc, ids_arr[r][c]))
 
 # Mark cytoplasm as negative
-mask = np.ma.masked_equal(detections, 0)
-final_mask = np.where(detections == 0, ids_arr*(-1), ids_arr)
+mask = numpy.ma.masked_equal(detections, 0)
+final_mask = numpy.where(detections == 0, ids_arr*(-1), ids_arr)
 # print(final_mask.shape)
 
 # Final mask is what you want, each cyto value is negative,
@@ -158,6 +165,19 @@ print(final_mask.shape)
 final_mask = final_mask.astype('int16')
 img1 = Image.fromarray(final_mask)
 img1.save("test_file.tif")
+array_2D = imread("./test_file.tif")
+
+file_name = sys.argv[1]
+file_name = file_name.replace("2D.json_", "")
+if (sys.argv[2] == "No Project Loaded"):
+    saveFile = os.path.join(os.path.expanduser(
+        '~'), 'Documents', 'DPSoftware', 'Detect Cytoplasm', file_name+"_cytoplasm_2D.json")
+else:
+    saveFile = os.path.join(os.path.expanduser(
+        '~'), 'Documents', 'DPSoftware', sys.argv[2], 'Detect Cytoplasm', file_name+"_cytoplasm_2D.json")
+
+with open(saveFile, 'w') as fp:
+    json.dump(array_2D, fp, cls=NumpyArrayEncoder)
 
 
 # Temporarily saving the image in /tmp folder.
