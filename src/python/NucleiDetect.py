@@ -68,8 +68,12 @@ if __name__ == '__main__':
     arr2d = np.argmax(tmpArray, axis=-1)
     # Here is what is returned:
     Image.fromarray(arr2d.astype(np.uint8)).save('sample out.png')
-    saveFile = os.path.join(os.path.expanduser(
-        '~'), 'Documents', 'ZDFocus', sys.argv[6]+"_2D")
+    if (sys.argv[7] == "No Project Loaded"):
+        saveFile = os.path.join(os.path.expanduser(
+            '~'), 'Documents', 'ZDFocus', 'Detect Nucleus', sys.argv[6]+"_nucleus_2D")
+    else:
+        saveFile = os.path.join(os.path.expanduser(
+            '~'), 'Documents', 'ZDFocus', sys.argv[7], 'Detect Nucleus', sys.argv[6]+"_nucleus_2D")
     # dict = {
     #     "Dimensions": arr2d.shape,
     #     "Array": stringArray
