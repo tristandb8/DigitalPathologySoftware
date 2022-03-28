@@ -131,6 +131,7 @@ class App extends Component {
     newFiles[this.state.loadedProject.activeFile] = newFile;
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      selectedAnnotation: -1,
     }));
   };
 
