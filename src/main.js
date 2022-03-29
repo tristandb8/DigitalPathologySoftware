@@ -442,8 +442,8 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   let options = {
     mode: "text",
     // I enable/disable this when on my (mike) machine
-    pythonPath:
-      "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
+    // pythonPath:
+    //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
     pythonOptions: ["-u"], // get print results in real-time
     args: [
       pathToh5,
