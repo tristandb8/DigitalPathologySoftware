@@ -162,11 +162,11 @@ export default class AnnotatedCanvas extends Component {
           );
 
           clickPoints = [];
+          drawUpdate = false;
         } else {
-          // Add annotation
           clickPoints = [...clickPoints, clickPoint];
+          drawUpdate = true;
         }
-        drawUpdate = true;
       }
 
       this.setState({

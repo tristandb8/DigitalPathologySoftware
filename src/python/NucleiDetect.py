@@ -32,6 +32,10 @@ if __name__ == '__main__':
     for i in range((x*y)):
         tmp[i] = float(im[str(i)])
     imageArray = np.reshape(tmp, (y, x))
+    image_max = np.max(imageArray)
+    if image_max > 0:
+      imageArray = imageArray / image_max
+      imageArray = imageArray * 255
     image = Image.fromarray(imageArray.astype(np.uint8))
 
     # Temporarily saving the image in /tmp folder.
