@@ -23,6 +23,7 @@ class App extends Component {
       tabs: new Map(), // Open tabs (path, path) (could be a set but I'd have to make changes)
       nucleusDetectInfo: null,
       selectedAnnotation: -1,
+      compositeOp: "screen",
     };
   }
 
@@ -97,6 +98,12 @@ class App extends Component {
       tabs: newTabs,
       selectedAnnotation: -1,
     }));
+  };
+
+  selectCompositeOp = (e) => {
+    this.setState({
+      compositeOp: e.target.value,
+    });
   };
 
   addAnnotation = (annotation) => {
@@ -368,6 +375,8 @@ class App extends Component {
             selectCellChannel={this.selectCellChannel}
             tabs={this.state.tabs}
             nucleusDetectInfo={this.state.nucleusDetectInfo}
+            selectCompositeOp={this.selectCompositeOp}
+            compositeOp={this.state.compositeOp}
           />
           <DisplayPage
             ref={this.displayPageRef}
@@ -377,6 +386,7 @@ class App extends Component {
             addAnnotation={this.addAnnotation}
             tabs={this.state.tabs}
             closeTab={this.closeTab}
+            compositeOp={this.state.compositeOp}
             selectTab={this.selectTab}
           />
           <RightPane

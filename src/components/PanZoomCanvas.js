@@ -70,10 +70,7 @@ export default class PanZoomCanvas extends Component {
       canvas.width = loadedFile.width;
       canvas.height = loadedFile.height;
 
-      // Ideally this would be changeable via dropdown
-      // ctx.globalCompositeOperation = 'color'
-      // ctx.globalCompositeOperation = "source-over";
-      ctx.globalCompositeOperation = "screen";
+      ctx.globalCompositeOperation = this.props.compositeOp;
 
       // Draw each channel overlapping
       getBitmap(loadedFile).then(function (layers) {
@@ -97,7 +94,10 @@ export default class PanZoomCanvas extends Component {
   }
 
   componentDidUpdate(oldProps) {
-    if (oldProps.file !== this.props.file) {
+    if (
+      oldProps.file !== this.props.file ||
+      oldProps.compositeOp !== this.props.compositeOp
+    ) {
       this.updateCanvas();
     } else if (oldProps.grid !== this.props.grid) {
       this.gridRef.current.backgroundImage = this.props.grid

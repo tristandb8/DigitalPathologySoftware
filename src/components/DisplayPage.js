@@ -233,6 +233,7 @@ export default class DisplayPage extends Component {
           selectedAnnotation={this.props.selectedAnnotation}
           selectAnnotation={this.props.selectAnnotation}
           mode={this.state.mode}
+          compositeOp={this.props.compositeOp}
         />
       </div>
     );

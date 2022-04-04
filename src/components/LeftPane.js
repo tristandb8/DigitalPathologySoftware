@@ -77,6 +77,40 @@ class ImagePane extends Component {
         <p className="imagePaneLabel">{selectedImage.imageData.height}</p>
         <h1 className="imagePaneHeader">Channels</h1>
         <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
+        <h1 className="imagePaneHeader">Channels</h1>
+        <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
+        <h1 className="imagePaneHeader">Composite Operation</h1>
+        <select
+          onChange={this.props.selectCompositeOp}
+          value={this.props.compositeOp}
+        >
+          {[
+            "hard-light",
+            "color-burn",
+            "color-dodge",
+            "lighten",
+            "darken",
+            "overlay",
+            "screen",
+            "multiply",
+            "xor",
+            "lighter",
+            "soft-light",
+            "difference",
+            "exclusion",
+            "hue",
+            "saturation",
+            "color",
+            "luminosity",
+          ].map((item, index) => {
+            return (
+              <option value={item} key={index}>
+                {item}
+              </option>
+            );
+          })}
+        </select>
+
         <h1 className="imagePaneHeader">Cell Channel</h1>
         <select
           onChange={this.props.selectCellChannel}
@@ -269,6 +303,8 @@ export default class LeftPane extends Component {
             nucleusDetectInfo={this.props.nucleusDetectInfo}
             executeNucleusDetection={this.props.executeNucleusDetection}
             selectCellChannel={this.props.selectCellChannel}
+            selectCompositeOp={this.props.selectCompositeOp}
+            compositeOp={this.props.compositeOp}
           />
         );
       case LeftPanes.Annotation:
