@@ -147,7 +147,14 @@ export default class PanZoomCanvas extends Component {
                 height: "100%",
               }}
             >
-              <canvas ref={this.canvasRef} className="displayCanvas" />
+              <canvas
+                ref={this.canvasRef}
+                className={
+                  this.props.selectedAnnotation === 0
+                    ? "displayCanvasSelected"
+                    : "displayCanvas"
+                }
+              />
               <div
                 ref={this.gridRef}
                 className="backgroundGrid"

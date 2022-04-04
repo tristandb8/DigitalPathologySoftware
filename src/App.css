@@ -254,7 +254,13 @@
 
 .displayCanvas {
   image-rendering: pixelated;
-  border: red 1px solid;
+  outline: red 1px solid;
+  background-color: black;
+}
+
+.displayCanvasSelected {
+  image-rendering: pixelated;
+  outline: red 1.5px solid;
   background-color: black;
 }
 
