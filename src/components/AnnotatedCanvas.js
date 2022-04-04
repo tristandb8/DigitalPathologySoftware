@@ -15,7 +15,7 @@ export default class AnnotatedCanvas extends Component {
       annotationPos: Point.ORIGIN,
       canClosePoly: false,
       clickPoints: [],
-      hoveredAnnotation: -1,
+      hoveredAnnotation: 0,
     };
   }
 
@@ -107,29 +107,31 @@ export default class AnnotatedCanvas extends Component {
             break;
           case Modes.AnnotateCircle:
             const r = Math.abs(Point.dist(start, end));
-            this.props.addAnnotation(
-              Annotations.Circle(
-                start.x / this.props.scale,
-                start.y / this.props.scale,
-                r / this.props.scale,
-                "red"
-              )
-            );
-            drawUpdate = false;
+            if (r > 1)
+              this.props.addAnnotation(
+                Annotations.Circle(
+                  start.x / this.props.scale,
+                  start.y / this.props.scale,
+                  r / this.props.scale,
+                  "red"
+                )
+              );
+            drawUpdate = true;
             break;
           case Modes.AnnotateSquare:
             if (start.x > end.x) [start.x, end.x] = [end.x, start.x];
             if (start.y > end.y) [start.y, end.y] = [end.y, start.y];
-            this.props.addAnnotation(
-              Annotations.Square(
-                start.x / this.props.scale,
-                start.y / this.props.scale,
-                (end.x - start.x) / this.props.scale,
-                (end.y - start.y) / this.props.scale,
-                "red"
-              )
-            );
-            drawUpdate = false;
+            if (Math.abs(start.x - end.x) > 1 && Math.abs(start.y - end.y) > 1)
+              this.props.addAnnotation(
+                Annotations.Square(
+                  start.x / this.props.scale,
+                  start.y / this.props.scale,
+                  (end.x - start.x) / this.props.scale,
+                  (end.y - start.y) / this.props.scale,
+                  "red"
+                )
+              );
+            drawUpdate = true;
             break;
           default:
             break;
@@ -195,7 +197,7 @@ export default class AnnotatedCanvas extends Component {
           )
         ) < 10;
 
-      let hoveredAnnotation = -1;
+      let hoveredAnnotation = 0;
       if (this.props.mode === Modes.Pan) {
         hoveredAnnotation = this.checkAnnotationHit(adjustedPos);
       }

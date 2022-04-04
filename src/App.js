@@ -131,6 +131,7 @@ class App extends Component {
     // Update the state of the loaded project with the new files array
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, files: newFiles },
+      selectedAnnotation: newFile.annotations.length - 1,
     }));
   };
 
