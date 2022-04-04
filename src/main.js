@@ -346,14 +346,25 @@ function loadProject() {
 // ------------------------------ SAVE PROJECT -------------------------------
 function saveProject() {
   console.log("SAVE PROJECT...");
-  mainWindow.webContents.send("needSaveInfo");
+  mainWindow.webContents.send("getSaveInfo");
 
-  ipcMain.on("filePaths", (event, project_name, file_paths) => {
-    const dir = path.join(os.homedir(), "Documents", "ZDFocus", project_name);
+  ipcMain.on("sendSaveInfo", (event, project, tabs) => {
+    // if project.name === <default name>
+    //  prompt save window...
+    const dir = path.join(os.homedir(), "Documents", "ZDFocus", project.name);
+
+    const newFiles = new Map();
+    for (const key of project.files.keys()) {
+      const file = project.files.get(key);
+      const newFile = { ...file };
+      newFile.imageData = null;
+      newFiles.set(key, newFile);
+    }
+    const saveProject = { ...project, files: newFiles, tabs: new Map(tabs) };
 
     // Creates a string from the JSON object that can be saved to store.
-    let save_to_store = JSON.stringify(file_paths);
-    store.set(project_name, save_to_store); // Saves the file paths to the project name.
+    let save_to_store = JSON.stringify(saveProject);
+    store.set(project.name, save_to_store); // Saves the file paths to the project name.
     store.set("Directory", dir); // Saves the last project path of the last project saved.
     console.log("Directory Saved: ", dir);
   });

@@ -297,10 +297,12 @@ class App extends Component {
     );
 
     // ------------------- Save Project: -------------------
-    ipcRenderer.on("needSaveInfo", (event, fileContent) => {
-      const projectName = this.state.loadedProject.name;
-      const loadedFilePaths = this.state.loadedProject.filePaths;
-      ipcRenderer.send("filePaths", projectName, loadedFilePaths);
+    ipcRenderer.on("getSaveInfo", (event, fileContent) => {
+      ipcRenderer.send(
+        "sendSaveInfo",
+        this.state.loadedProject,
+        this.state.tabs
+      );
     });
 
     // ------------------ Nucleus Detect: ------------------
