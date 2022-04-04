@@ -365,6 +365,15 @@
   border-radius: 4px;
 }
 
+.annotationButtonStatic {
+  height: 20px;
+  width: 20px;
+  padding: 2px;
+  fill: #1b1b1b;
+  margin-left: 4px;
+  border-radius: 4px;
+}
+
 .annotationIcon {
   height: 20px;
   width: 20px;

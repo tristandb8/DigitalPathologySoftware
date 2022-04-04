@@ -31,7 +31,7 @@ export default class AnnotatedCanvas extends Component {
   }
 
   checkAnnotationHit = (hit) => {
-    for (let anni = 0; anni < this.props.annotations.length; anni++) {
+    for (let anni = 1; anni < this.props.annotations.length; anni++) {
       const annotation = this.props.annotations[anni];
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
@@ -78,7 +78,7 @@ export default class AnnotatedCanvas extends Component {
       }
     }
 
-    return -1;
+    return 0;
   };
 
   handleMouseEvent = (event) => {
@@ -337,6 +337,7 @@ export default class AnnotatedCanvas extends Component {
         const annotation = annotations[i];
         const isSelected = i === selected;
         const lineWidth = isSelected ? 3 : 1;
+        let backgroundFill = i !== 0;
 
         if (
           typeof fillStyles[i] === "string" ||
@@ -360,6 +361,7 @@ export default class AnnotatedCanvas extends Component {
                 annotation.params.y * scale,
                 0
               );
+              if (i === 0) backgroundFill = true;
               break;
             case Annotations.AnnotationTypes.Polygon:
               let minX = Number.MAX_SAFE_INTEGER,
@@ -398,23 +400,25 @@ export default class AnnotatedCanvas extends Component {
             ctx.closePath();
             break;
           case Annotations.AnnotationTypes.Square:
-            ctx.beginPath();
-            ctx.lineWidth = lineWidth;
-            ctx.strokeStyle = "red";
-            ctx.strokeRect(
-              annotation.params.x * scale,
-              annotation.params.y * scale,
-              annotation.params.w * scale,
-              annotation.params.h * scale
-            );
-            ctx.fillRect(
-              annotation.params.x * scale,
-              annotation.params.y * scale,
-              annotation.params.w * scale,
-              annotation.params.h * scale
-            );
-            ctx.stroke();
-            ctx.closePath();
+            if (backgroundFill) {
+              ctx.beginPath();
+              ctx.lineWidth = lineWidth;
+              ctx.strokeStyle = "red";
+              ctx.strokeRect(
+                annotation.params.x * scale,
+                annotation.params.y * scale,
+                annotation.params.w * scale,
+                annotation.params.h * scale
+              );
+              ctx.fillRect(
+                annotation.params.x * scale,
+                annotation.params.y * scale,
+                annotation.params.w * scale,
+                annotation.params.h * scale
+              );
+              ctx.stroke();
+              ctx.closePath();
+            }
             break;
           case Annotations.AnnotationTypes.Polygon:
             ctx.beginPath();
@@ -451,7 +455,7 @@ export default class AnnotatedCanvas extends Component {
 
   RenderAnnotationHover = () => {
     const annotation = this.props.annotations[this.state.hoveredAnnotation];
-    return annotation ? (
+    return annotation && this.state.hoveredAnnotation > 0 ? (
       <div
         className="annotationHover"
         style={{

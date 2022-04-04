@@ -81,27 +81,28 @@ class ImagePane extends Component {
         <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
         <h1 className="imagePaneHeader">Composite Operation</h1>
         <select
+          className="imagePaneLabel"
           onChange={this.props.selectCompositeOp}
           value={this.props.compositeOp}
         >
           {[
-            "hard-light",
+            "color",
             "color-burn",
             "color-dodge",
-            "lighten",
             "darken",
-            "overlay",
-            "screen",
-            "multiply",
-            "xor",
-            "lighter",
-            "soft-light",
             "difference",
             "exclusion",
+            "hard-light",
             "hue",
-            "saturation",
-            "color",
+            "lighten",
+            "lighter",
             "luminosity",
+            "multiply",
+            "overlay",
+            "saturation",
+            "screen",
+            "soft-light",
+            "xor",
           ].map((item, index) => {
             return (
               <option value={item} key={index}>
@@ -113,6 +114,7 @@ class ImagePane extends Component {
 
         <h1 className="imagePaneHeader">Cell Channel</h1>
         <select
+          className="imagePaneLabel"
           onChange={this.props.selectCellChannel}
           value={selectedImage.cellDetectChannel}
         >
@@ -125,6 +127,7 @@ class ImagePane extends Component {
           })}
         </select>
         <button
+          className="imagePaneLabel"
           onClick={this.props.executeNucleusDetection}
           disabled={this.props.nucleusDetectInfo != null}
         >
@@ -175,6 +178,18 @@ class AnnotationItem extends Component {
     const className = this.props.selected
       ? "annotationItemSelected"
       : "annotationItem";
+    const button =
+      this.props.index === 0 ? (
+        <div className="annotationButtonStatic" />
+      ) : (
+        <TrashButton
+          className="annotationButton"
+          onClick={(e) => {
+            e.stopPropagation();
+            this.props.removeAnnotation(this.props.index);
+          }}
+        />
+      );
     return (
       <div
         onClick={(e) => {
@@ -187,6 +202,7 @@ class AnnotationItem extends Component {
             key="name"
             type="text"
             className="channelTextInput"
+            disabled={this.props.index === 0}
             onChange={(e) => {
               this.props.onAnnotationChange(
                 this.props.index,
@@ -196,13 +212,7 @@ class AnnotationItem extends Component {
             }}
             value={this.props.annotation.name}
           />
-          <TrashButton
-            className="annotationButton"
-            onClick={(e) => {
-              e.stopPropagation();
-              this.props.removeAnnotation(this.props.index);
-            }}
-          />
+          {button}
         </div>
         <hr className="channelHR" />
       </div>

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { tiffImage, sliceImageFromAnnotation } from "./utils/tiffModel";
+import { Square } from "./utils/annotations";
 import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
@@ -19,11 +20,11 @@ class App extends Component {
         activeFile: null, // String of file path for indexing in files
         files: new Map(), // Map of (file path, projectFile)
         name: "No Project Loaded",
+        compositeOp: "screen",
       },
       tabs: new Map(), // Open tabs (path, path) (could be a set but I'd have to make changes)
       nucleusDetectInfo: null,
-      selectedAnnotation: -1,
-      compositeOp: "screen",
+      selectedAnnotation: 0,
     };
   }
 
@@ -77,7 +78,7 @@ class App extends Component {
   selectTab = (key) => {
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, activeFile: key },
-      selectedAnnotation: -1,
+      selectedAnnotation: 0,
     }));
   };
 
@@ -96,14 +97,17 @@ class App extends Component {
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, activeFile: newActive },
       tabs: newTabs,
-      selectedAnnotation: -1,
+      selectedAnnotation: 0,
     }));
   };
 
   selectCompositeOp = (e) => {
-    this.setState({
-      compositeOp: e.target.value,
-    });
+    this.setState((prevState) => ({
+      loadedProject: {
+        ...prevState.loadedProject,
+        compositeOp: e.target.value,
+      },
+    }));
   };
 
   addAnnotation = (annotation) => {
@@ -145,7 +149,7 @@ class App extends Component {
     newFiles.set(this.state.loadedProject.activeFile, newFile);
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, files: newFiles },
-      selectedAnnotation: -1,
+      selectedAnnotation: 0,
     }));
   };
 
@@ -235,10 +239,20 @@ class App extends Component {
             ...prevState.loadedProject,
             activeFile: file.path,
           },
-          selectedAnnotation: -1,
+          selectedAnnotation: 0,
         }));
         return;
       }
+
+      const backgroundAnnotation = Square(
+        0,
+        0,
+        file.imageData.width + 1,
+        file.imageData.height + 1,
+        "red",
+        "Background"
+      );
+      file.annotations.push(backgroundAnnotation);
 
       const newFiles = new Map(this.state.loadedProject.files);
       newFiles.set(file.path, file);
@@ -251,7 +265,7 @@ class App extends Component {
           activeFile: file.path,
           files: newFiles,
         },
-        selectedAnnotation: -1,
+        selectedAnnotation: 0,
         tabs: newTabs,
       }));
 
@@ -308,9 +322,9 @@ class App extends Component {
     // -------------- Nucleus Detect Results: --------------
     ipcRenderer.on("nucleus-detect-result-buffer", (event, nucleusBuffer) => {
       const detectionArray = new Uint32Array(nucleusBuffer.buffer);
-      if (this.state.nucleusDetectInfo == null) return;
       const info = this.state.nucleusDetectInfo;
-      const loadedFile = this.state.loadedProject.files[info.loadedFile];
+      if (info == null) return;
+      const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
       if (loadedFile == null) return;
       const annotation = loadedFile.annotations[info.selectedAnnotation];
 
@@ -376,7 +390,7 @@ class App extends Component {
             tabs={this.state.tabs}
             nucleusDetectInfo={this.state.nucleusDetectInfo}
             selectCompositeOp={this.selectCompositeOp}
-            compositeOp={this.state.compositeOp}
+            compositeOp={this.state.loadedProject.compositeOp}
           />
           <DisplayPage
             ref={this.displayPageRef}
@@ -386,7 +400,7 @@ class App extends Component {
             addAnnotation={this.addAnnotation}
             tabs={this.state.tabs}
             closeTab={this.closeTab}
-            compositeOp={this.state.compositeOp}
+            compositeOp={this.state.loadedProject.compositeOp}
             selectTab={this.selectTab}
           />
           <RightPane
