@@ -221,7 +221,6 @@ export default class AnnotatedCanvas extends Component {
   };
 
   updateCanvas = () => {
-    // console.log(this.state);
     const canvas = this.canvasRef.current;
     const ctx = canvas.getContext("2d");
     const boundingRect = this.canvasRef.current.getBoundingClientRect();

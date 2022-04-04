@@ -17,10 +17,10 @@ const LeftPanes = {
 };
 
 class ProjectFile extends Component {
-  handleDoubleClick = (e) => {
-    if (this.props.tabIndex < 0)
+  handleClick = (e) => {
+    if (!this.props.tabs.get(this.props.file.path)) {
       ipcRenderer.send("request-image-load", this.props.file.path);
-    else this.props.selectTab(this.props.tabIndex);
+    } else this.props.selectTab(this.props.file.path);
   };
 
   render() {
@@ -28,7 +28,7 @@ class ProjectFile extends Component {
       ? "projectFileSelected"
       : "projectFile";
     return (
-      <div className={className} onDoubleClick={this.handleDoubleClick}>
+      <div className={className} onClick={this.handleClick}>
         <div className="imageThumb">
           <p className="imageText" style={{ margin: "0", fontSize: "20px" }}>
             T
@@ -41,28 +41,19 @@ class ProjectFile extends Component {
 }
 
 class ProjectPane extends Component {
-  getTabIndex = (file) => {
-    for (let index = 0; index < this.props.project.openFiles.length; index++) {
-      const openFile = this.props.project.openFiles[index];
-      if (openFile.path === file.path) return index;
-    }
-    return -1;
-  };
-
   render() {
-    const selectedImage =
-      this.props.project.openFiles[this.props.project.activeFile];
+    const selectedImage = this.props.project.activeFile;
 
     return (
       <div className="projectPane">
         <h1 className="paneHeader">{this.props.project.name}</h1>
-        {this.props.project.filePaths.map((file, index) => (
+        {[...this.props.project.files.keys()].map((key, index) => (
           <ProjectFile
-            file={file}
-            key={index}
+            file={this.props.project.files.get(key)}
+            key={key}
+            tabs={this.props.tabs}
             selectTab={this.props.selectTab}
-            tabIndex={this.getTabIndex(file)}
-            selected={file.path === selectedImage?.path}
+            selected={key === selectedImage}
           />
         ))}
       </div>
@@ -72,32 +63,37 @@ class ProjectPane extends Component {
 
 class ImagePane extends Component {
   render() {
-    const selectedImage =
-      this.props.project.openFiles[this.props.project.activeFile];
+    const selectedImage = this.props.project.files.get(
+      this.props.project.activeFile
+    );
+
     return selectedImage ? (
       <div className="imagePane">
         <h1 className="imagePaneHeader">Name</h1>
         <p className="imagePaneLabel">{selectedImage.name}</p>
         <h1 className="imagePaneHeader">Width</h1>
-        <p className="imagePaneLabel">{selectedImage.width}</p>
+        <p className="imagePaneLabel">{selectedImage.imageData.width}</p>
         <h1 className="imagePaneHeader">Height</h1>
-        <p className="imagePaneLabel">{selectedImage.height}</p>
+        <p className="imagePaneLabel">{selectedImage.imageData.height}</p>
         <h1 className="imagePaneHeader">Channels</h1>
-        <p className="imagePaneLabel">{selectedImage.channels}</p>
+        <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
         <h1 className="imagePaneHeader">Cell Channel</h1>
         <select
           onChange={this.props.selectCellChannel}
           value={selectedImage.cellDetectChannel}
         >
-          {selectedImage.idfArray.map((item, index) => {
+          {selectedImage.channelNames.map((item, index) => {
             return (
               <option value={index} key={index}>
-                {item.name}
+                {item}
               </option>
             );
           })}
         </select>
-        <button onClick={this.props.executeNucleusDetection}>
+        <button
+          onClick={this.props.executeNucleusDetection}
+          disabled={this.props.nucleusDetectInfo != null}
+        >
           Execute Nucleus Detection
         </button>
       </div>
@@ -186,8 +182,9 @@ class AnnotationPane extends Component {
   };
 
   render() {
-    const selectedImage =
-      this.props.project.openFiles[this.props.project.activeFile];
+    const selectedImage = this.props.project.files.get(
+      this.props.project.activeFile
+    );
     return selectedImage ? (
       <div className="annotationPane">
         {selectedImage.annotations.map((annotation, index) => (
@@ -260,6 +257,7 @@ export default class LeftPane extends Component {
       case LeftPanes.Project:
         return (
           <ProjectPane
+            tabs={this.props.tabs}
             project={this.props.project}
             selectTab={this.props.selectTab}
           />
@@ -268,6 +266,7 @@ export default class LeftPane extends Component {
         return (
           <ImagePane
             project={this.props.project}
+            nucleusDetectInfo={this.props.nucleusDetectInfo}
             executeNucleusDetection={this.props.executeNucleusDetection}
             selectCellChannel={this.props.selectCellChannel}
           />

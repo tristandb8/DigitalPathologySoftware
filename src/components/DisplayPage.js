@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { ReactComponent as RulerButton } from "../resources/Ruler.svg";
+// import { ReactComponent as RulerButton } from "../resources/Ruler.svg";
 import { ReactComponent as GridButton } from "../resources/Grid.svg";
 import { ReactComponent as ExpandButton } from "../resources/Expand.svg";
 import { ReactComponent as TapButton } from "../resources/Tap.svg";
@@ -117,7 +117,6 @@ class Toolbar extends Component {
 class Tab extends Component {
   render() {
     const className = this.props.selected ? "tabSelected" : "tab";
-
     return (
       <div
         className={className}
@@ -129,7 +128,7 @@ class Tab extends Component {
           className="tabTitle"
           style={{ color: this.props.selected ? "#333333" : "#616161" }}
         >
-          {this.props.file.name}
+          {this.props.title}
         </p>
         <div className="tabClose">
           <CloseButton
@@ -149,19 +148,18 @@ class Tabbar extends Component {
   render() {
     return (
       <div className="tabbar">
-        {this.props.project.openFiles.map((file, index) => (
+        {[...this.props.tabs.keys()].map((key, index) => (
           <Tab
-            key={index}
-            selected={index === this.props.project.activeFile}
-            file={file}
+            key={key}
+            selected={key === this.props.project.activeFile}
             onClick={(e) => {
-              this.props.selectTab(index);
+              this.props.selectTab(key);
             }}
             closeTab={() => {
-              this.props.closeTab(index);
+              this.props.closeTab(key);
               this.props.resetView();
             }}
-            title={`Tab ${index}`}
+            title={`${this.props.project.files.get(key).name}`}
           />
         ))}
       </div>
@@ -215,6 +213,7 @@ export default class DisplayPage extends Component {
           closeTab={this.props.closeTab}
           selectTab={this.props.selectTab}
           resetView={this.resetView}
+          tabs={this.props.tabs}
         />
         <Toolbar
           grid={this.state.grid}
@@ -228,7 +227,7 @@ export default class DisplayPage extends Component {
         <PanZoomCanvas
           ref={this.canvasRef}
           grid={this.state.grid}
-          file={this.props.project.openFiles[this.props.project.activeFile]}
+          file={this.props.project.files.get(this.props.project.activeFile)}
           onZoom={this.onZoom}
           addAnnotation={this.props.addAnnotation}
           selectedAnnotation={this.props.selectedAnnotation}

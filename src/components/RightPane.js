@@ -30,13 +30,9 @@ class ChannelItem extends React.Component {
             type="text"
             className="channelTextInput"
             onChange={(e) => {
-              this.props.onChannelChange(
-                this.props.index,
-                "name",
-                e.target.value
-              );
+              this.props.renameChannel(this.props.index, e.target.value);
             }}
-            defaultValue={this.props.channel.name}
+            defaultValue={this.props.channelName}
           />
           <input
             key="selected"
@@ -133,19 +129,21 @@ export default class RightPane extends React.Component {
   };
 
   render() {
-    const file = this.props.project.openFiles[this.props.project.activeFile];
+    const file = this.props.project.files.get(this.props.project.activeFile);
     if (file != null) {
       return (
         <div className="rightPane">
           <div className="channelList">
-            {file.idfArray.map((channel, index) => (
+            {file.imageData.idfArray.map((channel, index) => (
               <ChannelItem
                 key={index}
                 channel={channel}
                 index={index}
+                channelName={file.channelNames[index]}
                 selectedChannel={this.state.selectedChannel}
                 channelSelected={this.channelSelected}
                 onChannelChange={this.props.onChannelChange}
+                renameChannel={this.props.renameChannel}
               />
             ))}
           </div>

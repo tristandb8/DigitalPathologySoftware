@@ -21,6 +21,8 @@ export default class PanZoomCanvas extends Component {
   }
 
   resetView = () => {
+    if (!this.portRef.current) return;
+
     const scaleX =
       this.portRef.current.offsetWidth / this.canvasRef.current.offsetWidth;
     const scaleY =
@@ -58,7 +60,7 @@ export default class PanZoomCanvas extends Component {
     const canvas = this.canvasRef.current;
     if (canvas == null) return;
     const ctx = canvas.getContext("2d");
-    const loadedFile = this.props.file;
+    const loadedFile = this.props.file.imageData;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);

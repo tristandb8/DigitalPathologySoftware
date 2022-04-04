@@ -4,6 +4,7 @@ import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
+import { projectFile } from "./utils/projectFile";
 import "./App.css";
 
 const { ipcRenderer } = window.require("electron");
@@ -15,26 +16,27 @@ class App extends Component {
 
     this.state = {
       loadedProject: {
-        openFiles: [], // Files openened in any tab
-        activeFile: -1, // The currently selected tab index
-        // Admittedly this should be renamed at somepoint and all the save data in
-        // openFiles may be moved here in order to keep data persistence
-        filePaths: [], // Files that were opened
-        cellDetectChannel: 0,
+        activeFile: null, // String of file path for indexing in files
+        files: new Map(), // Map of (file path, projectFile)
         name: "No Project Loaded",
       },
+      tabs: new Map(), // Open tabs (path, path) (could be a set but I'd have to make changes)
       nucleusDetectInfo: null,
       selectedAnnotation: -1,
     };
   }
 
   executeNucleusDetection = () => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
     const annotation = loadedFile.annotations[this.state.selectedAnnotation];
     if (!loadedFile || this.state.nucleusDetectInfo != null) return;
 
-    const imageData = sliceImageFromAnnotation(loadedFile, annotation);
+    const imageData = sliceImageFromAnnotation(
+      loadedFile.imageData,
+      annotation
+    );
 
     this.setState((prevState) => ({
       nucleusDetectInfo: {
@@ -56,48 +58,51 @@ class App extends Component {
 
   selectCellChannel = (e) => {
     const index = e.target.value;
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
     if (!loadedFile) return;
     let newFile = {
       ...loadedFile,
       cellDetectChannel: index,
     };
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
+    let newFiles = new Map(this.state.loadedProject.files);
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
     }));
   };
 
-  selectTab = (index) => {
+  selectTab = (key) => {
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, activeFile: index },
+      loadedProject: { ...prevState.loadedProject, activeFile: key },
       selectedAnnotation: -1,
     }));
   };
 
-  closeTab = (index) => {
-    let newFiles = [...this.state.loadedProject.openFiles];
-    // ipcRenderer.send('saveImage', newFiles);
-    newFiles.splice(index, 1);
-    let newActive =
-      this.state.loadedProject.activeFile < index
-        ? this.state.loadedProject.activeFile
-        : Math.max(this.state.loadedProject.activeFile - 1, 0);
+  closeTab = (key) => {
+    let newTabs = new Map(this.state.tabs);
+    const oldTabs = [...newTabs.keys()];
+    const keyIndex = oldTabs.indexOf(key);
+    const activeIndex = oldTabs.indexOf(this.state.loadedProject.activeFile);
+    newTabs.delete(key);
+
+    // TODO: Set tab to some adjacent tab
+    let newActive = activeIndex;
+    if (keyIndex === activeIndex) newActive = activeIndex - 1;
+    newActive = oldTabs[newActive];
+
     this.setState((prevState) => ({
-      loadedProject: {
-        ...prevState.loadedProject,
-        openFiles: newFiles,
-        activeFile: newActive,
-      },
+      loadedProject: { ...prevState.loadedProject, activeFile: newActive },
+      tabs: newTabs,
       selectedAnnotation: -1,
     }));
   };
 
   addAnnotation = (annotation) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
     if (!loadedFile) return;
 
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
@@ -108,62 +113,86 @@ class App extends Component {
       annotations: [...loadedFile.annotations, annotation],
     };
 
-    // Create a copy of the new openFiles array and set the new file
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
+    // Create a copy of the new files array and set the new file
+    let newFiles = new Map(this.state.loadedProject.files);
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
 
     // Update the state of the loaded project with the new files array
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
     }));
   };
 
   removeAnnotation = (index) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
-    if (!loadedFile) return;
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
+    if (!loadedFile || this.state.nucleusDetectInfo) return;
+
     let newFile = {
       ...loadedFile,
       annotations: [...loadedFile.annotations],
     };
     newFile.annotations.splice(index, 1);
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
+    let newFiles = new Map(this.state.loadedProject.files);
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
       selectedAnnotation: -1,
     }));
   };
 
   handleAnnotationChange = (index, key, value) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
     if (!loadedFile) return;
     let newArray = [...loadedFile.annotations];
     let newAnnotation = { ...newArray[index] };
     newAnnotation[key] = value;
     newArray[index] = newAnnotation;
+    let newFiles = new Map(this.state.loadedProject.files);
     let newFile = { ...loadedFile, annotations: newArray };
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
+    }));
+  };
+
+  renameChannel = (index, newName) => {
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
+    if (!loadedFile) return;
+
+    let newChannels = [...loadedFile.channelNames];
+    newChannels[index] = newName;
+    const newFile = { ...loadedFile, channelNames: newChannels };
+    let newFiles = new Map(this.state.loadedProject.files);
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
+    this.setState((prevState) => ({
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
     }));
   };
 
   handleChannelChange = (index, key, value) => {
-    const loadedFile =
-      this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
     if (!loadedFile) return;
-    let newArray = [...loadedFile.idfArray];
+
+    let newArray = [...loadedFile.imageData.idfArray];
     let newChannel = { ...newArray[index] };
     newChannel[key] = value;
     newArray[index] = newChannel;
-    let newFile = { ...loadedFile, idfArray: newArray };
-    let newFiles = [...this.state.loadedProject.openFiles];
-    newFiles[this.state.loadedProject.activeFile] = newFile;
+    let newFile = {
+      ...loadedFile,
+      imageData: { ...loadedFile.imageData, idfArray: newArray },
+    };
+    let newFiles = new Map(this.state.loadedProject.files);
+    newFiles.set(this.state.loadedProject.activeFile, newFile);
     this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+      loadedProject: { ...prevState.loadedProject, files: newFiles },
     }));
   };
 
@@ -175,54 +204,48 @@ class App extends Component {
 
   componentDidMount() {
     ipcRenderer.on("new-image", (event, fileContent, append) => {
-      let file;
+      let imageData, cellDetectChannel;
 
       if (fileContent.type === "tiff") {
-        file = tiffImage(fileContent.data);
+        imageData = tiffImage(fileContent.data);
+        cellDetectChannel = imageData.channels - 1;
       } else if (fileContent.type === "image") {
-        file = { type: "image", data: fileContent.data, annotations: [] };
+        imageData = fileContent.data;
+        cellDetectChannel = -1;
       }
 
-      file.path = fileContent.path;
-      file.name = fileContent.name;
+      const file = projectFile(
+        fileContent.type,
+        fileContent.name,
+        fileContent.path,
+        cellDetectChannel,
+        imageData
+      );
 
-      // Check if the file path is already stored in the project
-      for (const storedFile of this.state.loadedProject.filePaths) {
-        if (storedFile.path === file.path) append = false;
+      if (this.state.tabs.get(file.path)) {
+        this.setState((prevState) => ({
+          loadedProject: {
+            ...prevState.loadedProject,
+            activeFile: file.path,
+          },
+          selectedAnnotation: -1,
+        }));
+        return;
       }
 
-      // Check if the file is already opened (switch to the tab)
-      let openIndex = -1;
-      for (
-        let index = 0;
-        index < this.state.loadedProject.openFiles.length;
-        index++
-      ) {
-        const openFile = this.state.loadedProject.openFiles[index];
-        if (openFile.path === fileContent.path) {
-          openIndex = index;
-          append = false;
-        }
-      }
+      const newFiles = new Map(this.state.loadedProject.files);
+      newFiles.set(file.path, file);
+      const newTabs = new Map(this.state.tabs);
+      newTabs.set(file.path, file.path);
 
       this.setState((prevState) => ({
         loadedProject: {
-          openFiles:
-            openIndex === -1
-              ? [...prevState.loadedProject.openFiles, file]
-              : prevState.loadedProject.openFiles,
-          activeFile:
-            openIndex === -1
-              ? prevState.loadedProject.openFiles.length
-              : openIndex,
-          filePaths: append
-            ? [
-                ...prevState.loadedProject.filePaths,
-                { path: file.path, name: file.name },
-              ]
-            : prevState.loadedProject.filePaths,
-          name: prevState.loadedProject.name,
+          ...prevState.loadedProject,
+          activeFile: file.path,
+          files: newFiles,
         },
+        selectedAnnotation: -1,
+        tabs: newTabs,
       }));
 
       if (this.displayPageRef.current?.canvasRef?.current)
@@ -261,8 +284,9 @@ class App extends Component {
 
     // ------------------ Nucleus Detect: ------------------
     ipcRenderer.on("get-channel-info", (event, fileContent) => {
-      const loadedFile =
-        this.state.loadedProject.openFiles[this.state.loadedProject.activeFile];
+      const loadedFile = this.state.loadedProject.files.get(
+        this.state.loadedProject.activeFile
+      );
       if (!loadedFile) return;
       const dimensions = [loadedFile.width, loadedFile.height];
       ipcRenderer.send(
@@ -279,8 +303,7 @@ class App extends Component {
       const detectionArray = new Uint32Array(nucleusBuffer.buffer);
       if (this.state.nucleusDetectInfo == null) return;
       const info = this.state.nucleusDetectInfo;
-      console.log(info);
-      const loadedFile = this.state.loadedProject.openFiles[info.loadedFile];
+      const loadedFile = this.state.loadedProject.files[info.loadedFile];
       if (loadedFile == null) return;
       const annotation = loadedFile.annotations[info.selectedAnnotation];
 
@@ -294,10 +317,10 @@ class App extends Component {
         };
         newArray[info.selectedAnnotation] = newAnnotation;
         let newFile = { ...loadedFile, annotations: newArray };
-        let newFiles = [...this.state.loadedProject.openFiles];
+        let newFiles = [...this.state.loadedProject.files];
         newFiles[this.state.loadedProject.activeFile] = newFile;
         this.setState((prevState) => ({
-          loadedProject: { ...prevState.loadedProject, openFiles: newFiles },
+          loadedProject: { ...prevState.loadedProject, files: newFiles },
           nucleusDetectInfo: null,
         }));
       } else {
@@ -319,7 +342,7 @@ class App extends Component {
         this.setState((prevState) => ({
           loadedProject: {
             ...prevState.loadedProject,
-            openFiles: [],
+            files: [],
             activeFile: -1,
             filePaths: [],
             cellDetectChannel: 0,
@@ -343,6 +366,8 @@ class App extends Component {
             removeAnnotation={this.removeAnnotation}
             executeNucleusDetection={this.executeNucleusDetection}
             selectCellChannel={this.selectCellChannel}
+            tabs={this.state.tabs}
+            nucleusDetectInfo={this.state.nucleusDetectInfo}
           />
           <DisplayPage
             ref={this.displayPageRef}
@@ -350,12 +375,14 @@ class App extends Component {
             selectAnnotation={this.handleSelectedAnnotationChange}
             selectedAnnotation={this.state.selectedAnnotation}
             addAnnotation={this.addAnnotation}
+            tabs={this.state.tabs}
             closeTab={this.closeTab}
             selectTab={this.selectTab}
           />
           <RightPane
             project={this.state.loadedProject}
             onChannelChange={this.handleChannelChange}
+            renameChannel={this.renameChannel}
           />
         </Split>
       </div>

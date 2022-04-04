@@ -82,7 +82,6 @@ export const tiffImage = (fileData) => {
   for (let i = 0; i < idfArray.length; i++) {
     idfArray[i].channelColor = Object.values(colors)[i];
     idfArray[i].enabled = i === idfArray.length - 1;
-    idfArray[i].name = `Channel ${i + 1}`;
     idfArray[i].max = getMax(idfArray[i].data);
 
     // todo: calculate threshold value automatically using histogram
@@ -92,16 +91,13 @@ export const tiffImage = (fileData) => {
   const width = idfArray[0].width;
   const height = idfArray[0].height;
   const channels = idfArray.length;
-  const cellDetectChannel = idfArray.length - 1;
 
   return {
     type: "tiff",
     idfArray,
     width,
     height,
-    cellDetectChannel,
     channels,
-    annotations: [],
   };
 };
 
