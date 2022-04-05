@@ -1,8 +1,9 @@
 import React from "react";
 import "rc-slider/assets/index.css";
 import "../App.css";
-import { Range } from "rc-slider";
+import { Range, SliderTooltip } from "rc-slider";
 import { SketchPicker } from "react-color";
+// import CustomPicker from "./CustomColorPicker";
 
 class ChannelItem extends React.Component {
   render() {
@@ -85,16 +86,21 @@ class ChannelInput extends React.Component {
     // TODO: Create custom color picker
     if (this.props.selectedChannel != null) {
       return (
-        <div style={{ width: "80%" }}>
-          <p>Threshold:</p>
+        <div className="imagePane">
+          <h1 className="imagePaneHeader">Threshold</h1>
           <Range
             value={[this.props.sliderRange.min, this.props.sliderRange.max]}
             onChange={(e) => {
               this.props.sliderChanged(e);
             }}
           />
-          <p>Color:</p>
-          <SketchPicker color={this.state.color} onChange={this.handleChange} />
+          <h1 className="imagePaneHeader">Color</h1>
+          <SketchPicker
+            color={this.state.color}
+            onChange={this.handleChange}
+            disableAlpha={true}
+          />
+          {/* <CustomPicker color={this.state.color} onChange={this.handleChange} /> */}
         </div>
       );
     } else {

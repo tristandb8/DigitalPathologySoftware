@@ -14,6 +14,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.displayPageRef = React.createRef(null);
+    this.intervalID = null;
 
     this.state = {
       loadedProject: {
@@ -24,6 +25,7 @@ class App extends Component {
       },
       tabs: new Map(), // Open tabs (path, path) (could be a set but I'd have to make changes)
       nucleusDetectInfo: null,
+      nucleusRuntime: 0,
       selectedAnnotation: 0,
     };
   }
@@ -37,8 +39,16 @@ class App extends Component {
 
     const imageData = sliceImageFromAnnotation(
       loadedFile.imageData,
+      loadedFile.cellDetectChannel,
       annotation
     );
+
+    this.intervalID = setInterval(() => {
+      if (this.state.nucleusDetectInfo)
+        this.setState((prevState) => ({
+          nucleusRuntime: Date.now() - prevState.nucleusDetectInfo.startTime,
+        }));
+    }, 1000);
 
     this.setState((prevState) => ({
       nucleusDetectInfo: {
@@ -46,6 +56,7 @@ class App extends Component {
         height: imageData.height,
         loadedFile: this.state.loadedProject.activeFile,
         selectedAnnotation: this.state.selectedAnnotation,
+        startTime: Date.now(),
       },
     }));
 
@@ -59,7 +70,7 @@ class App extends Component {
   };
 
   selectCellChannel = (e) => {
-    const index = e.target.value;
+    const index = parseInt(e.target.value);
     const loadedFile = this.state.loadedProject.files.get(
       this.state.loadedProject.activeFile
     );
@@ -328,6 +339,7 @@ class App extends Component {
       const info = this.state.nucleusDetectInfo;
       if (info == null) return;
       const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
+      console.log(loadedFile);
       if (loadedFile == null) return;
       const annotation = loadedFile.annotations[info.selectedAnnotation];
 
@@ -341,15 +353,19 @@ class App extends Component {
         };
         newArray[info.selectedAnnotation] = newAnnotation;
         let newFile = { ...loadedFile, annotations: newArray };
-        let newFiles = [...this.state.loadedProject.files];
-        newFiles[this.state.loadedProject.activeFile] = newFile;
+        let newFiles = new Map(this.state.loadedProject.files);
+        newFiles.set(info.loadedFile, newFile);
+        clearInterval(this.intervalID);
         this.setState((prevState) => ({
           loadedProject: { ...prevState.loadedProject, files: newFiles },
           nucleusDetectInfo: null,
+          nucleusRuntime: 0,
         }));
       } else {
+        clearInterval(this.intervalID);
         this.setState((prevState) => ({
           nucleusDetectInfo: null,
+          nucleusRuntime: 0,
         }));
       }
     });
@@ -394,6 +410,7 @@ class App extends Component {
             nucleusDetectInfo={this.state.nucleusDetectInfo}
             selectCompositeOp={this.selectCompositeOp}
             compositeOp={this.state.loadedProject.compositeOp}
+            nucleusRuntime={this.state.nucleusRuntime}
           />
           <DisplayPage
             ref={this.displayPageRef}

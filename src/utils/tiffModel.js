@@ -117,7 +117,7 @@ export const getBitmap = (t) => {
   return Promise.all(images);
 };
 
-export const sliceImageFromAnnotation = (t, annotation) => {
+export const sliceImageFromAnnotation = (t, cellDetectChannel, annotation) => {
   let roi = { x: 0, y: 0, w: 0, h: 0 };
   if (annotation) {
     switch (annotation.type) {
@@ -164,7 +164,7 @@ export const sliceImageFromAnnotation = (t, annotation) => {
   };
 
   const intArray = new Uint8ClampedArray(roi.w * roi.h);
-  const channel = t.idfArray[t.cellDetectChannel];
+  const channel = t.idfArray[cellDetectChannel];
   const data = channel.data;
 
   for (let row = 0; row < roi.h; row++) {

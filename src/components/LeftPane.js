@@ -62,6 +62,19 @@ class ProjectPane extends Component {
 }
 
 class ImagePane extends Component {
+  msToTime = (duration) => {
+    // https://stackoverflow.com/questions/19700283/how-to-convert-time-in-milliseconds-to-hours-min-sec-format-in-javascript
+    let seconds = Math.floor((duration / 1000) % 60),
+      minutes = Math.floor((duration / (1000 * 60)) % 60),
+      hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+    hours = hours < 10 ? "0" + hours : hours;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds;
+  };
+
   render() {
     const selectedImage = this.props.project.files.get(
       this.props.project.activeFile
@@ -131,7 +144,9 @@ class ImagePane extends Component {
           onClick={this.props.executeNucleusDetection}
           disabled={this.props.nucleusDetectInfo != null}
         >
-          Execute Nucleus Detection
+          {this.props.nucleusDetectInfo != null
+            ? `${this.msToTime(this.props.nucleusRuntime)}`
+            : "Execute Nucleus Detection"}
         </button>
       </div>
     ) : (
@@ -315,6 +330,7 @@ export default class LeftPane extends Component {
             selectCellChannel={this.props.selectCellChannel}
             selectCompositeOp={this.props.selectCompositeOp}
             compositeOp={this.props.compositeOp}
+            nucleusRuntime={this.props.nucleusRuntime}
           />
         );
       case LeftPanes.Annotation:

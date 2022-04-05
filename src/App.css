@@ -260,7 +260,7 @@
 
 .displayCanvasSelected {
   image-rendering: pixelated;
-  outline: red 1.5px solid;
+  outline: red 2px solid;
   background-color: black;
 }
 
