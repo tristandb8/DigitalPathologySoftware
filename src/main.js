@@ -480,36 +480,89 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
 // Requests information from App.js, returns the current open project.
 function getCytoplasmInfo() {
   mainWindow.webContents.send("get_cytoplasm_info");
+}
 
-  // Receives information from App.js and sends it to nucleiDetect().
-  ipcMain.on("cytoplasm_info", (event, project_name) => {
-    const dirToProject = path.join(
+// Receives information from App.js and sends it to nucleiDetect().
+ipcMain.on("single-channel-info-cyto", 
+  (event, imageArray, imageTitle, dimensions, project_name, tiffFilePath) => {
+    const dir = path.join(
       os.homedir(),
       "Documents",
       "ZDFocus",
-      project_name
+      "tmp",
+      "tmpLastChannel.json"
     );
-    cytoplasmDetect(dirToProject);
-  });
-}
+    fs.writeFileSync(dir, JSON.stringify(imageArray));
+    cytoplasmDetect(imageTitle, dimensions[0], dimensions[1], dir, project_name, tiffFilePath);
+});
 
-function cytoplasmDetect(dir_to_project) {
-  console.log("TESTING CYTOPLASM SCRIPTS...");
+function cytoplasmDetect(fileName, width, height, lastChannelPath, projectName, tiffFilePath) {
+  console.log("Testing Cytoplasm Scripts...");
 
-  const files = dialog.showOpenDialogSync(mainWindow, {
-    properties: ["openFile", "multiSelections"],
-    filters: [{ name: "Images", extensions: ["json"] }],
-  });
+  // Paths used as arguments that will be sent into python scripts.
+  const pathToh5 = path.join(
+    process.cwd(),
+    "src",
+    "python",
+    "mask_rcnn_cell_0030.h5"
+  );
 
+  const pathForTMPchannel = path.join(
+    os.homedir(),
+    "Documents",
+    "ZDFocus",
+    "tmp",
+    "tmp.jpg"
+  );
+
+  const pathForResults =
+    projectName !== "No Project Loaded"
+      ? path.join(
+          os.homedir(),
+          "Documents",
+          "ZDFocus",
+          projectName,
+          "Detect Cytoplasm",
+          `${fileName}_cyto_2D`
+        )
+      : path.join(
+          os.homedir(),
+          "Documents",
+          "ZDFocus",
+          "Detect Cytoplasm",
+          `${fileName}_cyto_2D`
+        );
+
+  // Pre-defined options and arguments that python-shell will read in.
   let options = {
     mode: "text",
+    // I enable/disable this when on my (mike) machine
+    // pythonPath:
+    //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
     pythonOptions: ["-u"], // get print results in real-time
-    args: [files[0], dir_to_project], //An argument which can be accessed in the script using sys.argv[1], [2]
+    args: [
+      pathToh5,
+      lastChannelPath,
+      width,
+      height,
+      pathForTMPchannel,
+      fileName,
+      projectName,
+      tiffFilePath
+    ], //An argument which can be accessed in the script, index starts at 1, not 0.
   };
-  // I had to use this if-else statement because I could not get the './' added to src/python/NucleiDetect.py, would not work otherwise...
 
-  PythonShell.run("./src/python/cytoplasm.py", options, function (err, result) {
+  const resultFn = (err, result) => {
+    console.log(result);
+
     if (err) throw err;
-    console.log("CYTOPLASM DETECT FINISHED...");
-  });
+    console.log("CYTO DETECT FINISHED...");
+    const fileContent = fs.readFileSync(pathForResults);
+    mainWindow.webContents.send("cytoplasm-detect-result-buffer", fileContent);
+  };
+
+  PythonShell.run("./src/python/Nuclei_cyto_detect.py", options, resultFn);
 }
+
+
+
