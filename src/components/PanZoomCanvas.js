@@ -124,6 +124,14 @@ export default class PanZoomCanvas extends Component {
         </div>
       );
     } else {
+      const backgroundSelected = this.props.selectedAnnotation === 0 ? 2 : 1;
+      const borderColor =
+        this.props.file.annotations == null
+          ? "red 1px solid"
+          : this.props.file.annotations[0].color.hex +
+            " " +
+            backgroundSelected +
+            "px solid";
       return (
         <div style={{ width: "100%", height: "100%" }} ref={this.portRef}>
           <TransformWrapper
@@ -154,6 +162,9 @@ export default class PanZoomCanvas extends Component {
                     ? "displayCanvasSelected"
                     : "displayCanvas"
                 }
+                style={{
+                  outline: borderColor,
+                }}
               />
               <div
                 ref={this.gridRef}

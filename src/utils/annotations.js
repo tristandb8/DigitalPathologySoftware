@@ -4,31 +4,6 @@ export const AnnotationTypes = {
   Polygon: "Polygon",
 };
 
-function hexToRgb(hex) {
-  // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-  var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-    return r + r + g + g + b + b;
-  });
-
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
-}
-
-function standardizeColor(str) {
-  // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes
-  var ctx = document.createElement("canvas").getContext("2d");
-  ctx.fillStyle = str;
-  return ctx.fillStyle;
-}
-
 export const Annotation = (type, color, params, name) => {
   return {
     type,
@@ -36,7 +11,6 @@ export const Annotation = (type, color, params, name) => {
     params,
     name,
     nucleusDetection: null,
-    alpha: 30,
     useNucleusDetection: true,
   };
 };
@@ -80,10 +54,13 @@ export const getNucleusDetectionImage = (annotation) => {
   );
 
   for (let i = 0, j = 0; i < data.length; i++) {
-    const threshVal = data[i] > 0 ? 255 : 255 * annotation.color.a;
-    intArray[j++] = annotation.color.r; // R value
-    intArray[j++] = annotation.color.g; // G value
-    intArray[j++] = annotation.color.b; // B value
+    const threshVal =
+      data[i] > 0
+        ? 255 * (1 - annotation.color.rgb.a)
+        : 255 * annotation.color.rgb.a;
+    intArray[j++] = annotation.color.rgb.r; // R value
+    intArray[j++] = annotation.color.rgb.g; // G value
+    intArray[j++] = annotation.color.rgb.b; // B value
     intArray[j++] = threshVal; // A value
   }
 

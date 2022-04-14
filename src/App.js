@@ -349,7 +349,6 @@ class App extends Component {
       const info = this.state.nucleusDetectInfo;
       if (info == null) return;
       const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
-      console.log(loadedFile);
       if (loadedFile == null) return;
       const annotation = loadedFile.annotations[info.selectedAnnotation];
 
@@ -387,20 +386,21 @@ class App extends Component {
       );
       const annotation = loadedFile.annotations[0];
       if (!loadedFile || this.state.cytoplasmDetectInfo != null) return;
-  
+
       const imageData = sliceImageFromAnnotation(
         loadedFile.imageData,
         loadedFile.cellDetectChannel,
         annotation
       );
-  
+
       this.intervalID = setInterval(() => {
         if (this.state.nucleusDetectInfo)
           this.setState((prevState) => ({
-            cytoplasmRuntime: Date.now() - prevState.nucleusDetectInfo.startTime,
+            cytoplasmRuntime:
+              Date.now() - prevState.nucleusDetectInfo.startTime,
           }));
       }, 1000);
-  
+
       this.setState((prevState) => ({
         cytoplasmDetectInfo: {
           width: imageData.width,
@@ -421,43 +421,42 @@ class App extends Component {
       );
     });
 
+    // -------------- Cytoplasm Detect Results: --------------
+    // ipcRenderer.on("cytoplasm-detect-result-buffer", (event, cytoplasmBuffer) => {
+    //   const detectionArray = new Uint32Array(cytoplasmBuffer.buffer);
+    //   const info = this.state.cytoplasmDetectInfo;
+    //   if (info == null) return;
+    //   const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
+    //   console.log(loadedFile);
+    //   if (loadedFile == null) return;
+    //   const annotation = loadedFile.annotations[0];
 
-        // -------------- Cytoplasm Detect Results: --------------
-        // ipcRenderer.on("cytoplasm-detect-result-buffer", (event, cytoplasmBuffer) => {
-        //   const detectionArray = new Uint32Array(cytoplasmBuffer.buffer);
-        //   const info = this.state.cytoplasmDetectInfo;
-        //   if (info == null) return;
-        //   const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
-        //   console.log(loadedFile);
-        //   if (loadedFile == null) return;
-        //   const annotation = loadedFile.annotations[0];
-    
-        //   if (annotation != null) {
-        //     let newArray = [...loadedFile.annotations];
-        //     let newAnnotation = { ...newArray[info.selectedAnnotation] };
-        //     newAnnotation.nucleusDetection = {
-        //       detectionArray,
-        //       height: info.height,
-        //       width: info.width,
-        //     };
-        //     newArray[info.selectedAnnotation] = newAnnotation;
-        //     let newFile = { ...loadedFile, annotations: newArray };
-        //     let newFiles = new Map(this.state.loadedProject.files);
-        //     newFiles.set(info.loadedFile, newFile);
-        //     clearInterval(this.intervalID);
-        //     this.setState((prevState) => ({
-        //       loadedProject: { ...prevState.loadedProject, files: newFiles },
-        //       cytoplasmDetectInfo: null,
-        //       cytoplasmRuntime: 0,
-        //     }));
-        //   } else {
-        //     clearInterval(this.intervalID);
-        //     this.setState((prevState) => ({
-        //       cytoplasmDetectInfo: null,
-        //       cytoplasmRuntime: 0,
-        //     }));
-        //   }
-        // });
+    //   if (annotation != null) {
+    //     let newArray = [...loadedFile.annotations];
+    //     let newAnnotation = { ...newArray[info.selectedAnnotation] };
+    //     newAnnotation.nucleusDetection = {
+    //       detectionArray,
+    //       height: info.height,
+    //       width: info.width,
+    //     };
+    //     newArray[info.selectedAnnotation] = newAnnotation;
+    //     let newFile = { ...loadedFile, annotations: newArray };
+    //     let newFiles = new Map(this.state.loadedProject.files);
+    //     newFiles.set(info.loadedFile, newFile);
+    //     clearInterval(this.intervalID);
+    //     this.setState((prevState) => ({
+    //       loadedProject: { ...prevState.loadedProject, files: newFiles },
+    //       cytoplasmDetectInfo: null,
+    //       cytoplasmRuntime: 0,
+    //     }));
+    //   } else {
+    //     clearInterval(this.intervalID);
+    //     this.setState((prevState) => ({
+    //       cytoplasmDetectInfo: null,
+    //       cytoplasmRuntime: 0,
+    //     }));
+    //   }
+    // });
 
     // ------------------ Delete Project: ------------------
     ipcRenderer.on("delete_project", (event, project_name) => {
