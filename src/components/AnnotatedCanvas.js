@@ -113,7 +113,15 @@ export default class AnnotatedCanvas extends Component {
                   start.x / this.props.scale,
                   start.y / this.props.scale,
                   r / this.props.scale,
-                  "red"
+                  {
+                    hex: "#ff0000",
+                    rgb: {
+                      r: 255,
+                      g: 0,
+                      b: 0,
+                      a: 0.1,
+                    },
+                  }
                 )
               );
             drawUpdate = true;
@@ -128,7 +136,15 @@ export default class AnnotatedCanvas extends Component {
                   start.y / this.props.scale,
                   (end.x - start.x) / this.props.scale,
                   (end.y - start.y) / this.props.scale,
-                  "red"
+                  {
+                    hex: "#ff0000",
+                    rgb: {
+                      r: 255,
+                      g: 0,
+                      b: 0,
+                      a: 0.1,
+                    },
+                  }
                 )
               );
             drawUpdate = true;
@@ -159,7 +175,15 @@ export default class AnnotatedCanvas extends Component {
               [...this.state.clickPoints].map((x) =>
                 Point.scale(x, 1 / this.props.scale)
               ),
-              "red"
+              {
+                hex: "#ff0000",
+                rgb: {
+                  r: 255,
+                  g: 0,
+                  b: 0,
+                  a: 0.1,
+                },
+              }
             )
           );
 
@@ -388,7 +412,7 @@ export default class AnnotatedCanvas extends Component {
           case Annotations.AnnotationTypes.Circle:
             ctx.beginPath();
             ctx.lineWidth = lineWidth;
-            ctx.strokeStyle = annotation.color;
+            ctx.strokeStyle = annotation.color.hex;
             ctx.arc(
               annotation.params.x * scale,
               annotation.params.y * scale,
@@ -405,7 +429,7 @@ export default class AnnotatedCanvas extends Component {
             if (backgroundFill) {
               ctx.beginPath();
               ctx.lineWidth = lineWidth;
-              ctx.strokeStyle = "red";
+              ctx.strokeStyle = annotation.color.hex;
               ctx.strokeRect(
                 annotation.params.x * scale,
                 annotation.params.y * scale,
@@ -425,7 +449,7 @@ export default class AnnotatedCanvas extends Component {
           case Annotations.AnnotationTypes.Polygon:
             ctx.beginPath();
             ctx.lineWidth = lineWidth;
-            ctx.strokeStyle = "red";
+            ctx.strokeStyle = annotation.color;
 
             ctx.moveTo(
               annotation.params[0].x * scale,

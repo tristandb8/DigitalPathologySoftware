@@ -8,6 +8,7 @@ import { ReactComponent as PolygonButton } from "../resources/Polygon.svg";
 import { ReactComponent as CircleButton } from "../resources/Circle.svg";
 import { ReactComponent as SquareButton } from "../resources/Square.svg";
 import { AnnotationTypes } from "../utils/annotations";
+import { SketchPicker } from "react-color";
 const { ipcRenderer } = window.require("electron");
 
 const LeftPanes = {
@@ -162,28 +163,28 @@ class AnnotationItem extends Component {
         return (
           <CircleButton
             className="annotationIcon"
-            stroke={this.props.annotation.color}
+            stroke={this.props.annotation.color.hex}
           />
         );
       case AnnotationTypes.Square:
         return (
           <SquareButton
             className="annotationIcon"
-            stroke={this.props.annotation.color}
+            stroke={this.props.annotation.color.hex}
           />
         );
       case AnnotationTypes.Polygon:
         return (
           <PolygonButton
             className="annotationIcon"
-            stroke={this.props.annotation.color}
+            stroke={this.props.annotation.color.hex}
           />
         );
       default:
         return (
           <SquareButton
             className="annotationIcon"
-            stroke={this.props.annotation.color}
+            stroke={this.props.annotation.color.hex}
           />
         );
     }
@@ -235,6 +236,66 @@ class AnnotationItem extends Component {
   }
 }
 
+class AnnotationInput extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      color: {
+        hex: "#ff0000",
+        rgb: {
+          r: 255,
+          g: 0,
+          b: 0,
+          a: 0.1,
+        },
+      },
+    };
+  }
+
+  componentDidUpdate(oldProps) {
+    if (oldProps.selectedAnnotation !== this.props.selectedAnnotation) {
+      this.setState({
+        color: this.props.selectedAnnotation?.color || {
+          hex: "#ff0000",
+          rgb: {
+            r: 255,
+            g: 0,
+            b: 0,
+            a: 0.1,
+          },
+        },
+      });
+    }
+  }
+
+  handleChange = (color, event) => {
+    this.props.onAnnotationChange(
+      this.props.selectedAnnotationIndex,
+      "color",
+      color
+    );
+    this.setState({
+      color: color,
+    });
+  };
+
+  render() {
+    if (this.props.selectedAnnotation != null) {
+      return (
+        <div className="imagePane">
+          <h1 className="imagePaneHeader">Color</h1>
+          <SketchPicker
+            color={this.state.color.rgb}
+            onChange={this.handleChange}
+          />
+        </div>
+      );
+    } else {
+      return <div />;
+    }
+  }
+}
+
 class AnnotationPane extends Component {
   selectAnnotation = (index) => {
     this.props.selectAnnotation(index);
@@ -246,20 +307,27 @@ class AnnotationPane extends Component {
     );
     return selectedImage ? (
       <div className="annotationPane">
-        {selectedImage.annotations.map((annotation, index) => (
-          <AnnotationItem
-            key={index}
-            index={index}
-            annotation={annotation}
-            // name={annotation.name}
-            // type={annotation.type}
-            // color={annotation.color}
-            onAnnotationChange={this.props.onAnnotationChange}
-            removeAnnotation={this.props.removeAnnotation}
-            selectAnnotation={this.selectAnnotation}
-            selected={this.props.selectedAnnotation === index}
-          />
-        ))}
+        <div className="annotationList">
+          {selectedImage.annotations.map((annotation, index) => (
+            <AnnotationItem
+              key={index}
+              index={index}
+              annotation={annotation}
+              onAnnotationChange={this.props.onAnnotationChange}
+              removeAnnotation={this.props.removeAnnotation}
+              selectAnnotation={this.selectAnnotation}
+              selected={this.props.selectedAnnotation === index}
+            />
+          ))}
+        </div>
+        <hr className="channelHR" style={{ marginTop: "4px" }} />
+        <AnnotationInput
+          onAnnotationChange={this.props.onAnnotationChange}
+          selectedAnnotationIndex={this.props.selectedAnnotation}
+          selectedAnnotation={
+            selectedImage.annotations[this.props.selectedAnnotation]
+          }
+        />
       </div>
     ) : (
       <div className="annotationPane" />

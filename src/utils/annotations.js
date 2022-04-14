@@ -30,7 +30,15 @@ function standardizeColor(str) {
 }
 
 export const Annotation = (type, color, params, name) => {
-  return { type, color, params, name, nucleusDetection: null };
+  return {
+    type,
+    color,
+    params,
+    name,
+    nucleusDetection: null,
+    alpha: 30,
+    useNucleusDetection: true,
+  };
 };
 
 export const Circle = (x, y, r, color, name) => {
@@ -53,10 +61,11 @@ export const getAnnotationFills = (annotations) => {
     const annotation = annotations[i];
     const nucleusImage = getNucleusDetectionImage(annotation);
 
-    if (nucleusImage) {
+    if (nucleusImage && annotation.useNucleusDetection) {
       fillStyles.push(createImageBitmap(nucleusImage));
     } else {
-      fillStyles.push("#ff000010");
+      const hexString = Math.round(annotation.color.rgb.a * 255).toString(16);
+      fillStyles.push(annotation.color.hex + hexString);
     }
   }
 
@@ -69,14 +78,13 @@ export const getNucleusDetectionImage = (annotation) => {
   const intArray = new Uint8ClampedArray(
     annotation.nucleusDetection.width * annotation.nucleusDetection.height * 4
   );
-  const color = hexToRgb(standardizeColor(annotation.color));
 
   for (let i = 0, j = 0; i < data.length; i++) {
-    const threshVal = data[i] > 0 ? 255 : 10;
-    intArray[j++] = threshVal * color.r; // R value
-    intArray[j++] = threshVal * color.g; // G value
-    intArray[j++] = threshVal * color.b; // B value
-    intArray[j++] = threshVal > 10 ? 225 : 10; // A value
+    const threshVal = data[i] > 0 ? 255 : 255 * annotation.color.a;
+    intArray[j++] = annotation.color.r; // R value
+    intArray[j++] = annotation.color.g; // G value
+    intArray[j++] = annotation.color.b; // B value
+    intArray[j++] = threshVal; // A value
   }
 
   return new ImageData(

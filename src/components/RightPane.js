@@ -1,9 +1,8 @@
 import React from "react";
 import "rc-slider/assets/index.css";
 import "../App.css";
-import { Range, SliderTooltip } from "rc-slider";
+import { Range } from "rc-slider";
 import { SketchPicker } from "react-color";
-// import CustomPicker from "./CustomColorPicker";
 
 class ChannelItem extends React.Component {
   render() {

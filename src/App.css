@@ -46,6 +46,15 @@
   margin: 0px auto 0px auto;
 }
 
+.annotationPane {
+  width: 100%;
+  height: 100%;
+  background-color: #f3f3f3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .rightPane {
   width: 400px;
   height: 100%;
@@ -284,10 +293,13 @@
   padding-left: 4px;
 }
 
-.annotationPane {
-  flex-grow: 100;
+.annotationList {
+  height: 40%;
+  width: 100%;
+  overflow-y: scroll;
+  /* flex-grow: 100;
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: column; */
 }
 
 .imageThumb {

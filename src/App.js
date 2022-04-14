@@ -261,7 +261,15 @@ class App extends Component {
         0,
         file.imageData.width + 1,
         file.imageData.height + 1,
-        "red",
+        {
+          hex: "#ff0000",
+          rgb: {
+            r: 255,
+            g: 0,
+            b: 0,
+            a: 0.1,
+          },
+        },
         "Background"
       );
       file.annotations.push(backgroundAnnotation);
