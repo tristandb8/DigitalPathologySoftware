@@ -27,71 +27,126 @@ class Nucleus(object):
         self.size = size
         self.edges = edges
         self.id = id
-        # calculate center
 
 
-def get_stats(image_path, mask, csv_output_path):
-    # Calulates important statistics for the input image given its corresponding detection mask
-    #   and outputs it to a csv at the desired location.
-    # Parameters:
-    # -----------------
-    # image_path : str, the relative file path of the original .tiff image being analyzed
-    # mask : 2d_arr, 2d array where nuclei are marked with unique values 1-n (n = number of nuclei)
-    #   and nuclei's cytoplasm is marked with its corresponding negative value
-    # csv_output_path : str, relative path the .csv should be output to (default is in tmp folder)
+###### ---------- CSV Creation and Helper Functions --------- ##############
+def pnpoly(vert, test):
+  testx, testy = test
+  verty = [y for _,y in vert]
+  vertx = [x for x,_ in vert]
+  nvert = len(vert)
+  c = False
+  i = 0
+  j = nvert-1
+  while ( i < nvert ):
+    if ( ((verty[i]>testy) != (verty[j]>testy)) and (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) ):
+       c = not c
+    j = i
+    i += 1
+  
+  return c
 
-    im = Image.open(image_path)
-    im.load()
+def pncircle(annotation, query):
+  (cx, cy), radius = annotation
+  qx, qy = query
+  return (cx - qx)**2 + (cy-qy)**2 <= radius**2
 
-    cyto_positions = [[] for _ in range(np.amax(mask))]
-    nuclei_positions = [[] for _ in range(np.amax(mask))]
 
-    for i in range(len(mask)):
-        for j in range(len(mask[0]-1)):
-            val = mask[i][j]
-            if val >= 0:
-                nuclei_positions[val - 1].append((i, j))
-            else:
-                cyto_positions[abs(val) - 1].append((i, j))
+def get_stats(image_path, mask, annotation, csv_output_path):
+  """
+  Calulates important statistics for the input image given its corresponding detection mask
+    and outputs it to a csv at the desired location.
 
-    values = []
-    for channel in range(im.n_frames):
-        im.seek(channel)
-        values.append(np.array(im))
+  Parameters:
+  -----------------
+  image_path : str, the relative file path of the original .tiff image being analyzed
+  mask : 2d_arr, 2d array where nuclei are marked with unique values 1-n (n = number of nuclei)
+    and nuclei's cytoplasm is marked with its corresponding negative value
+  annotation : List or Tuple, Values defining annoation, 
+    if circle (center, radius) 
+    if polygon [verticies]
+  csv_output_path : str, relative path the .csv should be output to (default is in tmp folder)
+  """
+  is_in_annotation = None
+  if isinstance(annotation, tuple):
+    if len(annotation) != 2:
+      raise ValueError(f'Incorrect input format for circle annotation: \
+        expected len == 2, but got len == {len(annotation)}')
+    if len(annotation[0]) != 2:
+      raise ValueError(f'Incorrect input format for circle center (x,y): \
+        expected len == 2, but got len == {len(annotation)}')
+    is_in_annotation = pncircle
 
-    def calculate_cell(cyto_positions, nuclei_positions, values):
-        def calculate_cell_helper(values, channel):
-            nuclei_vals = [values[i][j] for i, j in nuclei_positions]
-            cyto_vals = [values[i][j] for i, j in cyto_positions]
-            cell_vals = [values[i][j]
-                         for i, j in (nuclei_positions + cyto_positions)]
+  elif isinstance(annotation, list):
+    if len(annotation) == 0:
+      raise ValueError(f'Incorrect input format for annotation: \
+        expected len > 0, but got an empty list')
+    is_in_annotation = pnpoly
+  else:
+    raise ValueError(f'Incorrect input format for annotation: \
+        expected tuple or list, but got: {type(annotation)}')
 
-            return {
-                'Channel {}: Cell_Area'.format(str(channel)): len(cell_vals),
-                'Channel {}: Cell_Mean'.format(str(channel)): np.mean(cell_vals),
-                'Channel {}: Cell_Std_dev'.format(str(channel)): np.std(cell_vals),
-                'Channel {}: Cell_Max'.format(str(channel)): np.amax(cell_vals),
-                'Channel {}: Cell_Min'.format(str(channel)): np.amin(cell_vals),
-                'Channel {}: Nucleus_Area'.format(str(channel)): len(nuclei_vals),
-                'Channel {}: Nucleus_Mean'.format(str(channel)): np.mean(nuclei_vals),
-                'Channel {}: Nucleus_Std_dev'.format(str(channel)): np.std(nuclei_vals),
-                'Channel {}: Nucleus_Max'.format(str(channel)): np.amax(nuclei_vals),
-                'Channel {}: Nucleus_Min'.format(str(channel)): np.amin(nuclei_vals),
-                'Channel {}: Cytoplasm_Area'.format(str(channel)): len(cyto_vals),
-                'Channel {}: Cytoplasm_Mean'.format(str(channel)): np.mean(cyto_vals),
-                'Channel {}: Cytoplasm_Std_dev'.format(str(channel)): np.std(cyto_vals),
-                'Channel {}: Cytoplasm_Max'.format(str(channel)): np.amax(cyto_vals),
-                'Channel {}: Cytoplasm_Min'.format(str(channel)): np.amin(cyto_vals)
+  im = Image.open(image_path) 
+  im.load()
+  cyto_positions = [[] for _ in range(np.amax(mask))]
+  nuclei_positions = [[] for _ in range(np.amax(mask))]
+
+  for i in range(len(mask)):
+    for j in range(len(mask[0])):
+
+      # Skip pixels outside of annotation
+      if not is_in_annotation(annotation, (i,j)):
+        continue
+
+      val = mask[i][j]
+      if val >= 0:
+        nuclei_positions[val - 1].append((i,j))
+      else:
+        cyto_positions[abs(val) - 1].append((i,j))
+  
+  channel_values = []
+  for channel in range(im.n_frames):
+    im.seek(channel)
+    channel_values.append(np.array(im))
+
+  def calculate_cell(cyto_positions, nuclei_positions):
+    if(len(nuclei_positions) == 0 or len(cyto_positions) == 0):
+        return None
+    def calculate_cell_helper(values, channel):
+      
+      nuclei_vals = [values[i][j] for i,j in nuclei_positions]
+      cyto_vals = [values[i][j] for i,j in cyto_positions]
+      cell_vals = [values[i][j] for i,j in (nuclei_positions + cyto_positions)]
+
+      return {
+              'Channel {}: Cell_Area'.format(str(channel)): len(cell_vals),
+              'Channel {}: Cell_Mean'.format(str(channel)): np.mean(cell_vals),
+              'Channel {}: Cell_Std_dev'.format(str(channel)): np.std(cell_vals), 
+              'Channel {}: Cell_Max'.format(str(channel)): np.amax(cell_vals),
+              'Channel {}: Cell_Min'.format(str(channel)): np.amin(cell_vals),
+
+              'Channel {}: Nucleus_Area'.format(str(channel)): len(nuclei_vals),
+              'Channel {}: Nucleus_Mean'.format(str(channel)): np.mean(nuclei_vals),
+              'Channel {}: Nucleus_Std_dev'.format(str(channel)): np.std(nuclei_vals), 
+              'Channel {}: Nucleus_Max'.format(str(channel)): np.amax(nuclei_vals),
+              'Channel {}: Nucleus_Min'.format(str(channel)): np.amin(nuclei_vals),
+              
+              'Channel {}: Cytoplasm_Area'.format(str(channel)): len(cyto_vals),
+              'Channel {}: Cytoplasm_Mean'.format(str(channel)): np.mean(cyto_vals),
+              'Channel {}: Cytoplasm_Std_dev'.format(str(channel)): np.std(cyto_vals), 
+              'Channel {}: Cytoplasm_Max'.format(str(channel)): np.amax(cyto_vals),
+              'Channel {}: Cytoplasm_Min'.format(str(channel)): np.amin(cyto_vals)
             }
 
-            data = [calculate_cell_helper(values[channel], channel)
-                    for channel in range(im.n_frames)]
-            return {k: v for d in data for k, v in d.items()}
+    data = [calculate_cell_helper(channel_values[channel], channel) for channel in range(im.n_frames)]
+    return {k: v for d in data for k, v in d.items()}
 
-    # calculate stats for every cell detected
-    stats = [calculate_cell(cyto_positions[cell], nuclei_positions[cell], values)
-             for cell in range(len(cyto_positions))]
-    pd.DataFrame(stats).to_csv(csv_output_path)
+  
+  # calculate stats for every cell detected
+  stats = [calculate_cell(cyto_positions[cell], nuclei_positions[cell]) for cell in range(len(cyto_positions))] 
+  stats = [stat for stat in stats if stat is not None]
+  
+  pd.DataFrame(stats).to_csv(csv_output_path)
 
 
 if __name__ == '__main__':
@@ -171,7 +226,7 @@ if __name__ == '__main__':
 
     for r in range(nrows):
         for c in range(ncols):
-            if arr[r][c] != 0 and not arr[r][c] in ids_detected:
+            if arr[r][c] != 0 and arr[r][c] not in ids_detected:
 
                 nucleus_id = arr[r][c]
                 ids_detected.add(nucleus_id)
@@ -301,5 +356,6 @@ if __name__ == '__main__':
         saveFile = os.path.join(os.path.expanduser(
             '~'), 'Documents', 'ZDFocus', sys.argv[7], 'Detect Cytoplasm', sys.argv[6]+"_cyto_info.csv")
 
-    get_stats(image_path=sys.argv[8],
+
+    get_stats(image_path=sys.argv[8], annotation = [(0,0),(len(final_mask),0),(len(final_mask),len(final_mask[0])),(0,len(final_mask[0]))],
               mask=final_mask, csv_output_path=saveFile)
