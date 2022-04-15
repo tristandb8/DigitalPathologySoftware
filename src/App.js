@@ -261,8 +261,8 @@ class App extends Component {
       const backgroundAnnotation = Square(
         0,
         0,
-        file.imageData.width + 1,
-        file.imageData.height + 1,
+        file.imageData.width,
+        file.imageData.height,
         {
           hex: "#ff0000",
           rgb: {
