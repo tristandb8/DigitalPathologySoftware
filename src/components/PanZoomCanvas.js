@@ -76,6 +76,7 @@ export default class PanZoomCanvas extends Component {
       getBitmap(loadedFile).then(function (layers) {
         for (let i = 0; i < layers.length; i++) {
           ctx.drawImage(layers[i], 0, 0);
+          layers[i].close();
         }
       });
     } else {
@@ -90,7 +91,7 @@ export default class PanZoomCanvas extends Component {
     // Not sure if this should go here or componentDidUpdate...
     // Keeping it here for now unless I think of a better reason other than
     // performance (which may or may not be enough?)
-    this.annotationCanvasRef.current?.updateCanvas();
+    // this.annotationCanvasRef.current?.updateCanvas();
   }
 
   componentDidUpdate(oldProps) {

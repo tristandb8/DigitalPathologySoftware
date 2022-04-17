@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { tiffImage, sliceImageFromAnnotation } from "./utils/tiffModel";
-import { Square } from "./utils/annotations";
+import { getAnnotationFill, Square } from "./utils/annotations";
 import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
@@ -36,13 +36,10 @@ class App extends Component {
     const loadedFile = this.state.loadedProject.files.get(
       this.state.loadedProject.activeFile
     );
-    const annotation = loadedFile.annotations[this.state.selectedAnnotation];
     if (!loadedFile || this.state.nucleusDetectInfo != null) return;
 
-    const imageData = sliceImageFromAnnotation(
-      loadedFile.imageData,
-      loadedFile.cellDetectChannel,
-      annotation
+    const imageData = new Uint8ClampedArray(
+      loadedFile.imageData.idfArray[loadedFile.cellDetectChannel].data
     );
 
     this.intervalID = setInterval(() => {
@@ -54,19 +51,18 @@ class App extends Component {
 
     this.setState((prevState) => ({
       nucleusDetectInfo: {
-        width: imageData.width,
-        height: imageData.height,
+        width: loadedFile.imageData.width,
+        height: loadedFile.imageData.height,
         loadedFile: this.state.loadedProject.activeFile,
-        selectedAnnotation: this.state.selectedAnnotation,
         startTime: Date.now(),
       },
     }));
 
     ipcRenderer.send(
       "single-channel-info",
-      imageData.intArray,
+      imageData,
       loadedFile.name,
-      [imageData.width, imageData.height],
+      [loadedFile.imageData.width, loadedFile.imageData.height],
       this.state.loadedProject.name
     );
   };
@@ -131,21 +127,18 @@ class App extends Component {
 
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
 
-    // Create copy of the new file
-    let newFile = {
-      ...loadedFile,
-      annotations: [...loadedFile.annotations, annotation],
-    };
-
-    // Create a copy of the new files array and set the new file
-    let newFiles = new Map(this.state.loadedProject.files);
-    newFiles.set(this.state.loadedProject.activeFile, newFile);
-
-    // Update the state of the loaded project with the new files array
-    this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, files: newFiles },
-      selectedAnnotation: newFile.annotations.length - 1,
-    }));
+    getAnnotationFill(annotation, loadedFile.nucleusDetection).then((fill) => {
+      if (annotation.fill.close) annotation.fill.close();
+      annotation.fill = fill;
+      let newArray = [...loadedFile.annotations, annotation];
+      let newFile = { ...loadedFile, annotations: newArray };
+      let newFiles = new Map(this.state.loadedProject.files);
+      newFiles.set(this.state.loadedProject.activeFile, newFile);
+      this.setState((prevState) => ({
+        loadedProject: { ...prevState.loadedProject, files: newFiles },
+        selectedAnnotation: newFile.annotations.length - 1,
+      }));
+    });
   };
 
   removeAnnotation = (index) => {
@@ -172,16 +165,34 @@ class App extends Component {
       this.state.loadedProject.activeFile
     );
     if (!loadedFile) return;
+
     let newArray = [...loadedFile.annotations];
     let newAnnotation = { ...newArray[index] };
     newAnnotation[key] = value;
-    newArray[index] = newAnnotation;
-    let newFiles = new Map(this.state.loadedProject.files);
-    let newFile = { ...loadedFile, annotations: newArray };
-    newFiles.set(this.state.loadedProject.activeFile, newFile);
-    this.setState((prevState) => ({
-      loadedProject: { ...prevState.loadedProject, files: newFiles },
-    }));
+
+    if (key === "color") {
+      getAnnotationFill(newAnnotation, loadedFile.nucleusDetection).then(
+        (fill) => {
+          if (newAnnotation.fill.close) newAnnotation.fill.close();
+          newAnnotation.fill = fill;
+          newArray[index] = newAnnotation;
+          let newFiles = new Map(this.state.loadedProject.files);
+          let newFile = { ...loadedFile, annotations: newArray };
+          newFiles.set(this.state.loadedProject.activeFile, newFile);
+          this.setState((prevState) => ({
+            loadedProject: { ...prevState.loadedProject, files: newFiles },
+          }));
+        }
+      );
+    } else {
+      newArray[index] = newAnnotation;
+      let newFiles = new Map(this.state.loadedProject.files);
+      let newFile = { ...loadedFile, annotations: newArray };
+      newFiles.set(this.state.loadedProject.activeFile, newFile);
+      this.setState((prevState) => ({
+        loadedProject: { ...prevState.loadedProject, files: newFiles },
+      }));
+    }
   };
 
   renameChannel = (index, newName) => {
@@ -263,15 +274,6 @@ class App extends Component {
         0,
         file.imageData.width,
         file.imageData.height,
-        {
-          hex: "#ff0000",
-          rgb: {
-            r: 255,
-            g: 0,
-            b: 0,
-            a: 0.1,
-          },
-        },
         "Background"
       );
       file.annotations.push(backgroundAnnotation);
@@ -349,34 +351,34 @@ class App extends Component {
       const info = this.state.nucleusDetectInfo;
       if (info == null) return;
       const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
-      if (loadedFile == null) return;
-      const annotation = loadedFile.annotations[info.selectedAnnotation];
 
-      if (annotation != null) {
-        let newArray = [...loadedFile.annotations];
-        let newAnnotation = { ...newArray[info.selectedAnnotation] };
-        newAnnotation.nucleusDetection = {
-          detectionArray,
-          height: info.height,
-          width: info.width,
-        };
-        newArray[info.selectedAnnotation] = newAnnotation;
-        let newFile = { ...loadedFile, annotations: newArray };
-        let newFiles = new Map(this.state.loadedProject.files);
-        newFiles.set(info.loadedFile, newFile);
-        clearInterval(this.intervalID);
-        this.setState((prevState) => ({
-          loadedProject: { ...prevState.loadedProject, files: newFiles },
-          nucleusDetectInfo: null,
-          nucleusRuntime: 0,
-        }));
-      } else {
+      if (loadedFile == null) {
         clearInterval(this.intervalID);
         this.setState((prevState) => ({
           nucleusDetectInfo: null,
           nucleusRuntime: 0,
         }));
+        return;
       }
+
+      // TODO: update annotation backgrounds with nucleusBuffer
+      let newFile = {
+        ...loadedFile,
+        nucleusDetection: {
+          detectionArray,
+          width: loadedFile.imageData.width,
+          height: loadedFile.imageData.height,
+        },
+      };
+      let newFiles = new Map(this.state.loadedProject.files);
+      newFiles.set(info.loadedFile, newFile);
+
+      clearInterval(this.intervalID);
+      this.setState((prevState) => ({
+        loadedProject: { ...prevState.loadedProject, files: newFiles },
+        nucleusDetectInfo: null,
+        nucleusRuntime: 0,
+      }));
     });
 
     // ----------------- Cytoplasm Detect: -----------------

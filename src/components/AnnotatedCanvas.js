@@ -3,35 +3,165 @@ import { Modes } from "../utils/canvasModes";
 import * as Point from "../utils/pointUtils";
 import * as Annotations from "../utils/annotations";
 
-export default class AnnotatedCanvas extends Component {
+class AnnotationCanvas extends Component {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef(null);
+  }
+
+  componentDidUpdate(oldProps) {
+    if (
+      oldProps.annotations !== this.props.annotations ||
+      oldProps.selectedAnnotation !== this.props.selectedAnnotation
+    ) {
+      this.updateCanvas();
+    }
+  }
+
+  updateCanvas = () => {
+    const canvas = this.canvasRef?.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const boundingRect = this.canvasRef.current.getBoundingClientRect();
+    canvas.width = boundingRect.width;
+    canvas.height = boundingRect.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < this.props.annotations?.length; i++) {
+      const annotation = this.props.annotations[i];
+      const isSelected = i === this.props.selectedAnnotation;
+      const lineWidth = isSelected ? 3 : 1;
+      const backgroundFill = i !== 0;
+
+      if (
+        typeof annotation.fill === "string" ||
+        annotation.fill instanceof String
+      ) {
+        ctx.fillStyle = annotation.fill;
+      } else {
+        const pattern = ctx.createPattern(annotation.fill, "no-repeat");
+        const transform = ctx.getTransform();
+
+        transform.scaleSelf(
+          this.props.scale,
+          this.props.scale,
+          this.props.scale
+        );
+        pattern.setTransform(transform);
+        ctx.fillStyle = pattern;
+      }
+
+      switch (annotation.type) {
+        case Annotations.AnnotationTypes.Circle:
+          ctx.beginPath();
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = annotation.color.hex;
+          ctx.arc(
+            annotation.params.x * this.props.scale,
+            annotation.params.y * this.props.scale,
+            annotation.params.r * this.props.scale,
+            0,
+            2 * Math.PI,
+            false
+          );
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
+          break;
+        case Annotations.AnnotationTypes.Square:
+          if (backgroundFill) {
+            ctx.beginPath();
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = annotation.color.hex;
+            ctx.strokeRect(
+              annotation.params.x * this.props.scale,
+              annotation.params.y * this.props.scale,
+              annotation.params.w * this.props.scale,
+              annotation.params.h * this.props.scale
+            );
+            ctx.fillRect(
+              annotation.params.x * this.props.scale,
+              annotation.params.y * this.props.scale,
+              annotation.params.w * this.props.scale,
+              annotation.params.h * this.props.scale
+            );
+            ctx.stroke();
+            ctx.closePath();
+          }
+          break;
+        case Annotations.AnnotationTypes.Polygon:
+          ctx.beginPath();
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = annotation.color.hex;
+
+          ctx.moveTo(
+            annotation.params[0].x * this.props.scale,
+            annotation.params[0].y * this.props.scale
+          );
+
+          for (let i = 1; i < annotation.params.length; i++) {
+            ctx.lineTo(
+              annotation.params[i].x * this.props.scale,
+              annotation.params[i].y * this.props.scale
+            );
+          }
+
+          ctx.lineTo(
+            annotation.params[0].x * this.props.scale,
+            annotation.params[0].y * this.props.scale
+          );
+
+          ctx.stroke();
+          ctx.closePath();
+          ctx.fill();
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  render() {
+    return (
+      <canvas
+        ref={this.canvasRef}
+        style={{ width: "100%", height: "100%", position: "absolute" }}
+      />
+    );
+  }
+}
+
+class DrawCanvas extends Component {
   constructor(props) {
     super(props);
     this.canvasRef = React.createRef(null);
 
     this.state = {
-      dragging: false,
       mouseStart: Point.ORIGIN,
       mousePos: Point.ORIGIN,
-      annotationPos: Point.ORIGIN,
-      canClosePoly: false,
+      dragging: false,
       clickPoints: [],
-      hoveredAnnotation: 0,
+      canClosePoly: false,
     };
   }
 
   componentDidUpdate(oldProps) {
     if (
       oldProps.scale !== this.props.scale ||
-      oldProps.selectedAnnotation !== this.props.selectedAnnotation ||
       oldProps.mode !== this.props.mode
     ) {
+      this.setState({
+        mouseStart: Point.ORIGIN,
+        mousePos: Point.ORIGIN,
+        clickPoints: [],
+        dragging: false,
+      });
       this.updateCanvas();
-      this.setState({ clickPoints: [] });
     }
   }
 
   checkAnnotationHit = (hit) => {
-    for (let anni = 1; anni < this.props.annotations.length; anni++) {
+    for (let anni = this.props.annotations?.length - 1; anni > 0; anni--) {
       const annotation = this.props.annotations[anni];
       switch (annotation.type) {
         case Annotations.AnnotationTypes.Circle:
@@ -83,10 +213,14 @@ export default class AnnotatedCanvas extends Component {
 
   handleMouseEvent = (event) => {
     const boundingRect = this.canvasRef.current.getBoundingClientRect();
-    let drawUpdate = true;
 
     if (event.type === "mouseup" && event.button === 0) {
-      // Finish annotations currently being drawn
+      const clickPos = Point.Point(event.pageX, event.pageY);
+      this.setState({
+        mouseStart: clickPos,
+        mousePos: clickPos,
+        dragging: false,
+      });
       if (this.state.dragging) {
         const start = Point.Point(
           this.state.mouseStart.x - boundingRect.x,
@@ -96,6 +230,7 @@ export default class AnnotatedCanvas extends Component {
           this.state.mousePos.x - boundingRect.x,
           this.state.mousePos.y - boundingRect.y
         );
+
         switch (this.props.mode) {
           case Modes.Zoom:
             this.props.onZoom(
@@ -112,19 +247,9 @@ export default class AnnotatedCanvas extends Component {
                 Annotations.Circle(
                   start.x / this.props.scale,
                   start.y / this.props.scale,
-                  r / this.props.scale,
-                  {
-                    hex: "#ff0000",
-                    rgb: {
-                      r: 255,
-                      g: 0,
-                      b: 0,
-                      a: 0.1,
-                    },
-                  }
+                  r / this.props.scale
                 )
               );
-            drawUpdate = true;
             break;
           case Modes.AnnotateSquare:
             if (start.x > end.x) [start.x, end.x] = [end.x, start.x];
@@ -135,83 +260,61 @@ export default class AnnotatedCanvas extends Component {
                   start.x / this.props.scale,
                   start.y / this.props.scale,
                   (end.x - start.x) / this.props.scale,
-                  (end.y - start.y) / this.props.scale,
-                  {
-                    hex: "#ff0000",
-                    rgb: {
-                      r: 255,
-                      g: 0,
-                      b: 0,
-                      a: 0.1,
-                    },
-                  }
+                  (end.y - start.y) / this.props.scale
                 )
               );
-            drawUpdate = true;
             break;
           default:
             break;
         }
-        this.setState({
-          dragging: false,
-        });
       }
     } else if (event.type === "mousedown" && event.button === 0) {
-      let clickPoints = [...this.state.clickPoints];
-      this.props.selectAnnotation(this.state.hoveredAnnotation);
-      drawUpdate = false;
-
-      const clickPoint = Point.Point(
-        event.pageX - boundingRect.x,
-        event.pageY - boundingRect.y
-      );
-
-      // If annotating a polygon add the hit to the array of hits
-      if (this.props.mode === Modes.AnnotatePolygon) {
-        // If the mouse was close enough to the original point just add the anno
-        if (this.state.canClosePoly) {
-          this.props.addAnnotation(
-            Annotations.Polygon(
-              [...this.state.clickPoints].map((x) =>
-                Point.scale(x, 1 / this.props.scale)
-              ),
-              {
-                hex: "#ff0000",
-                rgb: {
-                  r: 255,
-                  g: 0,
-                  b: 0,
-                  a: 0.1,
-                },
-              }
-            )
-          );
-
-          clickPoints = [];
-          drawUpdate = false;
-        } else {
-          clickPoints = [...clickPoints, clickPoint];
-          drawUpdate = true;
-        }
+      const clickPos = Point.Point(event.pageX, event.pageY);
+      if (this.props.mode === Modes.Pan) {
+        const adjustedPos = Point.scale(
+          Point.Point(clickPos.x - boundingRect.x, clickPos.y - boundingRect.y),
+          1 / this.props.scale
+        );
+        const clickedAnnotationIndex = this.checkAnnotationHit(adjustedPos);
+        this.props.selectAnnotation(clickedAnnotationIndex);
       }
-
-      this.setState({
+      this.setState((prevState) => ({
+        mouseStart: clickPos,
+        mousePos: clickPos,
+        clickPoints: [
+          ...prevState.clickPoints,
+          Point.Point(
+            event.pageX - boundingRect.x,
+            event.pageY - boundingRect.y
+          ),
+        ],
         dragging: true,
-        mouseStart: Point.Point(event.pageX, event.pageY),
-        mousePos: Point.Point(event.pageX, event.pageY),
-        clickPoints: clickPoints,
-      });
+      }));
+
+      if (this.state.canClosePoly) {
+        this.props.addAnnotation(
+          Annotations.Polygon(
+            [...this.state.clickPoints].map((x) =>
+              Point.scale(x, 1 / this.props.scale)
+            )
+          )
+        );
+
+        this.setState({
+          canClosePoly: false,
+          clickPoints: [],
+        });
+      }
     } else if (event.type === "mouseleave") {
       this.setState({
+        mouseStart: Point.ORIGIN,
+        mousePos: Point.ORIGIN,
+        clickPoints: [],
         dragging: false,
       });
     } else if (event.type === "mousemove") {
       const mousePos = Point.Point(event.pageX, event.pageY);
-      const adjustedPos = Point.scale(
-        Point.Point(mousePos.x - boundingRect.x, mousePos.y - boundingRect.y),
-        1 / this.props.scale
-      );
-      let canClosePoly =
+      const canClosePoly =
         this.state.clickPoints.length > 2 &&
         Point.dist(
           mousePos,
@@ -221,40 +324,24 @@ export default class AnnotatedCanvas extends Component {
           )
         ) < 10;
 
-      let hoveredAnnotation = 0;
-      if (this.props.mode === Modes.Pan) {
-        hoveredAnnotation = this.checkAnnotationHit(adjustedPos);
-      }
-
-      if (this.props.mode === Modes.Pan) drawUpdate = false;
-      if (
-        (this.props.mode === Modes.Measure ||
-          this.props.mode === Modes.AnnotateCircle ||
-          this.props.mode === Modes.AnnotateSquare) &&
-        !this.state.dragging
-      )
-        drawUpdate = false;
-
       this.setState({
         mousePos: mousePos,
-        annotationPos: adjustedPos,
         canClosePoly: canClosePoly,
-        hoveredAnnotation: hoveredAnnotation,
       });
+      this.updateCanvas();
     }
-
-    if (drawUpdate) this.updateCanvas();
   };
 
   updateCanvas = () => {
-    const canvas = this.canvasRef.current;
+    const canvas = this.canvasRef?.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const boundingRect = this.canvasRef.current.getBoundingClientRect();
+
     canvas.width = boundingRect.width;
     canvas.height = boundingRect.height;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Elements to draw if a drag is required
     if (this.state.dragging) {
       const start = Point.Point(
         this.state.mouseStart.x - boundingRect.x,
@@ -265,7 +352,6 @@ export default class AnnotatedCanvas extends Component {
         this.state.mousePos.y - boundingRect.y
       );
       const norm = Point.normalize(Point.norm(start, end));
-      // TODO: Scale norm based on whether text goes OOB
       const normScaled = Point.scale(norm, Point.angle(norm) >= 0 ? -10 : 10);
       const startEndAvg = Point.sum(
         start,
@@ -334,6 +420,7 @@ export default class AnnotatedCanvas extends Component {
       ctx.lineWidth = 1;
       ctx.fillStyle = "#ff000010";
       ctx.strokeStyle = "red";
+
       if (clickPoints.length > 0) {
         ctx.moveTo(clickPoints[0].x, clickPoints[0].y);
         for (let i = 1; i < clickPoints.length; i++) {
@@ -351,172 +438,45 @@ export default class AnnotatedCanvas extends Component {
       ctx.closePath();
       ctx.fill();
     }
-
-    const scale = this.props.scale;
-    const annotations = this.props.annotations;
-    const selected = this.props.selectedAnnotation;
-
-    Annotations.getAnnotationFills(this.props.annotations).then(function (
-      fillStyles
-    ) {
-      for (let i = 0; i < fillStyles.length; i++) {
-        const annotation = annotations[i];
-        const isSelected = i === selected;
-        const lineWidth = isSelected ? 3 : 1;
-        let backgroundFill = i !== 0;
-
-        if (
-          typeof fillStyles[i] === "string" ||
-          fillStyles[i] instanceof String
-        ) {
-          ctx.fillStyle = fillStyles[i];
-        } else {
-          const pattern = ctx.createPattern(fillStyles[i], "no-repeat");
-          const transform = ctx.getTransform();
-          switch (annotation.type) {
-            case Annotations.AnnotationTypes.Circle:
-              transform.translateSelf(
-                (annotation.params.x - annotation.params.r) * scale,
-                (annotation.params.y - annotation.params.r) * scale,
-                0
-              );
-              break;
-            case Annotations.AnnotationTypes.Square:
-              transform.translateSelf(
-                annotation.params.x * scale,
-                annotation.params.y * scale,
-                0
-              );
-              if (i === 0) backgroundFill = true;
-              break;
-            case Annotations.AnnotationTypes.Polygon:
-              let minX = Number.MAX_SAFE_INTEGER,
-                minY = Number.MAX_SAFE_INTEGER;
-
-              for (const coord of annotation.params) {
-                minX = Math.min(minX, coord.x);
-                minY = Math.min(minY, coord.y);
-              }
-
-              transform.translateSelf(minX * scale, minY * scale, 0);
-              break;
-            default:
-              break;
-          }
-          transform.scaleSelf(scale, scale, scale);
-          pattern.setTransform(transform);
-          ctx.fillStyle = pattern;
-        }
-
-        switch (annotation.type) {
-          case Annotations.AnnotationTypes.Circle:
-            ctx.beginPath();
-            ctx.lineWidth = lineWidth;
-            ctx.strokeStyle = annotation.color.hex;
-            ctx.arc(
-              annotation.params.x * scale,
-              annotation.params.y * scale,
-              annotation.params.r * scale,
-              0,
-              2 * Math.PI,
-              false
-            );
-            ctx.fill();
-            ctx.stroke();
-            ctx.closePath();
-            break;
-          case Annotations.AnnotationTypes.Square:
-            if (backgroundFill) {
-              ctx.beginPath();
-              ctx.lineWidth = lineWidth;
-              ctx.strokeStyle = annotation.color.hex;
-              ctx.strokeRect(
-                annotation.params.x * scale,
-                annotation.params.y * scale,
-                annotation.params.w * scale,
-                annotation.params.h * scale
-              );
-              ctx.fillRect(
-                annotation.params.x * scale,
-                annotation.params.y * scale,
-                annotation.params.w * scale,
-                annotation.params.h * scale
-              );
-              ctx.stroke();
-              ctx.closePath();
-            }
-            break;
-          case Annotations.AnnotationTypes.Polygon:
-            ctx.beginPath();
-            ctx.lineWidth = lineWidth;
-            ctx.strokeStyle = annotation.color;
-
-            ctx.moveTo(
-              annotation.params[0].x * scale,
-              annotation.params[0].y * scale
-            );
-
-            for (let i = 1; i < annotation.params.length; i++) {
-              ctx.lineTo(
-                annotation.params[i].x * scale,
-                annotation.params[i].y * scale
-              );
-            }
-
-            ctx.lineTo(
-              annotation.params[0].x * scale,
-              annotation.params[0].y * scale
-            );
-
-            ctx.stroke();
-            ctx.closePath();
-            ctx.fill();
-            break;
-          default:
-            break;
-        }
-      }
-    });
-  };
-
-  RenderAnnotationHover = () => {
-    const annotation = this.props.annotations[this.state.hoveredAnnotation];
-    return annotation && this.state.hoveredAnnotation > 0 ? (
-      <div
-        className="annotationHover"
-        style={{
-          left: `${this.state.annotationPos.x}px`,
-          top: `${this.state.annotationPos.y}px`,
-        }}
-      >
-        <p className="annotationText">{annotation.name}</p>
-      </div>
-    ) : (
-      <div
-        style={{
-          pointerEvents: "none",
-        }}
-      />
-    );
   };
 
   render() {
     return (
+      <canvas
+        onMouseDown={this.handleMouseEvent}
+        onMouseMove={this.handleMouseEvent}
+        onMouseUp={this.handleMouseEvent}
+        onMouseLeave={this.handleMouseEvent}
+        ref={this.canvasRef}
+        style={{ width: "100%", height: "100%", position: "absolute" }}
+      />
+    );
+  }
+}
+
+export default class AnnotatedCanvas extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {};
+  }
+
+  render() {
+    return (
       <div style={{ width: "100%", height: "100%", position: "absolute" }}>
-        <canvas
-          ref={this.canvasRef}
-          onMouseDown={this.handleMouseEvent}
-          onMouseMove={this.handleMouseEvent}
-          onMouseUp={this.handleMouseEvent}
-          onMouseLeave={this.handleMouseEvent}
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            imageRendering: "pixelated",
-          }}
+        <AnnotationCanvas
+          selectedAnnotation={this.props.selectedAnnotation}
+          annotations={this.props.annotations}
+          scale={this.props.scale}
         />
-        <this.RenderAnnotationHover />
+        <DrawCanvas
+          mode={this.props.mode}
+          scale={this.props.scale}
+          onZoom={this.props.onZoom}
+          annotations={this.props.annotations}
+          selectAnnotation={this.props.selectAnnotation}
+          addAnnotation={this.props.addAnnotation}
+        />
       </div>
     );
   }

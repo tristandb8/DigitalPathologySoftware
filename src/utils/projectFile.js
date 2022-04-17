@@ -11,6 +11,7 @@ export const projectFile = (type, name, path, cellDetectChannel, imageData) => {
     cellDetectChannel,
     imageData,
     channelNames,
+    nucleusDetection: null,
     annotations: [],
   };
 };
