@@ -210,8 +210,8 @@
 }
 
 .leftPane {
-  width: 400px;
-  max-width: 400px;
+  width: 420px;
+  max-width: 420px;
   height: 100%;
   background-color: #f3f3f3;
   display: flex;
@@ -219,11 +219,11 @@
 
 .leftPaneSwitcher {
   width: 40px;
-  max-width: 40px;
   background-color: #1b1b1b;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .paneSwitchButton {
