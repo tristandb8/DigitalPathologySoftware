@@ -126,6 +126,7 @@ class App extends Component {
     if (!loadedFile) return;
 
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
+    annotation.useNucleusDetection = loadedFile.nucleusDetection != null;
 
     getAnnotationFill(annotation, loadedFile.nucleusDetection).then((fill) => {
       if (annotation.fill.close) annotation.fill.close();
@@ -170,7 +171,7 @@ class App extends Component {
     let newAnnotation = { ...newArray[index] };
     newAnnotation[key] = value;
 
-    if (key === "color") {
+    if (key === "color" || key === "useNucleusDetection") {
       getAnnotationFill(newAnnotation, loadedFile.nucleusDetection).then(
         (fill) => {
           if (newAnnotation.fill.close) newAnnotation.fill.close();
@@ -276,6 +277,8 @@ class App extends Component {
         file.imageData.height,
         "Background"
       );
+      backgroundAnnotation.useNucleusDetection = false;
+
       file.annotations.push(backgroundAnnotation);
 
       const newFiles = new Map(this.state.loadedProject.files);
@@ -370,6 +373,7 @@ class App extends Component {
           height: loadedFile.imageData.height,
         },
       };
+
       let newFiles = new Map(this.state.loadedProject.files);
       newFiles.set(info.loadedFile, newFile);
 

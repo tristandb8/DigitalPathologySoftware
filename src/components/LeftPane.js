@@ -7,7 +7,7 @@ import { ReactComponent as TrashButton } from "../resources/Trash.svg";
 import { ReactComponent as PolygonButton } from "../resources/Polygon.svg";
 import { ReactComponent as CircleButton } from "../resources/Circle.svg";
 import { ReactComponent as SquareButton } from "../resources/Square.svg";
-import { AnnotationTypes } from "../utils/annotations";
+import { AnnotationTypes, defaultColor } from "../utils/annotations";
 import { SketchPicker } from "react-color";
 const { ipcRenderer } = window.require("electron");
 
@@ -240,30 +240,14 @@ class AnnotationInput extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      color: {
-        hex: "#ff0000",
-        rgb: {
-          r: 255,
-          g: 0,
-          b: 0,
-          a: 0.1,
-        },
-      },
+      color: defaultColor(),
     };
   }
 
   componentDidUpdate(oldProps) {
     if (oldProps.selectedAnnotation !== this.props.selectedAnnotation) {
       this.setState({
-        color: this.props.selectedAnnotation?.color || {
-          hex: "#ff0000",
-          rgb: {
-            r: 255,
-            g: 0,
-            b: 0,
-            a: 0.1,
-          },
-        },
+        color: this.props.selectedAnnotation?.color || defaultColor(),
       });
     }
   }
@@ -283,6 +267,22 @@ class AnnotationInput extends Component {
     if (this.props.selectedAnnotation != null) {
       return (
         <div className="imagePane">
+          <div>
+            <h1 className="imagePaneHeader">Nucleus Detect Fill</h1>
+            <input
+              type="checkbox"
+              checked={this.props.selectedAnnotation.useNucleusDetection}
+              disabled={!this.props.canUseNucleusBackground}
+              onChange={() =>
+                this.props.onAnnotationChange(
+                  this.props.index,
+                  "useNucleusDetection",
+                  !this.props.selectedAnnotation.useNucleusDetection
+                )
+              }
+              style={{ width: "16px", height: "16px" }}
+            />
+          </div>
           <h1 className="imagePaneHeader">Color</h1>
           <SketchPicker
             color={this.state.color.rgb}
@@ -324,6 +324,8 @@ class AnnotationPane extends Component {
         <AnnotationInput
           onAnnotationChange={this.props.onAnnotationChange}
           selectedAnnotationIndex={this.props.selectedAnnotation}
+          index={this.props.selectedAnnotation}
+          canUseNucleusBackground={this.props.canUseNucleusBackground}
           selectedAnnotation={
             selectedImage.annotations[this.props.selectedAnnotation]
           }
@@ -402,6 +404,10 @@ export default class LeftPane extends Component {
           />
         );
       case LeftPanes.Annotation:
+        const loadedFile = this.props.project.files.get(
+          this.props.project.activeFile
+        );
+        const canUseNucleusBackground = loadedFile.nucleusDetection != null;
         return (
           <AnnotationPane
             project={this.props.project}
@@ -409,6 +415,7 @@ export default class LeftPane extends Component {
             selectAnnotation={this.props.selectAnnotation}
             removeAnnotation={this.props.removeAnnotation}
             selectedAnnotation={this.props.selectedAnnotation}
+            canUseNucleusBackground={canUseNucleusBackground}
           />
         );
       default:

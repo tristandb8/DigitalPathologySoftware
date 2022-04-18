@@ -31,7 +31,8 @@ class AnnotationCanvas extends Component {
       const annotation = this.props.annotations[i];
       const isSelected = i === this.props.selectedAnnotation;
       const lineWidth = isSelected ? 3 : 1;
-      const backgroundFill = i !== 0;
+      const backgroundFill =
+        i !== 0 || (i === 0 && annotation.useNucleusDetection);
 
       if (
         typeof annotation.fill === "string" ||
@@ -73,19 +74,20 @@ class AnnotationCanvas extends Component {
             ctx.beginPath();
             ctx.lineWidth = lineWidth;
             ctx.strokeStyle = annotation.color.hex;
-            ctx.strokeRect(
-              annotation.params.x * this.props.scale,
-              annotation.params.y * this.props.scale,
-              annotation.params.w * this.props.scale,
-              annotation.params.h * this.props.scale
-            );
+            if (i !== 0)
+              ctx.strokeRect(
+                annotation.params.x * this.props.scale,
+                annotation.params.y * this.props.scale,
+                annotation.params.w * this.props.scale,
+                annotation.params.h * this.props.scale
+              );
             ctx.fillRect(
               annotation.params.x * this.props.scale,
               annotation.params.y * this.props.scale,
               annotation.params.w * this.props.scale,
               annotation.params.h * this.props.scale
             );
-            ctx.stroke();
+            if (i !== 0) ctx.stroke();
             ctx.closePath();
           }
           break;

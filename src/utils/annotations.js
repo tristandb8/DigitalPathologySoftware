@@ -4,8 +4,8 @@ export const AnnotationTypes = {
   Polygon: "Polygon",
 };
 
-export const Annotation = (type, params, name) => {
-  const color = {
+export const defaultColor = () => {
+  return {
     hex: "#ff0000",
     rgb: {
       r: 255,
@@ -14,10 +14,12 @@ export const Annotation = (type, params, name) => {
       a: 16 / 255,
     },
   };
+};
 
+export const Annotation = (type, params, name) => {
   const annotation = {
     type,
-    color,
+    color: defaultColor(),
     params,
     name,
     fill: null,
