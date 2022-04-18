@@ -134,7 +134,7 @@ export default class PanZoomCanvas extends Component {
             backgroundSelected +
             "px solid";
       return (
-        <div style={{ width: "100%", height: "100%" }} ref={this.portRef}>
+        <div style={{ flex: "0 1 auto", height: "100%" }} ref={this.portRef}>
           <TransformWrapper
             ref={this.viewRef}
             initialScale={1}
