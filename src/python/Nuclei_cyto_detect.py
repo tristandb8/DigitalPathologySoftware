@@ -329,7 +329,7 @@ if __name__ == '__main__':
     arr2d = np.argmax(array_2D, axis=-1)
     # Here is what is returned:
     # Image.fromarray(arr2d.astype(np.uint8)).save('sample out.png')
-    if (sys.argv[7] == "No Project Loaded"):
+    if (sys.argv[7] == "Untitled Project"):
         saveFile = os.path.join(os.path.expanduser(
             '~'), 'Documents', 'ZDFocus', 'Detect Cytoplasm', sys.argv[6]+"_cyto_2D")
     else:
@@ -340,7 +340,7 @@ if __name__ == '__main__':
         fp.write(arr2d.astype(np.uint32).tobytes())
 
     # Saving .png image:
-    if (sys.argv[7] == "No Project Loaded"):
+    if (sys.argv[7] == "Untitled Project"):
         saveFile = os.path.join(os.path.expanduser(
             '~'), 'Documents', 'ZDFocus', 'Detect Cytoplasm', sys.argv[6]+"_cyto_2D_image.png")
     else:
@@ -349,7 +349,7 @@ if __name__ == '__main__':
     plt.imsave(saveFile, array_2D)
 
     # Saving .csv file:
-    if (sys.argv[7] == "No Project Loaded"):
+    if (sys.argv[7] == "Untitled Project"):
         saveFile = os.path.join(os.path.expanduser(
             '~'), 'Documents', 'ZDFocus', 'Detect Cytoplasm', sys.argv[6]+"_cyto_info.csv")
     else:

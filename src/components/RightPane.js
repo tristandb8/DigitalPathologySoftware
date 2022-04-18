@@ -6,9 +6,6 @@ import { SketchPicker } from "react-color";
 
 class ChannelItem extends React.Component {
   render() {
-    // const selected =
-    //   this.props.selectedChannel !== null &&
-    //   this.props.selectedChannel.index === this.props.index;
     const selected = this.props.selectedChannel?.index === this.props.index;
     const className = selected ? "channelItemSelected" : "channelItem";
 
@@ -82,7 +79,6 @@ class ChannelInput extends React.Component {
   };
 
   render() {
-    // TODO: Create custom color picker
     if (this.props.selectedChannel != null) {
       return (
         <div className="imagePane">
@@ -99,7 +95,6 @@ class ChannelInput extends React.Component {
             onChange={this.handleChange}
             disableAlpha={true}
           />
-          {/* <CustomPicker color={this.state.color} onChange={this.handleChange} /> */}
         </div>
       );
     } else {

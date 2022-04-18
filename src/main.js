@@ -432,7 +432,7 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   );
 
   const pathForResults =
-    projectName !== "No Project Loaded"
+    projectName !== "Untitled Project"
       ? path.join(
           os.homedir(),
           "Documents",
@@ -483,7 +483,8 @@ function getCytoplasmInfo() {
 }
 
 // Receives information from App.js and sends it to nucleiDetect().
-ipcMain.on("single-channel-info-cyto", 
+ipcMain.on(
+  "single-channel-info-cyto",
   (event, imageArray, imageTitle, dimensions, project_name, tiffFilePath) => {
     const dir = path.join(
       os.homedir(),
@@ -493,10 +494,25 @@ ipcMain.on("single-channel-info-cyto",
       "tmpLastChannel.json"
     );
     fs.writeFileSync(dir, JSON.stringify(imageArray));
-    cytoplasmDetect(imageTitle, dimensions[0], dimensions[1], dir, project_name, tiffFilePath);
-});
+    cytoplasmDetect(
+      imageTitle,
+      dimensions[0],
+      dimensions[1],
+      dir,
+      project_name,
+      tiffFilePath
+    );
+  }
+);
 
-function cytoplasmDetect(fileName, width, height, lastChannelPath, projectName, tiffFilePath) {
+function cytoplasmDetect(
+  fileName,
+  width,
+  height,
+  lastChannelPath,
+  projectName,
+  tiffFilePath
+) {
   console.log("Testing Cytoplasm Scripts...");
 
   // Paths used as arguments that will be sent into python scripts.
@@ -516,7 +532,7 @@ function cytoplasmDetect(fileName, width, height, lastChannelPath, projectName, 
   );
 
   const pathForResults =
-    projectName !== "No Project Loaded"
+    projectName !== "Untitled Project"
       ? path.join(
           os.homedir(),
           "Documents",
@@ -548,7 +564,7 @@ function cytoplasmDetect(fileName, width, height, lastChannelPath, projectName, 
       pathForTMPchannel,
       fileName,
       projectName,
-      tiffFilePath
+      tiffFilePath,
     ], //An argument which can be accessed in the script, index starts at 1, not 0.
   };
 
@@ -563,6 +579,3 @@ function cytoplasmDetect(fileName, width, height, lastChannelPath, projectName, 
 
   PythonShell.run("./src/python/Nuclei_cyto_detect.py", options, resultFn);
 }
-
-
-

@@ -5,6 +5,7 @@ import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
+import StatusBar from "./components/StatusBar";
 import { projectFile } from "./utils/projectFile";
 import "./App.css";
 
@@ -20,7 +21,7 @@ class App extends Component {
       loadedProject: {
         activeFile: null, // String of file path for indexing in files
         files: new Map(), // Map of (file path, projectFile)
-        name: "No Project Loaded",
+        name: "Untitled Project",
         compositeOp: "screen",
       },
       tabs: new Map(), // Open tabs (path, path) (could be a set but I'd have to make changes)
@@ -475,7 +476,7 @@ class App extends Component {
             activeFile: -1,
             filePaths: [],
             cellDetectChannel: 0,
-            name: "No Project Loaded",
+            name: "Untitled Project",
           },
         }));
       }
@@ -518,6 +519,7 @@ class App extends Component {
             renameChannel={this.renameChannel}
           />
         </Split>
+        <StatusBar />
       </div>
     );
   }
@@ -529,5 +531,5 @@ const Split = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  height: 100vh;
+  height: 100%;
 `;

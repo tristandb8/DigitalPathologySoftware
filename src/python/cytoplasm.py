@@ -169,7 +169,7 @@ array_2D = imread("./test_file.tif")
 
 file_name = sys.argv[1]
 file_name = file_name.replace("2D.json_", "")
-if (sys.argv[2] == "No Project Loaded"):
+if (sys.argv[2] == "Untitled Project"):
     saveFile = os.path.join(os.path.expanduser(
         '~'), 'Documents', 'ZDFocus', 'Detect Cytoplasm', file_name+"_cytoplasm_2D.json")
 else:
