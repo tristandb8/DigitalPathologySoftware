@@ -519,7 +519,6 @@ class App extends Component {
             renameChannel={this.renameChannel}
           />
         </Split>
-        <StatusBar />
       </div>
     );
   }
