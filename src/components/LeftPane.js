@@ -47,7 +47,6 @@ class ProjectPane extends Component {
 
     return (
       <div className="projectPane">
-        <h1 className="paneHeader">{this.props.project.name}</h1>
         {[...this.props.project.files.keys()].map((key, index) => (
           <ProjectFile
             file={this.props.project.files.get(key)}

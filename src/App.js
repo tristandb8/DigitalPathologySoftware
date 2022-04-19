@@ -36,13 +36,23 @@ class App extends Component {
     const loadedFile = this.state.loadedProject.files.get(
       this.state.loadedProject.activeFile
     );
-    if (!loadedFile || this.state.cytoplasmDetectInfo != null) return;
+    if (
+      !loadedFile ||
+      this.state.cytoplasmDetectInfo != null ||
+      loadedFile.nucleusDetection === null
+    )
+      return;
+    const annotation = loadedFile.annotations[this.state.selectedAnnotation];
+    if (annotation === null) return;
+    const annotationJSON = JSON.stringify(annotation);
 
-    // TODO: Get all active channel data
     let activeChannels = [];
-    const imageData = new Uint8ClampedArray(
-      loadedFile.imageData.idfArray[loadedFile.cellDetectChannel].data
-    );
+    for (let i = 0; i < loadedFile.imageData.idfArray.length; i++)
+      if (
+        loadedFile.imageData.idfArray[i].enabled &&
+        i !== loadedFile.cellDetectChannel
+      )
+        activeChannels.push(i);
 
     this.intervalID = setInterval(() => {
       if (this.state.cytoplasmDetectInfo)
@@ -62,13 +72,17 @@ class App extends Component {
       },
     }));
 
+    const info = {
+      channels: activeChannels,
+      names: loadedFile.channelNames,
+    };
+
     ipcRenderer.send(
-      "single-channel-info-cyto",
-      imageData,
-      loadedFile.name,
-      [loadedFile.imageData.width, loadedFile.imageData.height],
-      this.state.loadedProject.name,
-      this.state.loadedProject.activeFile
+      "cytoplasm-detection",
+      loadedFile.nucleusDetection.detectionArray.buffer,
+      this.state.loadedProject.activeFile,
+      info,
+      annotationJSON
     );
   };
 
@@ -390,7 +404,7 @@ class App extends Component {
 
     // -------------- Nucleus Detect Results: --------------
     ipcRenderer.on("nucleus-detect-result-buffer", (event, nucleusBuffer) => {
-      const detectionArray = new Uint32Array(nucleusBuffer.buffer);
+      const detectionArray = new Int32Array(nucleusBuffer.buffer);
       const info = this.state.nucleusDetectInfo;
       if (info == null) return;
       const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
@@ -404,7 +418,6 @@ class App extends Component {
         return;
       }
 
-      // TODO: update annotation backgrounds with nucleusBuffer
       let newFile = {
         ...loadedFile,
         nucleusDetection: {
