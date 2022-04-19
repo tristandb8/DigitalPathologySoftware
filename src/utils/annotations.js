@@ -86,7 +86,6 @@ export const getNucleusDetectionImage = (
       intArray[j++] = threshVal; // B value
       intArray[j++] = 255; // A value
     }
-    console.log(intArray);
     return new ImageData(intArray, 1000, 1000);
   } else {
     const intArray = new Uint8ClampedArray(
