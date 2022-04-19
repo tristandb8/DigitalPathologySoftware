@@ -426,7 +426,7 @@ export default class LeftPane extends Component {
           />
         );
       case LeftPanes.Annotation:
-        const canUseNucleusBackground = loadedFile.nucleusDetection != null;
+        const canUseNucleusBackground = loadedFile?.nucleusDetection != null;
         return (
           <AnnotationPane
             project={this.props.project}

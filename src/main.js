@@ -65,6 +65,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
+    icon: "public/favicon.ico",
+    title: "ZDFocus",
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
@@ -187,11 +189,9 @@ function makeDir() {
   const dir = path.join(os.homedir(), "Documents", "ZDFocus");
   const dirTmp = path.join(os.homedir(), "Documents", "ZDFocus", "tmp");
   if (!fs.existsSync(dir)) {
-    console.log(dir);
     fs.mkdirSync(dir);
   }
   if (!fs.existsSync(dirTmp)) {
-    console.log(dirTmp);
     fs.mkdirSync(dirTmp);
   }
   const dirNucleus = path.join(
@@ -207,11 +207,9 @@ function makeDir() {
     "Detect Cytoplasm"
   );
   if (!fs.existsSync(dirNucleus)) {
-    console.log(dirNucleus);
     fs.mkdirSync(dirNucleus);
   }
   if (!fs.existsSync(dirCytoplasm)) {
-    console.log(dirCytoplasm);
     fs.mkdirSync(dirCytoplasm);
   }
 }

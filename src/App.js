@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { tiffImage, sliceImageFromAnnotation } from "./utils/tiffModel";
+import { tiffImage } from "./utils/tiffModel";
 import { getAnnotationFill, Square } from "./utils/annotations";
 import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
@@ -401,7 +401,7 @@ class App extends Component {
       "cytoplasm-detect-result-buffer",
       (event, cytoplasmBuffer) => {
         const detectionArray = new Int32Array(cytoplasmBuffer.buffer);
-        console.log(detectionArray);
+        // console.log(detectionArray);
         const info = this.state.cytoplasmDetectInfo;
         if (info == null) return;
         const loadedFile = this.state.loadedProject.files.get(info.loadedFile);

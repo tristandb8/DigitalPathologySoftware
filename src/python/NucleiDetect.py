@@ -71,7 +71,7 @@ if __name__ == '__main__':
     # End result is a 2-D array.
     arr2d = np.argmax(tmpArray, axis=-1)
     # Here is what is returned:
-    Image.fromarray(arr2d.astype(np.uint8)).save('sample out.png')
+    # Image.fromarray(arr2d.astype(np.uint8)).save('sample out.png')
     if (sys.argv[7] == "Untitled Project"):
         saveFile = os.path.join(os.path.expanduser(
             '~'), 'Documents', 'ZDFocus', 'Detect Nucleus', sys.argv[6]+"_nucleus_2D")
