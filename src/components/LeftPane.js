@@ -156,7 +156,8 @@ class ImagePane extends Component {
           onClick={this.props.executeCytoDetection}
           disabled={
             this.props.nucleusDetectInfo != null ||
-            this.props.cytoDetectInfo != null
+            this.props.cytoDetectInfo != null ||
+            this.props.loadedFile.nucleusDetection === null
           }
         >
           {this.props.cytoDetectInfo != null
@@ -396,6 +397,9 @@ export default class LeftPane extends Component {
   }
 
   paneRender = () => {
+    const loadedFile = this.props.project.files.get(
+      this.props.project.activeFile
+    );
     switch (this.state.selectedPane) {
       case LeftPanes.Project:
         return (
@@ -409,6 +413,7 @@ export default class LeftPane extends Component {
         return (
           <ImagePane
             project={this.props.project}
+            loadedFile={loadedFile}
             nucleusDetectInfo={this.props.nucleusDetectInfo}
             executeNucleusDetection={this.props.executeNucleusDetection}
             nucleusRuntime={this.props.nucleusRuntime}
@@ -421,9 +426,6 @@ export default class LeftPane extends Component {
           />
         );
       case LeftPanes.Annotation:
-        const loadedFile = this.props.project.files.get(
-          this.props.project.activeFile
-        );
         const canUseNucleusBackground = loadedFile.nucleusDetection != null;
         return (
           <AnnotationPane

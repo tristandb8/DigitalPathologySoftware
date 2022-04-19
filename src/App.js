@@ -113,7 +113,7 @@ class App extends Component {
     }));
 
     ipcRenderer.send(
-      "single-channel-info",
+      "nucleus-detection",
       imageData,
       loadedFile.name,
       [loadedFile.imageData.width, loadedFile.imageData.height],
@@ -182,7 +182,11 @@ class App extends Component {
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
     annotation.useNucleusDetection = loadedFile.nucleusDetection != null;
 
-    getAnnotationFill(annotation, loadedFile.nucleusDetection).then((fill) => {
+    getAnnotationFill(
+      annotation,
+      loadedFile.nucleusDetection,
+      loadedFile.cytoDetection
+    ).then((fill) => {
       if (annotation.fill.close) annotation.fill.close();
       annotation.fill = fill;
       let newArray = [...loadedFile.annotations, annotation];
@@ -226,19 +230,21 @@ class App extends Component {
     newAnnotation[key] = value;
 
     if (key === "color" || key === "useNucleusDetection") {
-      getAnnotationFill(newAnnotation, loadedFile.nucleusDetection).then(
-        (fill) => {
-          if (newAnnotation.fill.close) newAnnotation.fill.close();
-          newAnnotation.fill = fill;
-          newArray[index] = newAnnotation;
-          let newFiles = new Map(this.state.loadedProject.files);
-          let newFile = { ...loadedFile, annotations: newArray };
-          newFiles.set(this.state.loadedProject.activeFile, newFile);
-          this.setState((prevState) => ({
-            loadedProject: { ...prevState.loadedProject, files: newFiles },
-          }));
-        }
-      );
+      getAnnotationFill(
+        newAnnotation,
+        loadedFile.nucleusDetection,
+        loadedFile.cytoDetection
+      ).then((fill) => {
+        if (newAnnotation.fill.close) newAnnotation.fill.close();
+        newAnnotation.fill = fill;
+        newArray[index] = newAnnotation;
+        let newFiles = new Map(this.state.loadedProject.files);
+        let newFile = { ...loadedFile, annotations: newArray };
+        newFiles.set(this.state.loadedProject.activeFile, newFile);
+        this.setState((prevState) => ({
+          loadedProject: { ...prevState.loadedProject, files: newFiles },
+        }));
+      });
     } else {
       newArray[index] = newAnnotation;
       let newFiles = new Map(this.state.loadedProject.files);
@@ -354,54 +360,6 @@ class App extends Component {
         this.displayPageRef.current.canvasRef.current.resetView();
     });
 
-    // We want this to change to load previous project
-    // ipcRenderer.send("load-previous-project");
-
-    // ------------------- Load Project: -------------------
-    ipcRenderer.on(
-      "send_title_and_open_files",
-      (event, project_name, new_file_paths) => {
-        // new_file_paths is null if the user created a new project.
-        if (new_file_paths == null) {
-          new_file_paths = [];
-        }
-
-        // Sets the new project title and file paths.       // NOT FINISHED. The files are saved on the left pane but do not open.
-        this.setState((prevState) => ({
-          loadedProject: {
-            ...prevState.loadedProject,
-            name: project_name,
-            filePaths: new_file_paths,
-          },
-        }));
-      }
-    );
-
-    // ------------------- Save Project: -------------------
-    ipcRenderer.on("getSaveInfo", (event, fileContent) => {
-      ipcRenderer.send(
-        "sendSaveInfo",
-        this.state.loadedProject,
-        this.state.tabs
-      );
-    });
-
-    // ------------------ Nucleus Detect: ------------------
-    ipcRenderer.on("get-channel-info", (event, fileContent) => {
-      const loadedFile = this.state.loadedProject.files.get(
-        this.state.loadedProject.activeFile
-      );
-      if (!loadedFile) return;
-      const dimensions = [loadedFile.width, loadedFile.height];
-      ipcRenderer.send(
-        "single-channel-info",
-        loadedFile.idfArray[36].data,
-        loadedFile.name,
-        dimensions,
-        loadedFile.name
-      );
-    });
-
     // -------------- Nucleus Detect Results: --------------
     ipcRenderer.on("nucleus-detect-result-buffer", (event, nucleusBuffer) => {
       const detectionArray = new Int32Array(nucleusBuffer.buffer);
@@ -438,85 +396,37 @@ class App extends Component {
       }));
     });
 
-    // ----------------- Cytoplasm Detect: -----------------
-    ipcRenderer.on("get_cytoplasm_info", (event) => {
-      const loadedFile = this.state.loadedProject.files.get(
-        this.state.loadedProject.activeFile
-      );
-      const annotation = loadedFile.annotations[0];
-      if (!loadedFile || this.state.cytoplasmDetectInfo != null) return;
-
-      const imageData = sliceImageFromAnnotation(
-        loadedFile.imageData,
-        loadedFile.cellDetectChannel,
-        annotation
-      );
-
-      this.intervalID = setInterval(() => {
-        if (this.state.nucleusDetectInfo)
-          this.setState((prevState) => ({
-            cytoplasmRuntime:
-              Date.now() - prevState.nucleusDetectInfo.startTime,
-          }));
-      }, 1000);
-
-      this.setState((prevState) => ({
-        cytoplasmDetectInfo: {
-          width: imageData.width,
-          height: imageData.height,
-          loadedFile: this.state.loadedProject.activeFile,
-          selectedAnnotation: this.state.selectedAnnotation,
-          startTime: Date.now(),
-        },
-      }));
-
-      ipcRenderer.send(
-        "single-channel-info-cyto",
-        imageData.intArray,
-        loadedFile.name,
-        [imageData.width, imageData.height],
-        this.state.loadedProject.name,
-        this.state.loadedProject.activeFile
-      );
-    });
-
     // -------------- Cytoplasm Detect Results: --------------
     ipcRenderer.on(
       "cytoplasm-detect-result-buffer",
       (event, cytoplasmBuffer) => {
-        console.log(cytoplasmBuffer);
-        const detectionArray = new Uint32Array(cytoplasmBuffer.buffer);
+        const detectionArray = new Int32Array(cytoplasmBuffer.buffer);
+        console.log(detectionArray);
         const info = this.state.cytoplasmDetectInfo;
         if (info == null) return;
         const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
-        console.log(loadedFile);
         if (loadedFile == null) return;
+
+        let newFile = {
+          ...loadedFile,
+          cytoDetection: {
+            detectionArray,
+            width: loadedFile.imageData.width,
+            height: loadedFile.imageData.height,
+          },
+        };
+
+        let newFiles = new Map(this.state.loadedProject.files);
+        newFiles.set(info.loadedFile, newFile);
 
         clearInterval(this.intervalID);
         this.setState((prevState) => ({
-          // loadedProject: { ...prevState.loadedProject, files: newFiles },
+          loadedProject: { ...prevState.loadedProject, files: newFiles },
           cytoplasmDetectInfo: null,
           cytoplasmRuntime: 0,
         }));
       }
     );
-
-    // ------------------ Delete Project: ------------------
-    ipcRenderer.on("delete_project", (event, project_name) => {
-      if (project_name === this.state.loadedProject.name) {
-        //Set to Default.
-        this.setState((prevState) => ({
-          loadedProject: {
-            ...prevState.loadedProject,
-            files: [],
-            activeFile: -1,
-            filePaths: [],
-            cellDetectChannel: 0,
-            name: "Untitled Project",
-          },
-        }));
-      }
-    });
   }
 
   render() {

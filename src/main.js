@@ -104,12 +104,29 @@ app.whenReady().then(() => {
       console.log(annotation);
 
       // EXECUTE CYTOPLASM DETECTION HERE
+      let setColor = true;
+      let color = setColor;
+      const retval = new Int32Array(1000 * 1000);
+      for (let y = 0, height = 0; y < 1000; y++, height++) {
+        color = setColor;
+        for (let x = 0, width = 0; x < 1000; x++, width++) {
+          retval[y * 1000 + x] = (color ? 1 : -1) * 255;
+          if ((x + 1) % 15 === 0) color = !color;
+        }
+        if ((y + 1) % 15 === 0) setColor = !setColor;
+      }
+
+      mainWindow.webContents.send(
+        "cytoplasm-detect-result-buffer",
+        retval,
+        true
+      );
     }
   );
 
   // Receives information from App.js and sends it to nucleiDetect().
   ipcMain.on(
-    "single-channel-info",
+    "nucleus-detection",
     (event, imageArray, imageTitle, dimensions, project_name) => {
       const dir = path.join(
         os.homedir(),
