@@ -580,6 +580,5 @@ class cyto_assigner_base():
         elif not incl_nuc:
             df = df[df.is_nuc == False]
 
-
         # Groupby the nuclei and then apply aggregate functions
         return df.groupby('nuc').agg(agg_fxns)
