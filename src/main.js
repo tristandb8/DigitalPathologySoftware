@@ -65,6 +65,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
+    icon: "public/favicon.ico",
+    title: "ZDFocus",
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
