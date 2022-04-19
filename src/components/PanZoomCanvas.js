@@ -101,9 +101,10 @@ export default class PanZoomCanvas extends Component {
     ) {
       this.updateCanvas();
     } else if (oldProps.grid !== this.props.grid) {
-      this.gridRef.current.backgroundImage = this.props.grid
-        ? `url(${grid})`
-        : "none";
+      if (this.gridRef.current)
+        this.gridRef.current.backgroundImage = this.props.grid
+          ? `url(${grid})`
+          : "none";
     }
   }
 

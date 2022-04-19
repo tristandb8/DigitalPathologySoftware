@@ -5,7 +5,6 @@ import styled from "styled-components";
 import DisplayPage from "./components/DisplayPage";
 import RightPane from "./components/RightPane";
 import LeftPane from "./components/LeftPane";
-import StatusBar from "./components/StatusBar";
 import { projectFile } from "./utils/projectFile";
 import "./App.css";
 
@@ -32,6 +31,46 @@ class App extends Component {
       selectedAnnotation: 0,
     };
   }
+
+  executeCytoDetection = () => {
+    const loadedFile = this.state.loadedProject.files.get(
+      this.state.loadedProject.activeFile
+    );
+    if (!loadedFile || this.state.cytoplasmDetectInfo != null) return;
+
+    // TODO: Get all active channel data
+    let activeChannels = [];
+    const imageData = new Uint8ClampedArray(
+      loadedFile.imageData.idfArray[loadedFile.cellDetectChannel].data
+    );
+
+    this.intervalID = setInterval(() => {
+      if (this.state.cytoplasmDetectInfo)
+        this.setState((prevState) => ({
+          cytoplasmRuntime:
+            Date.now() - prevState.cytoplasmDetectInfo.startTime,
+        }));
+    }, 1000);
+
+    this.setState((prevState) => ({
+      cytoplasmDetectInfo: {
+        width: loadedFile.imageData.width,
+        height: loadedFile.imageData.height,
+        channels: activeChannels,
+        loadedFile: this.state.loadedProject.activeFile,
+        startTime: Date.now(),
+      },
+    }));
+
+    ipcRenderer.send(
+      "single-channel-info-cyto",
+      imageData,
+      loadedFile.name,
+      [loadedFile.imageData.width, loadedFile.imageData.height],
+      this.state.loadedProject.name,
+      this.state.loadedProject.activeFile
+    );
+  };
 
   executeNucleusDetection = () => {
     const loadedFile = this.state.loadedProject.files.get(
@@ -429,41 +468,25 @@ class App extends Component {
     });
 
     // -------------- Cytoplasm Detect Results: --------------
-    // ipcRenderer.on("cytoplasm-detect-result-buffer", (event, cytoplasmBuffer) => {
-    //   const detectionArray = new Uint32Array(cytoplasmBuffer.buffer);
-    //   const info = this.state.cytoplasmDetectInfo;
-    //   if (info == null) return;
-    //   const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
-    //   console.log(loadedFile);
-    //   if (loadedFile == null) return;
-    //   const annotation = loadedFile.annotations[0];
+    ipcRenderer.on(
+      "cytoplasm-detect-result-buffer",
+      (event, cytoplasmBuffer) => {
+        console.log(cytoplasmBuffer);
+        const detectionArray = new Uint32Array(cytoplasmBuffer.buffer);
+        const info = this.state.cytoplasmDetectInfo;
+        if (info == null) return;
+        const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
+        console.log(loadedFile);
+        if (loadedFile == null) return;
 
-    //   if (annotation != null) {
-    //     let newArray = [...loadedFile.annotations];
-    //     let newAnnotation = { ...newArray[info.selectedAnnotation] };
-    //     newAnnotation.nucleusDetection = {
-    //       detectionArray,
-    //       height: info.height,
-    //       width: info.width,
-    //     };
-    //     newArray[info.selectedAnnotation] = newAnnotation;
-    //     let newFile = { ...loadedFile, annotations: newArray };
-    //     let newFiles = new Map(this.state.loadedProject.files);
-    //     newFiles.set(info.loadedFile, newFile);
-    //     clearInterval(this.intervalID);
-    //     this.setState((prevState) => ({
-    //       loadedProject: { ...prevState.loadedProject, files: newFiles },
-    //       cytoplasmDetectInfo: null,
-    //       cytoplasmRuntime: 0,
-    //     }));
-    //   } else {
-    //     clearInterval(this.intervalID);
-    //     this.setState((prevState) => ({
-    //       cytoplasmDetectInfo: null,
-    //       cytoplasmRuntime: 0,
-    //     }));
-    //   }
-    // });
+        clearInterval(this.intervalID);
+        this.setState((prevState) => ({
+          // loadedProject: { ...prevState.loadedProject, files: newFiles },
+          cytoplasmDetectInfo: null,
+          cytoplasmRuntime: 0,
+        }));
+      }
+    );
 
     // ------------------ Delete Project: ------------------
     ipcRenderer.on("delete_project", (event, project_name) => {
@@ -494,13 +517,16 @@ class App extends Component {
             selectAnnotation={this.handleSelectedAnnotationChange}
             selectedAnnotation={this.state.selectedAnnotation}
             removeAnnotation={this.removeAnnotation}
-            executeNucleusDetection={this.executeNucleusDetection}
             selectCellChannel={this.selectCellChannel}
             tabs={this.state.tabs}
+            executeNucleusDetection={this.executeNucleusDetection}
             nucleusDetectInfo={this.state.nucleusDetectInfo}
+            nucleusRuntime={this.state.nucleusRuntime}
+            cytoRuntime={this.state.cytoplasmRuntime}
+            executeCytoDetection={this.executeCytoDetection}
+            cytoDetectInfo={this.state.cytoplasmDetectInfo}
             selectCompositeOp={this.selectCompositeOp}
             compositeOp={this.state.loadedProject.compositeOp}
-            nucleusRuntime={this.state.nucleusRuntime}
           />
           <DisplayPage
             ref={this.displayPageRef}

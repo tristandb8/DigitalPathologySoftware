@@ -143,11 +143,26 @@ class ImagePane extends Component {
         <button
           className="imagePaneLabel"
           onClick={this.props.executeNucleusDetection}
-          disabled={this.props.nucleusDetectInfo != null}
+          disabled={
+            this.props.nucleusDetectInfo != null ||
+            this.props.cytoDetectInfo != null
+          }
         >
           {this.props.nucleusDetectInfo != null
             ? `${this.msToTime(this.props.nucleusRuntime)}`
-            : "Execute Nucleus Detection"}
+            : "Nucleus Detection"}
+        </button>
+        <button
+          className="imagePaneLabel"
+          onClick={this.props.executeCytoDetection}
+          disabled={
+            this.props.nucleusDetectInfo != null ||
+            this.props.cytoDetectInfo != null
+          }
+        >
+          {this.props.cytoDetectInfo != null
+            ? `${this.msToTime(this.props.cytoRuntime)}`
+            : "Cytoplasm Detection"}
         </button>
       </div>
     ) : (
@@ -397,10 +412,13 @@ export default class LeftPane extends Component {
             project={this.props.project}
             nucleusDetectInfo={this.props.nucleusDetectInfo}
             executeNucleusDetection={this.props.executeNucleusDetection}
+            nucleusRuntime={this.props.nucleusRuntime}
+            cytoDetectInfo={this.props.cytoDetectInfo}
+            executeCytoDetection={this.props.executeCytoDetection}
+            cytoRuntime={this.props.cytoRuntime}
             selectCellChannel={this.props.selectCellChannel}
             selectCompositeOp={this.props.selectCompositeOp}
             compositeOp={this.props.compositeOp}
-            nucleusRuntime={this.props.nucleusRuntime}
           />
         );
       case LeftPanes.Annotation:
