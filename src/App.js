@@ -79,13 +79,13 @@ class App extends Component {
 
     ipcRenderer.send(
       "cytoplasm-detection",
-      String.fromCharCode.apply(
-        null,
-        loadedFile.nucleusDetection.detectionArray
-      ),
+      loadedFile.nucleusDetection.detectionArray.toString(),
       this.state.loadedProject.activeFile,
       info,
-      annotationJSON
+      annotationJSON,
+      loadedFile.imageData.width,
+      loadedFile.imageData.height,
+      loadedFile.name
     );
   };
 

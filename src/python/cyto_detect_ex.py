@@ -1,8 +1,42 @@
 from cyto_detect import growing_assigner
 import tifffile
+import sys
+import os
+from os.path import exists
+import json
+import numpy as np
+
+nuc_arr = sys.argv[1]
+nuc_arr = np.fromstring(nuc_arr, dtype=int, sep=',')
+nuc_arr.resize(int(sys.argv[7]), int(sys.argv[6]))
+# print('Nucleus Array Shape', nuc_arr.shape)
+
+tiff_path = sys.argv[2]
+# print('Tiff Path', tiff_path)
+
+channels = sys.argv[3]
+if(channels != ''):
+    channels_list = channels.split(",")
+    for i in range(0, len(channels_list)):
+        channels_list[i] = int(channels_list[i])
+else:
+    channels_list = list(range(1, 26))+[27, 29, 30, 31, 32]
+# print(channels_list)
+# print(type(channels_list))
+
+names = sys.argv[4]
+# print('Names', names)
+
+# dict = json.loads(sys.argv[5])
+# print(dict)
+# print(type(dict))
+
+# print('Width: ', sys.argv[6])
+# print('Height: ', sys.argv[7])
 
 # Instantiate the object whenever you need to use it
 cyto_assigner = growing_assigner()
+
 
 # MANDATORY PARAMETERS
 
@@ -34,24 +68,25 @@ cyto_assigner = growing_assigner()
 
 # Based off our discussion, I am assuming you will have the 2D numpy array for
 #   the nuclei mask and then a link to the img, along with a list of channels
-nuc_mask = tifffile.imread('cyto_detect/example_img/H32_nuc_mask.tiff')
-img = 'cyto_detect/example_img/H32_channels.tiff'
-channels = list(range(1,26))+[27,29,30,31,32]
+nuc_mask = nuc_arr
+img = tiff_path
+
 # ^ It's okay to test without having list of channels, it defaults to
 #       all channels, however these were the ones tristan recommended
 
 # Now this will run the cyto assigner and return a 2D numpy array, where values
 #   are either positive if representing a nuclei at that pixel, or the same
 #   number but negative if it is cytoplasm assigned to that nuclei
-cytoplasm_array = cyto_assigner.run(nuc_mask=nuc_mask,\
-                                    img_file=img,\
-                                    channels=channels)
+cytoplasm_array = cyto_assigner.run(nuc_mask=nuc_mask,
+                                    img_file=img,
+                                    channels=channels_list)
 
 # We can display the image if we have matplotlib installed
-cyto_assigner.display_img(cytoplasm_array)
+# cyto_assigner.display_img(cytoplasm_array)
+# $ print(cytoplasm_array.shape)
 
 # Or if we have plotly (probably dont)
-#cyto_assigner.display_plotly(cytoplasm_array)
+# cyto_assigner.display_plotly(cytoplasm_array)
 
 # If we have Pandas installed, we can quickly compile information
 # To generate a data frame per pixel, we can pass the cytoplasm array and an
@@ -65,8 +100,22 @@ cyto_assigner.display_img(cytoplasm_array)
 #   count and by default it calculates them all.  We can then also pass
 #   incl_cyto or incl_nuc (default to True) which determine whether we should
 #   factor in pixels assigned to cyto / nuc for the nuclei aggregates
-#df = cyto_assigner.get_data_per_nuc(cytoplasm_array, channel_names=channel_names,\
+# df = cyto_assigner.get_data_per_nuc(cytoplasm_array, channel_names=channel_names,\
 #                     agg_fxns=['mean', 'std'], incl_cyto=True, incl_nuc=True)
+
 # I am going to run it without the channel names as I do not have those
 df = cyto_assigner.get_data_per_nuc(cytoplasm_array, agg_fxns=['mean', 'std'])
-print(df)
+# print(df)
+
+saveFile = os.path.join(os.path.expanduser(
+    '~'), 'Documents', 'ZDFocus', 'CSV Files')
+
+if (exists(saveFile) != 1):
+    os.mkdir(saveFile)
+saveFile = os.path.join(saveFile, sys.argv[8]+"_cyto_info.csv")
+
+df.to_csv(saveFile)
+
+with open(sys.argv[9], 'wb') as fp:
+    fp.write(cytoplasm_array.astype(np.uint32).tobytes())
+print(cytoplasm_array.shape)
