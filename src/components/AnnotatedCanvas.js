@@ -22,9 +22,8 @@ class AnnotationCanvas extends Component {
     const canvas = this.canvasRef?.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const boundingRect = this.canvasRef.current.getBoundingClientRect();
-    canvas.width = boundingRect.width;
-    canvas.height = boundingRect.height;
+    canvas.width = this.props.width * this.props.scale;
+    canvas.height = this.props.height * this.props.scale;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < this.props.annotations?.length; i++) {
@@ -43,7 +42,7 @@ class AnnotationCanvas extends Component {
         ctx.fillStyle = annotation.fill;
       } else {
         const pattern = ctx.createPattern(annotation.fill, "no-repeat");
-        const transform = ctx.getTransform();
+        const transform = new DOMMatrix();
 
         transform.scaleSelf(
           this.props.scale,
@@ -484,6 +483,8 @@ export default class AnnotatedCanvas extends Component {
           selectedAnnotation={this.props.selectedAnnotation}
           annotations={this.props.annotations}
           scale={this.props.scale}
+          width={this.props.width}
+          height={this.props.height}
         />
         <DrawCanvas
           ref={this.drawCanvasRef}

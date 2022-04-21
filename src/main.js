@@ -3,6 +3,7 @@ const { ipcMain } = require("electron");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
+const isDev = require("electron-is-dev");
 let { PythonShell } = require("python-shell");
 
 const isMac = process.platform === "darwin";
@@ -75,10 +76,14 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL("http://localhost:3000");
+  mainWindow.loadURL(
+    isDev
+      ? "http://localhost:3000"
+      : `file://${path.join(__dirname, "../build/index.html")}`
+  );
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (isDev) mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished

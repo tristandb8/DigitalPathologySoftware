@@ -178,6 +178,8 @@ export default class PanZoomCanvas extends Component {
               />
               <AnnotatedCanvas
                 ref={this.annotationCanvasRef}
+                width={this.props.file.imageData.width}
+                height={this.props.file.imageData.height}
                 mode={this.props.mode}
                 scale={this.state.scale}
                 onZoom={this.zoomToCoords}
