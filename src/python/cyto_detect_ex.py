@@ -6,8 +6,8 @@ from os.path import exists
 import json
 import numpy as np
 
-nuc_arr = sys.argv[1]
-nuc_arr = np.fromstring(nuc_arr, dtype=int, sep=',')
+nuc_arr = np.fromfile(sys.argv[1], dtype=np.uint32)
+# nuc_arr = np.fromstring(nuc_arr, dtype=int, sep=',')
 nuc_arr.resize(int(sys.argv[7]), int(sys.argv[6]))
 # print('Nucleus Array Shape', nuc_arr.shape)
 
@@ -117,5 +117,5 @@ saveFile = os.path.join(saveFile, sys.argv[8]+"_cyto_info.csv")
 df.to_csv(saveFile)
 
 with open(sys.argv[9], 'wb') as fp:
-    fp.write(cytoplasm_array.astype(np.uint32).tobytes())
+    fp.write(cytoplasm_array.astype(np.int32).tobytes())
 print(cytoplasm_array.shape)

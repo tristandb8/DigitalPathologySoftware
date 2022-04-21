@@ -403,6 +403,14 @@ class App extends Component {
     ipcRenderer.on(
       "cytoplasm-detect-result-buffer",
       (event, cytoplasmBuffer) => {
+        if (cytoplasmBuffer === null) {
+          clearInterval(this.intervalID);
+          this.setState((prevState) => ({
+            cytoplasmDetectInfo: null,
+            cytoplasmRuntime: 0,
+          }));
+          return;
+        }
         const detectionArray = new Int32Array(cytoplasmBuffer.buffer);
         // console.log(detectionArray);
         const info = this.state.cytoplasmDetectInfo;

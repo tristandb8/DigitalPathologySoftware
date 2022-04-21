@@ -100,14 +100,22 @@ app.whenReady().then(() => {
   ipcMain.on(
     "cytoplasm-detection",
     (event, nucleusBuffer, tiffPath, info, annotation, width, height, name) => {
-      let fileName = path.basename(name)
-      const pathForResults =
-      path.join(
+      let fileName = path.basename(name);
+
+      const pathForResults = path.join(
         os.homedir(),
         "Documents",
         "ZDFocus",
         "Detect Cytoplasm",
         `${fileName}_cyto_2D`
+      );
+
+      const pathForNucleus = path.join(
+        os.homedir(),
+        "Documents",
+        "ZDFocus",
+        "Detect Nucleus",
+        `${fileName}_nucleus_2D`
       );
 
       // EXECUTE CYTOPLASM DETECTION HERE
@@ -119,28 +127,33 @@ app.whenReady().then(() => {
         //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/...",
         pythonOptions: ["-u"], // get print results in real-time
         args: [
-          nucleusBuffer,
+          pathForNucleus,
           tiffPath,
-          info['channels'],
-          info['names'],
+          info["channels"],
+          info["names"],
           String(annotation),
           width,
           height,
           fileName,
-          pathForResults
+          pathForResults,
         ], //An argument which can be accessed in the script, index starts at 1, not 0.
       };
 
       const resultFn = (err, result) => {
-        if (err) throw err;
         console.log("CYTOPLASM DETECT FINISHED...");
-        console.log(result)
+        console.log(result);
+        if (err) {
+          mainWindow.webContents.send("cytoplasm-detect-result-buffer", null);
+          throw err;
+        }
         const fileContent = fs.readFileSync(pathForResults);
-        mainWindow.webContents.send("cytoplasm-detect-result-buffer", fileContent);
+        mainWindow.webContents.send(
+          "cytoplasm-detect-result-buffer",
+          fileContent
+        );
       };
 
       PythonShell.run("./src/python/cyto_detect_ex.py", options, resultFn);
-
 
       // let setColor = true;
       // let color = setColor;
