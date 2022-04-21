@@ -74,6 +74,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
   });
+
   mainWindow.loadURL("http://localhost:3000");
 
   // Open the DevTools.
@@ -153,25 +154,11 @@ app.whenReady().then(() => {
         );
       };
 
-      PythonShell.run("./src/python/cyto_detect_ex.py", options, resultFn);
-
-      // let setColor = true;
-      // let color = setColor;
-      // const retval = new Int32Array(1000 * 1000);
-      // for (let y = 0, height = 0; y < 1000; y++, height++) {
-      //   color = setColor;
-      //   for (let x = 0, width = 0; x < 1000; x++, width++) {
-      //     retval[y * 1000 + x] = (color ? 1 : -1) * 255;
-      //     if ((x + 1) % 15 === 0) color = !color;
-      //   }
-      //   if ((y + 1) % 15 === 0) setColor = !setColor;
-      // }
-
-      // mainWindow.webContents.send(
-      //   "cytoplasm-detect-result-buffer",
-      //   retval,
-      //   true
-      // );
+      PythonShell.run(
+        path.join(__dirname, "python", "cyto_detect_ex.py"),
+        options,
+        resultFn
+      );
     }
   );
 
@@ -303,9 +290,6 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   // Pre-defined options and arguments that python-shell will read in.
   let options = {
     mode: "text",
-    // I enable/disable this when on my (mike) machine
-    // pythonPath:
-    //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
     pythonOptions: ["-u"], // get print results in real-time
     args: [
       pathToh5,
@@ -325,80 +309,9 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
     mainWindow.webContents.send("nucleus-detect-result-buffer", fileContent);
   };
 
-  PythonShell.run("./src/python/NucleiDetect.py", options, resultFn);
+  PythonShell.run(
+    path.join(__dirname, "python", "NucleiDetect.py"),
+    options,
+    resultFn
+  );
 }
-
-// function cytoplasmDetect(
-//   fileName,
-//   width,
-//   height,
-//   lastChannelPath,
-//   projectName,
-//   tiffFilePath
-// ) {
-//   console.log("Testing Cytoplasm Scripts...");
-
-//   // Paths used as arguments that will be sent into python scripts.
-//   const pathToh5 = path.join(
-//     process.cwd(),
-//     "src",
-//     "python",
-//     "mask_rcnn_cell_0030.h5"
-//   );
-
-//   const pathForTMPchannel = path.join(
-//     os.homedir(),
-//     "Documents",
-//     "ZDFocus",
-//     "tmp",
-//     "tmp.jpg"
-//   );
-
-//   const pathForResults =
-//     projectName !== "Untitled Project"
-//       ? path.join(
-//           os.homedir(),
-//           "Documents",
-//           "ZDFocus",
-//           projectName,
-//           "Detect Cytoplasm",
-//           `${fileName}_cyto_2D`
-//         )
-//       : path.join(
-//           os.homedir(),
-//           "Documents",
-//           "ZDFocus",
-//           "Detect Cytoplasm",
-//           `${fileName}_cyto_2D`
-//         );
-
-//   // Pre-defined options and arguments that python-shell will read in.
-//   let options = {
-//     mode: "text",
-//     // I enable/disable this when on my (mike) machine
-//     // pythonPath:
-//     //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
-//     pythonOptions: ["-u"], // get print results in real-time
-//     args: [
-//       pathToh5,
-//       lastChannelPath,
-//       width,
-//       height,
-//       pathForTMPchannel,
-//       fileName,
-//       projectName,
-//       tiffFilePath,
-//     ], //An argument which can be accessed in the script, index starts at 1, not 0.
-//   };
-
-//   const resultFn = (err, result) => {
-//     console.log(result);
-
-//     if (err) throw err;
-//     console.log("CYTO DETECT FINISHED...");
-//     const fileContent = fs.readFileSync(pathForResults);
-//     mainWindow.webContents.send("cytoplasm-detect-result-buffer", fileContent);
-//   };
-
-//   PythonShell.run("./src/python/Nuclei_cyto_detect.py", options, resultFn);
-// }
