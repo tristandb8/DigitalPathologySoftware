@@ -466,19 +466,27 @@ class DrawCanvas extends Component {
 export default class AnnotatedCanvas extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {};
+    this.annotationCanvasRef = React.createRef(null);
+    this.drawCanvasRef = React.createRef(null);
   }
+
+  updateCanvas = () => {
+    if (this.annotationCanvasRef?.current)
+      this.annotationCanvasRef.current.updateCanvas();
+    if (this.drawCanvasRef?.current) this.drawCanvasRef.current.updateCanvas();
+  };
 
   render() {
     return (
       <div style={{ width: "100%", height: "100%", position: "absolute" }}>
         <AnnotationCanvas
+          ref={this.annotationCanvasRef}
           selectedAnnotation={this.props.selectedAnnotation}
           annotations={this.props.annotations}
           scale={this.props.scale}
         />
         <DrawCanvas
+          ref={this.drawCanvasRef}
           mode={this.props.mode}
           scale={this.props.scale}
           onZoom={this.props.onZoom}

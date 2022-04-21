@@ -142,7 +142,6 @@ app.whenReady().then(() => {
 
       const resultFn = (err, result) => {
         console.log("CYTOPLASM DETECT FINISHED...");
-        console.log(result);
         if (err) {
           mainWindow.webContents.send("cytoplasm-detect-result-buffer", null);
           throw err;
