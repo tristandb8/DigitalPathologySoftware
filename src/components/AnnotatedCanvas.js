@@ -32,7 +32,9 @@ class AnnotationCanvas extends Component {
       const isSelected = i === this.props.selectedAnnotation;
       const lineWidth = isSelected ? 3 : 1;
       const backgroundFill =
-        i !== 0 || (i === 0 && annotation.useNucleusDetection);
+        i !== 0 ||
+        (i === 0 &&
+          (annotation.useNucleusDetection || annotation.useCytoDetection));
 
       if (
         typeof annotation.fill === "string" ||
@@ -127,7 +129,12 @@ class AnnotationCanvas extends Component {
     return (
       <canvas
         ref={this.canvasRef}
-        style={{ width: "100%", height: "100%", position: "absolute" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          imageRendering: "pixelated",
+        }}
       />
     );
   }

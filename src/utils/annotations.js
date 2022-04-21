@@ -95,6 +95,7 @@ export const Annotation = (type, params, name) => {
     name,
     fill: null,
     useNucleusDetection: true,
+    useCytoDetection: false,
   };
 
   annotation.fill = getHexAlphaColor(annotation, null);
@@ -118,13 +119,19 @@ export const getAnnotationFill = (
   nucleusDetection,
   cytoDetection
 ) => {
-  if (!annotation.useNucleusDetection || !nucleusDetection) {
+  if (annotation.useNucleusDetection && nucleusDetection) {
+    const bitmapPromise = createImageBitmap(
+      getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
+    );
+    return bitmapPromise;
+  } else if (annotation.useCytoDetection && cytoDetection) {
+    const bitmapPromise = createImageBitmap(
+      getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
+    );
+    return bitmapPromise;
+  } else {
     return Promise.resolve(getHexAlphaColor(annotation));
   }
-  const bitmapPromise = createImageBitmap(
-    getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
-  );
-  return bitmapPromise;
 };
 
 export const getHexAlphaColor = (annotation) => {
@@ -143,19 +150,26 @@ export const getNucleusDetectionImage = (
   const data = nucleusDetection.detectionArray;
   const cytoData = cytoDetection?.detectionArray;
 
-  if (cytoData) {
+  if (annotation.useCytoDetection && cytoData) {
     const intArray = new Uint8ClampedArray(
       cytoDetection.width * cytoDetection.height * 4
     );
     for (let i = 0, j = 0; i < cytoData.length; i++) {
-      const isNucleus = cytoData[i] < 0;
+      const isNucleus = cytoData[i] > 0;
       const index = Math.abs(cytoData[i]) % Object.values(colors).length;
-      const threshVal = hexToRgb(Object.values(colors)[index]);
-      intArray[j++] = threshVal.r; // R value
-      intArray[j++] = threshVal.g; // G value
-      intArray[j++] = threshVal.b; // B value
-      intArray[j++] =
-        (isNucleus ? 1 - annotation.color.rgb.a : annotation.color.rgb.a) * 255; // A value
+      const colorVal = hexToRgb(Object.values(colors)[index]);
+
+      if (isNucleus) {
+        intArray[j++] = annotation.color.rgb.r; // R value
+        intArray[j++] = annotation.color.rgb.g; // G value
+        intArray[j++] = annotation.color.rgb.b; // B value
+        intArray[j++] = annotation.color.rgb.a * 255;
+      } else {
+        intArray[j++] = colorVal.r; // R value
+        intArray[j++] = colorVal.g; // G value
+        intArray[j++] = colorVal.b; // B value
+        intArray[j++] = (1 - annotation.color.rgb.a) * 255;
+      }
     }
     return new ImageData(intArray, cytoDetection.width, cytoDetection.height);
   } else {
@@ -163,14 +177,21 @@ export const getNucleusDetectionImage = (
       nucleusDetection.width * nucleusDetection.height * 4
     );
     for (let i = 0, j = 0; i < data.length; i++) {
-      const threshVal =
-        data[i] > 0
-          ? 255 * (1 - annotation.color.rgb.a)
-          : 255 * annotation.color.rgb.a;
-      intArray[j++] = annotation.color.rgb.r; // R value
-      intArray[j++] = annotation.color.rgb.g; // G value
-      intArray[j++] = annotation.color.rgb.b; // B value
-      intArray[j++] = threshVal; // A value
+      const isNucleus = data[i] > 0;
+      const index = Math.abs(data[i]) % Object.values(colors).length;
+      const colorVal = hexToRgb(Object.values(colors)[index]);
+
+      if (isNucleus) {
+        intArray[j++] = colorVal.r; // R value
+        intArray[j++] = colorVal.g; // G value
+        intArray[j++] = colorVal.b; // B value
+        intArray[j++] = (1 - annotation.color.rgb.a) * 255;
+      } else {
+        intArray[j++] = annotation.color.rgb.r; // R value
+        intArray[j++] = annotation.color.rgb.g; // G value
+        intArray[j++] = annotation.color.rgb.b; // B value
+        intArray[j++] = annotation.color.rgb.a * 255;
+      }
     }
     return new ImageData(
       intArray,

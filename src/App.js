@@ -183,7 +183,9 @@ class App extends Component {
     if (!loadedFile) return;
 
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
-    annotation.useNucleusDetection = loadedFile.nucleusDetection != null;
+    annotation.useCytoDetection = loadedFile.cytoDetection != null;
+    annotation.useNucleusDetection =
+      !annotation.useCytoDetection && loadedFile.nucleusDetection != null;
 
     getAnnotationFill(
       annotation,
@@ -230,9 +232,20 @@ class App extends Component {
 
     let newArray = [...loadedFile.annotations];
     let newAnnotation = { ...newArray[index] };
+
+    if (key === "useCytoDetection")
+      newAnnotation["useNucleusDetection"] = false;
+
+    if (key === "useNucleusDetection")
+      newAnnotation["useCytoDetection"] = false;
+
     newAnnotation[key] = value;
 
-    if (key === "color" || key === "useNucleusDetection") {
+    if (
+      key === "color" ||
+      key === "useNucleusDetection" ||
+      key === "useCytoDetection"
+    ) {
       getAnnotationFill(
         newAnnotation,
         loadedFile.nucleusDetection,
@@ -412,7 +425,6 @@ class App extends Component {
           return;
         }
         const detectionArray = new Int32Array(cytoplasmBuffer.buffer);
-        // console.log(detectionArray);
         const info = this.state.cytoplasmDetectInfo;
         if (info == null) return;
         const loadedFile = this.state.loadedProject.files.get(info.loadedFile);
