@@ -1,6 +1,6 @@
 {
   "name": "zdfocus",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "author": {
     "name": "Group 43"
@@ -69,6 +69,7 @@
     "wait-on": "^6.0.1"
   },
   "build": {
+    "productName": "ZDFocus",
     "files": [
       "build/**/*",
       "node_modules/**/*"

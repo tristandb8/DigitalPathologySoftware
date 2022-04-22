@@ -174,7 +174,7 @@ export default class DisplayPage extends Component {
 
     this.state = {
       mode: Modes.Pan,
-      grid: false,
+      grid: true,
       ruler: false,
     };
   }
