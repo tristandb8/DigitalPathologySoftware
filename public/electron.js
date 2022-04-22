@@ -158,11 +158,17 @@ app.whenReady().then(() => {
         );
       };
 
-      PythonShell.run(
-        path.join(__dirname, "python", "cyto_detect_ex.py"),
-        options,
-        resultFn
-      );
+      let pathToScript = null;
+      if (isDev) {
+        pathToScript = path.join(__dirname, "python", "cyto_detect_ex.py");
+      } else {
+        pathToScript = path.join(
+          process.resourcesPath,
+          "public/python/cyto_detect_ex.py"
+        );
+      }
+
+      PythonShell.run(pathToScript, options, resultFn);
     }
   );
 
@@ -258,12 +264,15 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   console.log("Testing Nucleus Scripts...");
 
   // Paths used as arguments that will be sent into python scripts.
-  const pathToh5 = path.join(
-    process.cwd(),
-    "src",
-    "python",
-    "mask_rcnn_cell_0030.h5"
-  );
+  let pathToh5 = null;
+  if (isDev) {
+    pathToh5 = path.join(__dirname, "python", "mask_rcnn_cell_0030.h5");
+  } else {
+    pathToh5 = path.join(
+      process.resourcesPath,
+      "public/python/mask_rcnn_cell_0030.h5"
+    );
+  }
 
   const pathForTMPchannel = path.join(
     os.homedir(),
@@ -313,9 +322,15 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
     mainWindow.webContents.send("nucleus-detect-result-buffer", fileContent);
   };
 
-  PythonShell.run(
-    path.join(__dirname, "python", "NucleiDetect.py"),
-    options,
-    resultFn
-  );
+  let pathToScript = null;
+  if (isDev) {
+    pathToScript = path.join(__dirname, "python", "NucleiDetect.py");
+  } else {
+    pathToScript = path.join(
+      process.resourcesPath,
+      "public/python/NucleiDetect.py"
+    );
+  }
+
+  PythonShell.run(pathToScript, options, resultFn);
 }
