@@ -158,7 +158,9 @@ class App extends Component {
     // TODO: Set tab to some adjacent tab
     let newActive = activeIndex;
     if (keyIndex === activeIndex) newActive = activeIndex - 1;
+    if (newActive === -1) newActive = oldTabs.length - 1;
     newActive = oldTabs[newActive];
+    if (newActive === key) newActive = null;
 
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, activeFile: newActive },
@@ -316,6 +318,26 @@ class App extends Component {
   };
 
   componentDidMount() {
+    ipcRenderer.on("next-tab", (event) => {
+      const tabs = [...this.state.tabs.keys()];
+      const activeIndex =
+        (tabs.indexOf(this.state.loadedProject.activeFile) + 1) % tabs.length;
+      this.selectTab(tabs[activeIndex]);
+    });
+
+    ipcRenderer.on("prev-tab", (event) => {
+      const tabs = [...this.state.tabs.keys()];
+      let activeIndex = tabs.indexOf(this.state.loadedProject.activeFile);
+      if (activeIndex - 1 === -1) activeIndex = tabs.length - 1;
+      else activeIndex -= 1;
+      this.selectTab(tabs[activeIndex]);
+    });
+
+    ipcRenderer.on("close-tab", (event) => {
+      if (this.state.loadedProject)
+        this.closeTab(this.state.loadedProject.activeFile);
+    });
+
     ipcRenderer.on("new-image", (event, fileContent, append) => {
       let imageData, cellDetectChannel;
 

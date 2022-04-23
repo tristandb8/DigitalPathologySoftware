@@ -40,21 +40,137 @@ const template = [
       },
     ],
   },
-  // { role: 'viewMenu' }
   {
     label: "View",
     submenu: [
-      { role: "reload" },
-      { role: "forceReload" },
-      { role: "toggleDevTools" },
-      { type: "separator" },
-      { role: "resetZoom" },
-      { role: "zoomIn" },
-      { role: "zoomOut" },
-      { type: "separator" },
-      { role: "togglefullscreen" },
+      {
+        label: "Next Tab",
+        accelerator: "CmdOrCtrl+Tab",
+        click() {
+          mainWindow.webContents.send("next-tab");
+        },
+      },
+      {
+        label: "Previous Tab",
+        accelerator: "CmdOrCtrl+Shift+Tab",
+        click() {
+          mainWindow.webContents.send("prev-tab");
+        },
+      },
+      {
+        label: "Close Tab",
+        accelerator: "CmdOrCtrl+W",
+        click() {
+          mainWindow.webContents.send("close-tab");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Zoom To Fit",
+        accelerator: "CmdOrCtrl+R",
+        click() {
+          mainWindow.webContents.send("reset-view");
+        },
+      },
+      {
+        label: "Actual Size",
+        accelerator: "CmdOrCtrl+Shift+R",
+        click() {
+          mainWindow.webContents.send("actual-view");
+        },
+      },
+      {
+        label: "Zoom In",
+        accelerator: "CmdOrCtrl+Plus",
+        click() {
+          mainWindow.webContents.send("zoom-in");
+        },
+      },
+      {
+        label: "Zoom Out",
+        accelerator: "CmdOrCtrl+-",
+        click() {
+          mainWindow.webContents.send("zoom-out");
+        },
+      },
     ],
   },
+  {
+    label: "Tools",
+    submenu: [
+      {
+        label: "Toggle Grid",
+        accelerator: "CmdOrCtrl+G",
+        click() {
+          mainWindow.webContents.send("toggle-grid");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Pan",
+        accelerator: "Shift+E",
+        click() {
+          mainWindow.webContents.send("pan-mode");
+        },
+      },
+      {
+        label: "Zoom",
+        accelerator: "Shift+Z",
+        click() {
+          mainWindow.webContents.send("zoom-mode");
+        },
+      },
+      {
+        label: "Measure",
+        accelerator: "Shift+D",
+        click() {
+          mainWindow.webContents.send("measure-mode");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Annotate Square",
+        accelerator: "Shift+S",
+        click() {
+          mainWindow.webContents.send("annotate-square-mode");
+        },
+      },
+      {
+        label: "Annotate Circle",
+        accelerator: "Shift+C",
+        click() {
+          mainWindow.webContents.send("annotate-circle-mode");
+        },
+      },
+      {
+        label: "Annoatate Polygon",
+        accelerator: "Shift+P",
+        click() {
+          mainWindow.webContents.send("annotate-polygon-mode");
+        },
+      },
+    ],
+  },
+  // { role: 'viewMenu' }
+  ...(isDev
+    ? [
+        {
+          label: "Dev View",
+          submenu: [
+            { role: "forceReload" },
+            { role: "toggleDevTools" },
+            { role: "resetZoom" },
+            { type: "separator" },
+          ],
+        },
+      ]
+    : []),
 ];
 
 const menu = Menu.buildFromTemplate(template);

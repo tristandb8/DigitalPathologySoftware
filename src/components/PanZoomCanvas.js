@@ -20,6 +20,25 @@ export default class PanZoomCanvas extends Component {
     };
   }
 
+  zoomIn = () => {
+    if (!this.portRef.current) return;
+    this.viewRef.current.zoomIn(0.5, 0);
+    this.setState({ scale: this.viewRef.current.state.scale });
+  };
+
+  zoomOut = () => {
+    if (!this.portRef.current) return;
+    this.viewRef.current.zoomOut(0.5, 0);
+    this.setState({ scale: this.viewRef.current.state.scale });
+  };
+
+  actualSize = () => {
+    if (!this.portRef.current) return;
+    this.viewRef.current.resetTransform(0, "easeOut");
+    this.viewRef.current.centerView(1, 0, "easeOut");
+    this.setState({ scale: this.viewRef.current.state.scale });
+  };
+
   resetView = () => {
     if (!this.portRef.current) return;
 
