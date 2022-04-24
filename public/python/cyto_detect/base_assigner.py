@@ -567,19 +567,32 @@ class cyto_assigner_base():
     #           line up with the channels in the tiff image
     #       - agg_fxns (optional) = list of aggregate functions
     def get_data_per_nuc(self, cyto, channel_names=None, incl_nuc=True, \
-                                                incl_cyto=True, agg_fxns=None):
+                                incl_cyto=True, agg_fxns=None, img_name=None):
 
         if agg_fxns is None or (isinstance(agg_fxns,list) and len(agg_fxns)==0):
             # If no values passed, use all agg fxns
             agg_fxns = ['min','max','mean','std','count']
         elif isinstance(agg_fxns, list) and len(agg_fxns) == 0:
-            raise ValueError('Need ')
+            raise ValueError('Need an agg_fxn in the list')
         elif isinstance(agg_fxns, str):
             # If only passed a string, wrap in a list
             agg_fxns = [agg_fxns]
 
         # Get informatoin per pixel
         df = self.get_data_per_pix(cyto, channel_names=channel_names)
+
+        centers = self._find_centers()
+        center_pts = {}
+        for n, (cx, cy) in centers.items():
+            center_pts.setdefault('nuc',[]).append(n)
+            center_pts.setdefault('Centroid_x',[]).append(cx)
+            center_pts.setdefault('Centroid_y',[]).append(cy)
+
+        df_area = pd.DataFrame.from_dict(center_pts).set_index('nuc')
+        df_area['Area'] = df.groupby('nuc').size()
+        df_area['Nuc_Area'] = df[df.is_cyto == True].groupby('nuc').size()
+        df_area['Cyto_Area'] = df[df.is_nuc == True].groupby('nuc').size()
+
         if not incl_cyto and not incl_nuc:
             raise ValueError('Need to include cyto or nuc')
         elif not incl_cyto:
@@ -617,16 +630,20 @@ class cyto_assigner_base():
 
             aggregated[agg] = df_agg
 
-        frames = [agg_df for agg_name, agg_df in aggregated.items()]
+        frames = [agg_df for agg_name, agg_df in aggregated.items()] + \
+                    [df_area] #+ [pd.DataFrame.from_dict(center_pts)]
         concat_df = pd.concat(frames, axis=1)
 
-
+        first_cols = ['Centroid_x', 'Centroid_y', 'Area', \
+                      'Nuc_Area', 'Cyto_Area']
         if channel_names is None:
             def snum(item):
                 return int(str(item).split('_')[0])
-            cols = sorted([c for c in concat_df.columns if c != 'nuc'], key=snum)
+            cols = first_cols + sorted([c for c in concat_df.columns \
+                        if c not in first_cols], key=snum)
         else:
-            cols = sorted([c for c in concat_df.columns if c != 'nuc'])
+            cols = first_cols + sorted([c for c in concat_df.columns \
+                        if c not in first_cols], key=snum)
 
         concat_df = concat_df[cols]
 
