@@ -4,10 +4,76 @@ export const AnnotationTypes = {
   Polygon: "Polygon",
 };
 
-// https://stackoverflow.com/questions/42623071/maximum-call-stack-size-exceeded-with-math-min-and-math-max
-function getMax(arr) {
-  return arr.reduce((max, v) => (max >= v ? max : v), -Infinity);
+function hexToRgb(hex) {
+  // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+    return r + r + g + g + b + b;
+  });
+
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
 }
+
+const colors = {
+  fuchsia: "#ff00ff",
+  lightgreen: "#90ee90",
+  lightcoral: "#f08080",
+  darkmagenta: "#8b008b",
+  hotpink: "#ff69b4",
+  mediumseagreen: "#3cb371",
+  aqua: "#00ffff",
+  silver: "#c0c0c0",
+  darkgoldenrod: "#b8860b",
+  darkgreen: "#006400",
+  steelblue: "#4682b4",
+  greenyellow: "#adff2f",
+  sienna: "#a0522d",
+  maroon2: "#7f0000",
+  maroon3: "#b03060",
+  darkkhaki: "#bdb76b",
+  darkseagreen: "#8fbc8f",
+  lime: "#00ff00",
+  lightpink: "#ffb6c1",
+  sandybrown: "#f4a460",
+  cornflower: "#6495ed",
+  purple3: "#a020f0",
+  orangered: "#ff4500",
+  crimson: "#dc143c",
+  gold: "#ffd700",
+  limegreen: "#32cd32",
+  blue: "#0000ff",
+  violet: "#ee82ee",
+  chocolate: "#d2691e",
+  navajowhite: "#ffdead",
+  lightseagreen: "#20b2aa",
+  darkorchid: "#9932cc",
+  darkorange: "#ff8c00",
+  yellowgreen: "#9acd32",
+  gray: "#808080",
+  paleturquoise: "#afeeee",
+  mediumslateblue: "#7b68ee",
+  olive: "#808000",
+  plum: "#dda0dd",
+  tomato: "#ff6347",
+  darkslategray: "#2f4f4f",
+  mediumblue: "#0000cd",
+  aquamarine: "#7fffd4",
+  indigo: "#4b0082",
+  yellow: "#ffff00",
+  darkslateblue: "#483d8b",
+  lightskyblue: "#87cefa",
+  mediumvioletred: "#c71585",
+  darkolivegreen: "#556b2f",
+  mediumspringgreen: "#00fa9a",
+};
 
 export const defaultColor = () => {
   return {
@@ -29,6 +95,7 @@ export const Annotation = (type, params, name) => {
     name,
     fill: null,
     useNucleusDetection: true,
+    useCytoDetection: false,
   };
 
   annotation.fill = getHexAlphaColor(annotation, null);
@@ -52,13 +119,19 @@ export const getAnnotationFill = (
   nucleusDetection,
   cytoDetection
 ) => {
-  if (!annotation.useNucleusDetection || !nucleusDetection) {
+  if (annotation.useNucleusDetection && nucleusDetection) {
+    const bitmapPromise = createImageBitmap(
+      getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
+    );
+    return bitmapPromise;
+  } else if (annotation.useCytoDetection && cytoDetection) {
+    const bitmapPromise = createImageBitmap(
+      getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
+    );
+    return bitmapPromise;
+  } else {
     return Promise.resolve(getHexAlphaColor(annotation));
   }
-  const bitmapPromise = createImageBitmap(
-    getNucleusDetectionImage(annotation, nucleusDetection, cytoDetection)
-  );
-  return bitmapPromise;
 };
 
 export const getHexAlphaColor = (annotation) => {
@@ -77,29 +150,48 @@ export const getNucleusDetectionImage = (
   const data = nucleusDetection.detectionArray;
   const cytoData = cytoDetection?.detectionArray;
 
-  if (cytoData) {
-    const intArray = new Uint8ClampedArray(1000 * 1000 * 4);
+  if (annotation.useCytoDetection && cytoData) {
+    const intArray = new Uint8ClampedArray(
+      cytoDetection.width * cytoDetection.height * 4
+    );
     for (let i = 0, j = 0; i < cytoData.length; i++) {
-      const threshVal = cytoData[i] > 0 ? cytoData[i] : 0;
-      intArray[j++] = threshVal; // R value
-      intArray[j++] = threshVal; // G value
-      intArray[j++] = threshVal; // B value
-      intArray[j++] = 255; // A value
+      const isNucleus = cytoData[i] > 0;
+      const index = Math.abs(cytoData[i]) % Object.values(colors).length;
+      const colorVal = hexToRgb(Object.values(colors)[index]);
+
+      if (isNucleus) {
+        intArray[j++] = annotation.color.rgb.r; // R value
+        intArray[j++] = annotation.color.rgb.g; // G value
+        intArray[j++] = annotation.color.rgb.b; // B value
+        intArray[j++] = annotation.color.rgb.a * 255;
+      } else {
+        intArray[j++] = colorVal.r; // R value
+        intArray[j++] = colorVal.g; // G value
+        intArray[j++] = colorVal.b; // B value
+        intArray[j++] = (1 - annotation.color.rgb.a) * 255;
+      }
     }
-    return new ImageData(intArray, 1000, 1000);
+    return new ImageData(intArray, cytoDetection.width, cytoDetection.height);
   } else {
     const intArray = new Uint8ClampedArray(
       nucleusDetection.width * nucleusDetection.height * 4
     );
     for (let i = 0, j = 0; i < data.length; i++) {
-      const threshVal =
-        data[i] > 0
-          ? 255 * (1 - annotation.color.rgb.a)
-          : 255 * annotation.color.rgb.a;
-      intArray[j++] = annotation.color.rgb.r; // R value
-      intArray[j++] = annotation.color.rgb.g; // G value
-      intArray[j++] = annotation.color.rgb.b; // B value
-      intArray[j++] = threshVal; // A value
+      const isNucleus = data[i] > 0;
+      const index = Math.abs(data[i]) % Object.values(colors).length;
+      const colorVal = hexToRgb(Object.values(colors)[index]);
+
+      if (isNucleus) {
+        intArray[j++] = colorVal.r; // R value
+        intArray[j++] = colorVal.g; // G value
+        intArray[j++] = colorVal.b; // B value
+        intArray[j++] = (1 - annotation.color.rgb.a) * 255;
+      } else {
+        intArray[j++] = annotation.color.rgb.r; // R value
+        intArray[j++] = annotation.color.rgb.g; // G value
+        intArray[j++] = annotation.color.rgb.b; // B value
+        intArray[j++] = annotation.color.rgb.a * 255;
+      }
     }
     return new ImageData(
       intArray,

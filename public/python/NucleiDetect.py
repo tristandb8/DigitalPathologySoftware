@@ -47,7 +47,7 @@ if __name__ == '__main__':
         IMAGE_RESIZE_MODE = "pad64"  # 'none' #
         DETECTION_MAX_INSTANCES = 3500  # 3000
         DETECTION_MIN_CONFIDENCE = 0.5
-        DETECTION_NMS_THRESHOLD = 0.20
+        DETECTION_NMS_THRESHOLD = 0.02
         RPN_ANCHOR_SCALES = (8, 16, 32, 64, 128)
         POST_NMS_ROIS_INFERENCE = 12000  # 15000
 

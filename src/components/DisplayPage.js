@@ -13,6 +13,7 @@ import { Modes } from "../utils/canvasModes";
 import "../App.css";
 
 import PanZoomCanvas from "./PanZoomCanvas";
+const { ipcRenderer } = window.require("electron");
 
 class ToolButton extends Component {
   render() {
@@ -174,13 +175,25 @@ export default class DisplayPage extends Component {
 
     this.state = {
       mode: Modes.Pan,
-      grid: false,
+      grid: true,
       ruler: false,
     };
   }
 
   resetView = () => {
     if (this.canvasRef.current != null) this.canvasRef.current.resetView();
+  };
+
+  actualSize = () => {
+    if (this.canvasRef.current != null) this.canvasRef.current.actualSize();
+  };
+
+  zoomIn = () => {
+    if (this.canvasRef.current != null) this.canvasRef.current.zoomIn();
+  };
+
+  zoomOut = () => {
+    if (this.canvasRef.current != null) this.canvasRef.current.zoomOut();
   };
 
   toggleGrid = () => {
@@ -204,6 +217,52 @@ export default class DisplayPage extends Component {
   onZoom = (ref) => {
     // console.log(ref.state.scale);
   };
+
+  componentDidMount() {
+    ipcRenderer.on("reset-view", (event) => {
+      this.resetView();
+    });
+
+    ipcRenderer.on("toggle-grid", (event) => {
+      this.toggleGrid();
+    });
+
+    ipcRenderer.on("pan-mode", (event) => {
+      this.switchMode(Modes.Pan);
+    });
+
+    ipcRenderer.on("zoom-mode", (event) => {
+      this.switchMode(Modes.Zoom);
+    });
+
+    ipcRenderer.on("measure-mode", (event) => {
+      this.switchMode(Modes.Measure);
+    });
+
+    ipcRenderer.on("annotate-square-mode", (event) => {
+      this.switchMode(Modes.AnnotateSquare);
+    });
+
+    ipcRenderer.on("annotate-circle-mode", (event) => {
+      this.switchMode(Modes.AnnotateCircle);
+    });
+
+    ipcRenderer.on("annotate-polygon-mode", (event) => {
+      this.switchMode(Modes.AnnotatePolygon);
+    });
+
+    ipcRenderer.on("zoom-in", (event) => {
+      this.zoomIn();
+    });
+
+    ipcRenderer.on("zoom-out", (event) => {
+      this.zoomOut();
+    });
+
+    ipcRenderer.on("actual-view", (event) => {
+      this.actualSize();
+    });
+  }
 
   render() {
     return (

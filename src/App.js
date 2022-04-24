@@ -79,13 +79,13 @@ class App extends Component {
 
     ipcRenderer.send(
       "cytoplasm-detection",
-      String.fromCharCode.apply(
-        null,
-        loadedFile.nucleusDetection.detectionArray
-      ),
+      loadedFile.nucleusDetection.detectionArray.toString(),
       this.state.loadedProject.activeFile,
       info,
-      annotationJSON
+      annotationJSON,
+      loadedFile.imageData.width,
+      loadedFile.imageData.height,
+      loadedFile.name
     );
   };
 
@@ -158,7 +158,9 @@ class App extends Component {
     // TODO: Set tab to some adjacent tab
     let newActive = activeIndex;
     if (keyIndex === activeIndex) newActive = activeIndex - 1;
+    if (newActive === -1) newActive = oldTabs.length - 1;
     newActive = oldTabs[newActive];
+    if (newActive === key) newActive = null;
 
     this.setState((prevState) => ({
       loadedProject: { ...prevState.loadedProject, activeFile: newActive },
@@ -183,7 +185,9 @@ class App extends Component {
     if (!loadedFile) return;
 
     annotation.name = `${annotation.type} ${loadedFile.annotations.length + 1}`;
-    annotation.useNucleusDetection = loadedFile.nucleusDetection != null;
+    annotation.useCytoDetection = loadedFile.cytoDetection != null;
+    annotation.useNucleusDetection =
+      !annotation.useCytoDetection && loadedFile.nucleusDetection != null;
 
     getAnnotationFill(
       annotation,
@@ -230,9 +234,20 @@ class App extends Component {
 
     let newArray = [...loadedFile.annotations];
     let newAnnotation = { ...newArray[index] };
+
+    if (key === "useCytoDetection")
+      newAnnotation["useNucleusDetection"] = false;
+
+    if (key === "useNucleusDetection")
+      newAnnotation["useCytoDetection"] = false;
+
     newAnnotation[key] = value;
 
-    if (key === "color" || key === "useNucleusDetection") {
+    if (
+      key === "color" ||
+      key === "useNucleusDetection" ||
+      key === "useCytoDetection"
+    ) {
       getAnnotationFill(
         newAnnotation,
         loadedFile.nucleusDetection,
@@ -303,6 +318,26 @@ class App extends Component {
   };
 
   componentDidMount() {
+    ipcRenderer.on("next-tab", (event) => {
+      const tabs = [...this.state.tabs.keys()];
+      const activeIndex =
+        (tabs.indexOf(this.state.loadedProject.activeFile) + 1) % tabs.length;
+      this.selectTab(tabs[activeIndex]);
+    });
+
+    ipcRenderer.on("prev-tab", (event) => {
+      const tabs = [...this.state.tabs.keys()];
+      let activeIndex = tabs.indexOf(this.state.loadedProject.activeFile);
+      if (activeIndex - 1 === -1) activeIndex = tabs.length - 1;
+      else activeIndex -= 1;
+      this.selectTab(tabs[activeIndex]);
+    });
+
+    ipcRenderer.on("close-tab", (event) => {
+      if (this.state.loadedProject)
+        this.closeTab(this.state.loadedProject.activeFile);
+    });
+
     ipcRenderer.on("new-image", (event, fileContent, append) => {
       let imageData, cellDetectChannel;
 
@@ -403,8 +438,15 @@ class App extends Component {
     ipcRenderer.on(
       "cytoplasm-detect-result-buffer",
       (event, cytoplasmBuffer) => {
+        if (cytoplasmBuffer === null) {
+          clearInterval(this.intervalID);
+          this.setState((prevState) => ({
+            cytoplasmDetectInfo: null,
+            cytoplasmRuntime: 0,
+          }));
+          return;
+        }
         const detectionArray = new Int32Array(cytoplasmBuffer.buffer);
-        // console.log(detectionArray);
         const info = this.state.cytoplasmDetectInfo;
         if (info == null) return;
         const loadedFile = this.state.loadedProject.files.get(info.loadedFile);

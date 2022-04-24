@@ -22,9 +22,8 @@ class AnnotationCanvas extends Component {
     const canvas = this.canvasRef?.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const boundingRect = this.canvasRef.current.getBoundingClientRect();
-    canvas.width = boundingRect.width;
-    canvas.height = boundingRect.height;
+    canvas.width = this.props.width * this.props.scale;
+    canvas.height = this.props.height * this.props.scale;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let i = 0; i < this.props.annotations?.length; i++) {
@@ -32,7 +31,9 @@ class AnnotationCanvas extends Component {
       const isSelected = i === this.props.selectedAnnotation;
       const lineWidth = isSelected ? 3 : 1;
       const backgroundFill =
-        i !== 0 || (i === 0 && annotation.useNucleusDetection);
+        i !== 0 ||
+        (i === 0 &&
+          (annotation.useNucleusDetection || annotation.useCytoDetection));
 
       if (
         typeof annotation.fill === "string" ||
@@ -41,7 +42,7 @@ class AnnotationCanvas extends Component {
         ctx.fillStyle = annotation.fill;
       } else {
         const pattern = ctx.createPattern(annotation.fill, "no-repeat");
-        const transform = ctx.getTransform();
+        const transform = new DOMMatrix();
 
         transform.scaleSelf(
           this.props.scale,
@@ -127,7 +128,12 @@ class AnnotationCanvas extends Component {
     return (
       <canvas
         ref={this.canvasRef}
-        style={{ width: "100%", height: "100%", position: "absolute" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          imageRendering: "pixelated",
+        }}
       />
     );
   }
@@ -459,19 +465,29 @@ class DrawCanvas extends Component {
 export default class AnnotatedCanvas extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {};
+    this.annotationCanvasRef = React.createRef(null);
+    this.drawCanvasRef = React.createRef(null);
   }
+
+  updateCanvas = () => {
+    if (this.annotationCanvasRef?.current)
+      this.annotationCanvasRef.current.updateCanvas();
+    if (this.drawCanvasRef?.current) this.drawCanvasRef.current.updateCanvas();
+  };
 
   render() {
     return (
       <div style={{ width: "100%", height: "100%", position: "absolute" }}>
         <AnnotationCanvas
+          ref={this.annotationCanvasRef}
           selectedAnnotation={this.props.selectedAnnotation}
           annotations={this.props.annotations}
           scale={this.props.scale}
+          width={this.props.width}
+          height={this.props.height}
         />
         <DrawCanvas
+          ref={this.drawCanvasRef}
           mode={this.props.mode}
           scale={this.props.scale}
           onZoom={this.props.onZoom}

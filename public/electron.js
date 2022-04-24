@@ -3,6 +3,7 @@ const { ipcMain } = require("electron");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
+const isDev = require("electron-is-dev");
 let { PythonShell } = require("python-shell");
 
 const isMac = process.platform === "darwin";
@@ -39,21 +40,137 @@ const template = [
       },
     ],
   },
-  // { role: 'viewMenu' }
   {
     label: "View",
     submenu: [
-      { role: "reload" },
-      { role: "forceReload" },
-      { role: "toggleDevTools" },
-      { type: "separator" },
-      { role: "resetZoom" },
-      { role: "zoomIn" },
-      { role: "zoomOut" },
-      { type: "separator" },
-      { role: "togglefullscreen" },
+      {
+        label: "Next Tab",
+        accelerator: "CmdOrCtrl+Tab",
+        click() {
+          mainWindow.webContents.send("next-tab");
+        },
+      },
+      {
+        label: "Previous Tab",
+        accelerator: "CmdOrCtrl+Shift+Tab",
+        click() {
+          mainWindow.webContents.send("prev-tab");
+        },
+      },
+      {
+        label: "Close Tab",
+        accelerator: "CmdOrCtrl+W",
+        click() {
+          mainWindow.webContents.send("close-tab");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Zoom To Fit",
+        accelerator: "CmdOrCtrl+R",
+        click() {
+          mainWindow.webContents.send("reset-view");
+        },
+      },
+      {
+        label: "Actual Size",
+        accelerator: "CmdOrCtrl+Shift+R",
+        click() {
+          mainWindow.webContents.send("actual-view");
+        },
+      },
+      {
+        label: "Zoom In",
+        accelerator: "CmdOrCtrl+Plus",
+        click() {
+          mainWindow.webContents.send("zoom-in");
+        },
+      },
+      {
+        label: "Zoom Out",
+        accelerator: "CmdOrCtrl+-",
+        click() {
+          mainWindow.webContents.send("zoom-out");
+        },
+      },
     ],
   },
+  {
+    label: "Tools",
+    submenu: [
+      {
+        label: "Toggle Grid",
+        accelerator: "CmdOrCtrl+G",
+        click() {
+          mainWindow.webContents.send("toggle-grid");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Pan",
+        accelerator: "Shift+E",
+        click() {
+          mainWindow.webContents.send("pan-mode");
+        },
+      },
+      {
+        label: "Zoom",
+        accelerator: "Shift+Z",
+        click() {
+          mainWindow.webContents.send("zoom-mode");
+        },
+      },
+      {
+        label: "Measure",
+        accelerator: "Shift+D",
+        click() {
+          mainWindow.webContents.send("measure-mode");
+        },
+      },
+      {
+        type: "separator",
+      },
+      {
+        label: "Annotate Square",
+        accelerator: "Shift+S",
+        click() {
+          mainWindow.webContents.send("annotate-square-mode");
+        },
+      },
+      {
+        label: "Annotate Circle",
+        accelerator: "Shift+C",
+        click() {
+          mainWindow.webContents.send("annotate-circle-mode");
+        },
+      },
+      {
+        label: "Annoatate Polygon",
+        accelerator: "Shift+P",
+        click() {
+          mainWindow.webContents.send("annotate-polygon-mode");
+        },
+      },
+    ],
+  },
+  // { role: 'viewMenu' }
+  ...(isDev
+    ? [
+        {
+          label: "Dev View",
+          submenu: [
+            { role: "forceReload" },
+            { role: "toggleDevTools" },
+            { role: "resetZoom" },
+            { type: "separator" },
+          ],
+        },
+      ]
+    : []),
 ];
 
 const menu = Menu.buildFromTemplate(template);
@@ -74,10 +191,15 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
   });
-  mainWindow.loadURL("http://localhost:3000");
+
+  mainWindow.loadURL(
+    isDev
+      ? "http://localhost:3000"
+      : `file://${path.join(__dirname, "../build/index.html")}`
+  );
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (isDev) mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished
@@ -99,30 +221,70 @@ app.whenReady().then(() => {
 
   ipcMain.on(
     "cytoplasm-detection",
-    (event, nucleusBuffer, tiffPath, info, annotation) => {
-      console.log(nucleusBuffer);
-      console.log(tiffPath);
-      console.log(info);
-      console.log(annotation);
+    (event, nucleusBuffer, tiffPath, info, annotation, width, height, name) => {
+      let fileName = path.basename(name);
+
+      const pathForResults = path.join(
+        os.homedir(),
+        "Documents",
+        "ZDFocus",
+        "Detect Cytoplasm",
+        `${fileName}_cyto_2D`
+      );
+
+      const pathForNucleus = path.join(
+        os.homedir(),
+        "Documents",
+        "ZDFocus",
+        "Detect Nucleus",
+        `${fileName}_nucleus_2D`
+      );
 
       // EXECUTE CYTOPLASM DETECTION HERE
-      let setColor = true;
-      let color = setColor;
-      const retval = new Int32Array(1000 * 1000);
-      for (let y = 0, height = 0; y < 1000; y++, height++) {
-        color = setColor;
-        for (let x = 0, width = 0; x < 1000; x++, width++) {
-          retval[y * 1000 + x] = (color ? 1 : -1) * 255;
-          if ((x + 1) % 15 === 0) color = !color;
+      // Pre-defined options and arguments that python-shell will read in.
+      let options = {
+        mode: "text",
+        // I enable/disable this when on my (mike) machine
+        // pythonPath:
+        //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/...",
+        pythonOptions: ["-u"], // get print results in real-time
+        args: [
+          pathForNucleus,
+          tiffPath,
+          info["channels"],
+          info["names"],
+          String(annotation),
+          width,
+          height,
+          fileName,
+          pathForResults,
+        ], //An argument which can be accessed in the script, index starts at 1, not 0.
+      };
+
+      const resultFn = (err, result) => {
+        console.log("CYTOPLASM DETECT FINISHED...");
+        if (err) {
+          mainWindow.webContents.send("cytoplasm-detect-result-buffer", null);
+          throw err;
         }
-        if ((y + 1) % 15 === 0) setColor = !setColor;
+        const fileContent = fs.readFileSync(pathForResults);
+        mainWindow.webContents.send(
+          "cytoplasm-detect-result-buffer",
+          fileContent
+        );
+      };
+
+      let pathToScript = null;
+      if (isDev) {
+        pathToScript = path.join(__dirname, "python", "cyto_detect_ex.py");
+      } else {
+        pathToScript = path.join(
+          process.resourcesPath,
+          "public/python/cyto_detect_ex.py"
+        );
       }
 
-      mainWindow.webContents.send(
-        "cytoplasm-detect-result-buffer",
-        retval,
-        true
-      );
+      PythonShell.run(pathToScript, options, resultFn);
     }
   );
 
@@ -218,12 +380,15 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   console.log("Testing Nucleus Scripts...");
 
   // Paths used as arguments that will be sent into python scripts.
-  const pathToh5 = path.join(
-    process.cwd(),
-    "src",
-    "python",
-    "mask_rcnn_cell_0030.h5"
-  );
+  let pathToh5 = null;
+  if (isDev) {
+    pathToh5 = path.join(__dirname, "python", "mask_rcnn_cell_0030.h5");
+  } else {
+    pathToh5 = path.join(
+      process.resourcesPath,
+      "public/python/mask_rcnn_cell_0030.h5"
+    );
+  }
 
   const pathForTMPchannel = path.join(
     os.homedir(),
@@ -254,9 +419,6 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
   // Pre-defined options and arguments that python-shell will read in.
   let options = {
     mode: "text",
-    // I enable/disable this when on my (mike) machine
-    pythonPath:
-      "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
     pythonOptions: ["-u"], // get print results in real-time
     args: [
       pathToh5,
@@ -276,80 +438,15 @@ function nucleiDetect(fileName, width, height, lastChannelPath, projectName) {
     mainWindow.webContents.send("nucleus-detect-result-buffer", fileContent);
   };
 
-  PythonShell.run("./src/python/NucleiDetect.py", options, resultFn);
-}
+  let pathToScript = null;
+  if (isDev) {
+    pathToScript = path.join(__dirname, "python", "NucleiDetect.py");
+  } else {
+    pathToScript = path.join(
+      process.resourcesPath,
+      "public/python/NucleiDetect.py"
+    );
+  }
 
-function cytoplasmDetect(
-  fileName,
-  width,
-  height,
-  lastChannelPath,
-  projectName,
-  tiffFilePath
-) {
-  console.log("Testing Cytoplasm Scripts...");
-
-  // Paths used as arguments that will be sent into python scripts.
-  const pathToh5 = path.join(
-    process.cwd(),
-    "src",
-    "python",
-    "mask_rcnn_cell_0030.h5"
-  );
-
-  const pathForTMPchannel = path.join(
-    os.homedir(),
-    "Documents",
-    "ZDFocus",
-    "tmp",
-    "tmp.jpg"
-  );
-
-  const pathForResults =
-    projectName !== "Untitled Project"
-      ? path.join(
-          os.homedir(),
-          "Documents",
-          "ZDFocus",
-          projectName,
-          "Detect Cytoplasm",
-          `${fileName}_cyto_2D`
-        )
-      : path.join(
-          os.homedir(),
-          "Documents",
-          "ZDFocus",
-          "Detect Cytoplasm",
-          `${fileName}_cyto_2D`
-        );
-
-  // Pre-defined options and arguments that python-shell will read in.
-  let options = {
-    mode: "text",
-    // I enable/disable this when on my (mike) machine
-    // pythonPath:
-    //   "C:/Users/monar/AppData/Local/Programs/Python/Python36/python.exe",
-    pythonOptions: ["-u"], // get print results in real-time
-    args: [
-      pathToh5,
-      lastChannelPath,
-      width,
-      height,
-      pathForTMPchannel,
-      fileName,
-      projectName,
-      tiffFilePath,
-    ], //An argument which can be accessed in the script, index starts at 1, not 0.
-  };
-
-  const resultFn = (err, result) => {
-    console.log(result);
-
-    if (err) throw err;
-    console.log("CYTO DETECT FINISHED...");
-    const fileContent = fs.readFileSync(pathForResults);
-    mainWindow.webContents.send("cytoplasm-detect-result-buffer", fileContent);
-  };
-
-  PythonShell.run("./src/python/Nuclei_cyto_detect.py", options, resultFn);
+  PythonShell.run(pathToScript, options, resultFn);
 }

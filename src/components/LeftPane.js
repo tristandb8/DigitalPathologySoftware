@@ -90,8 +90,6 @@ class ImagePane extends Component {
         <p className="imagePaneLabel">{selectedImage.imageData.height}</p>
         <h1 className="imagePaneHeader">Channels</h1>
         <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
-        <h1 className="imagePaneHeader">Channels</h1>
-        <p className="imagePaneLabel">{selectedImage.imageData.channels}</p>
         <h1 className="imagePaneHeader">Composite Operation</h1>
         <select
           className="imagePaneLabel"
@@ -283,7 +281,7 @@ class AnnotationInput extends Component {
       return (
         <div className="imagePane">
           <div>
-            <h1 className="imagePaneHeader">Nucleus Detect Fill</h1>
+            <h1 className="imagePaneHeader">Nucleus Fill</h1>
             <input
               type="checkbox"
               checked={this.props.selectedAnnotation.useNucleusDetection}
@@ -293,6 +291,22 @@ class AnnotationInput extends Component {
                   this.props.index,
                   "useNucleusDetection",
                   !this.props.selectedAnnotation.useNucleusDetection
+                )
+              }
+              style={{ width: "16px", height: "16px" }}
+            />
+          </div>
+          <div>
+            <h1 className="imagePaneHeader">Cytoplasm Fill</h1>
+            <input
+              type="checkbox"
+              checked={this.props.selectedAnnotation.useCytoDetection}
+              disabled={!this.props.canUseCytoBackground}
+              onChange={() =>
+                this.props.onAnnotationChange(
+                  this.props.index,
+                  "useCytoDetection",
+                  !this.props.selectedAnnotation.useCytoDetection
                 )
               }
               style={{ width: "16px", height: "16px" }}
@@ -341,6 +355,7 @@ class AnnotationPane extends Component {
           selectedAnnotationIndex={this.props.selectedAnnotation}
           index={this.props.selectedAnnotation}
           canUseNucleusBackground={this.props.canUseNucleusBackground}
+          canUseCytoBackground={this.props.canUseCytoBackground}
           selectedAnnotation={
             selectedImage.annotations[this.props.selectedAnnotation]
           }
@@ -427,6 +442,7 @@ export default class LeftPane extends Component {
         );
       case LeftPanes.Annotation:
         const canUseNucleusBackground = loadedFile?.nucleusDetection != null;
+        const canUseCytoBackground = loadedFile?.cytoDetection != null;
         return (
           <AnnotationPane
             project={this.props.project}
@@ -435,6 +451,7 @@ export default class LeftPane extends Component {
             removeAnnotation={this.props.removeAnnotation}
             selectedAnnotation={this.props.selectedAnnotation}
             canUseNucleusBackground={canUseNucleusBackground}
+            canUseCytoBackground={canUseCytoBackground}
           />
         );
       default:
