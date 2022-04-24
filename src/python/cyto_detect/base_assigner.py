@@ -99,7 +99,8 @@ class cyto_assigner_base():
             # Verify shape matches nuc_mask
             if self.img.shape[1] != self.nuc_mask.shape[0] or \
                             self.img.shape[2] != self.nuc_mask.shape[1]:
-                raise ValueError('Shape of img does not match nuc_mask')
+                raise ValueError(f'Shape of img ({self.img.shape[1]}) '+\
+                             f' does not match nuc_mask ({self.nuc_mask.shape})')
             # Copy image so we have the original
             self.original_img = self.img.copy()
             # Apply filter
@@ -217,6 +218,8 @@ class cyto_assigner_base():
         if self.channels is None:
             # If no channels provided, set it to all channels then return
             self.channels = range(len(img))
+            return
+        elif len(self.channels) == 0:
             return
         elif max(self.channels) > len(img):
             # Raise an error if channel is above max number of channels
@@ -525,9 +528,11 @@ class cyto_assigner_base():
     #       - cyto = 2D list of cyto assignment
     #       - channel_names (optional) = list of channel names where indices
     #           line up with the channels in the tiff image
-    def get_data_per_pix(self, cyto, channel_names=None):
+    def get_data_per_pix(self, cyto, img=None, channel_names=None):
         # Move axis so that the [z][x][y] dims is [x][y][z]
-        img = np.moveaxis(self.original_img,0,-1)
+        if img is None:
+            img = np.moveaxis(self.original_img,0,-1)
+
         # Create dictionary to store information
         dct = {}
         # Iterate through each pixel and get info
@@ -564,9 +569,11 @@ class cyto_assigner_base():
     def get_data_per_nuc(self, cyto, channel_names=None, incl_nuc=True, \
                                                 incl_cyto=True, agg_fxns=None):
 
-        if agg_fxns is None:
+        if agg_fxns is None or (isinstance(agg_fxns,list) and len(agg_fxns)==0):
             # If no values passed, use all agg fxns
             agg_fxns = ['min','max','mean','std','count']
+        elif isinstance(agg_fxns, list) and len(agg_fxns) == 0:
+            raise ValueError('Need ')
         elif isinstance(agg_fxns, str):
             # If only passed a string, wrap in a list
             agg_fxns = [agg_fxns]
@@ -580,5 +587,43 @@ class cyto_assigner_base():
         elif not incl_nuc:
             df = df[df.is_nuc == False]
 
-        # Groupby the nuclei and then apply aggregate functions
-        return df.groupby('nuc').agg(agg_fxns)
+        aggregated = {}
+        for agg in agg_fxns:
+            # Verify agg is a string
+            if not isinstance(agg, str):
+                raise TypeError('Expected a str for agg values')
+            # Lower it so they're not cap sensitive
+            agg = agg.lower()
+            # Determine values based off the agg method
+            if agg == 'min':
+                df_agg = df.groupby('nuc').min()
+            elif agg == 'max':
+                df_agg = df.groupby('nuc').max()
+            elif agg == 'mean':
+                df_agg = df.groupby('nuc').mean()
+            elif agg == 'std':
+                df_agg = df.groupby('nuc').std()
+            elif agg == 'count':
+                df_agg = df.groupby('nuc').count()
+            elif agg == 'sum':
+                df_agg = df.groupby('nuc').sum()
+            else:
+                raise ValueError('Expected min, max, mean, std, count, or sum')
+
+            df_agg = df_agg.drop(['x','y','is_cyto','is_nuc'], axis=1)
+
+            if len(agg_fxns) != 1:
+                df_agg = df_agg.add_suffix('_'+agg)
+
+            aggregated[agg] = df_agg
+
+        frames = [agg_df for agg_name, agg_df in aggregated.items()]
+        concat_df = pd.concat(frames, axis=1)
+
+        def snum(item):
+            return int(str(item).split('_')[0])
+
+        cols = sorted([c for c in concat_df.columns if c != 'nuc'], key=snum)
+        concat_df = concat_df[cols]
+
+        return concat_df

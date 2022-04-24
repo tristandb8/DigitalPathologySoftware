@@ -5,6 +5,7 @@
 
 
 from .base_assigner import cyto_assigner_base
+from .dist import dist_assigner
 import numpy as np
 import argparse
 import random
@@ -41,8 +42,15 @@ class growing_assigner(cyto_assigner_base):
         self.min_thresh_k = params.get('min_thresh_k', 10)
 
     def run(self, **params):
-        # Runs set up for parameters
+        # Run setup, extract parameters
         self._setup(**params)
+
+        # If supplied channels and the length of the channels list is 0, resort
+        #   to utilizing distance based approach
+        if params.get('channels') is not None and \
+                                        len(params.get('channels')) == 0:
+            return dist_assigner().run(**params)
+
         # Generate 2D list for cytoplasm
         cyto = self.gen_2d_list()
         # Get min dist / max dist / min_k in local scope

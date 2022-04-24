@@ -18,7 +18,7 @@ class dist_assigner(cyto_assigner_base):
         # Create a 2D list for cytoplasm
         cyto = self.gen_2d_list()
         # Get minimum and max distance
-        max_dist = params.get('max_dist',max(shape[0], shape[1]))
+        max_dist = params.get('max_dist',max(self.shape[0], self.shape[1]))
         # Get nuc_mask info
         nuc_mask, shape = self.nuc_mask, self.shape
         # Create a dictionary to store relative points
