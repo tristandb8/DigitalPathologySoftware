@@ -620,10 +620,14 @@ class cyto_assigner_base():
         frames = [agg_df for agg_name, agg_df in aggregated.items()]
         concat_df = pd.concat(frames, axis=1)
 
-        def snum(item):
-            return int(str(item).split('_')[0])
 
-        cols = sorted([c for c in concat_df.columns if c != 'nuc'], key=snum)
+        if channel_names is None:
+            def snum(item):
+                return int(str(item).split('_')[0])
+            cols = sorted([c for c in concat_df.columns if c != 'nuc'], key=snum)
+        else:
+            cols = sorted([c for c in concat_df.columns if c != 'nuc'])
+
         concat_df = concat_df[cols]
 
         return concat_df
