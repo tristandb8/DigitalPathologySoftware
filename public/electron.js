@@ -216,7 +216,7 @@ app.whenReady().then(() => {
 
   ipcMain.on("request-image-load", (event, path) => {
     let file = inferFile(path);
-    if (file) mainWindow.webContents.send("new-image", file, false);
+    if (file) mainWindow.webContents.send("new-image", file);
   });
 
   ipcMain.on(
@@ -342,7 +342,7 @@ function openFile() {
   if (!files) return;
   for (const file of files) {
     const retval = inferFile(file);
-    mainWindow.webContents.send("new-image", retval, true);
+    mainWindow.webContents.send("new-image", retval);
   }
 }
 
