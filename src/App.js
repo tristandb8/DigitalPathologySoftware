@@ -338,7 +338,7 @@ class App extends Component {
         this.closeTab(this.state.loadedProject.activeFile);
     });
 
-    ipcRenderer.on("new-image", (event, fileContent, append) => {
+    ipcRenderer.on("new-image", (event, fileContent) => {
       let imageData, cellDetectChannel;
 
       if (fileContent.type === "tiff") {
